@@ -447,7 +447,7 @@ const LOAN_TYPES = {
   other:   '기타담보대출 (비주택·오피스텔 등)',
   deposit: '예적금담보대출',
   midpay:  '중도금·이주비대출',
-  direct:  '할부·리스·카드론 (연상환액 직접입력)'
+  direct:  '할부·리스·카드론'
 };
 
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -524,7 +524,10 @@ function loanCalc(l) {
     case 'other':   return { dsr: amt / S.deem.other + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.other}년 + 이자` };
     case 'deposit': return { dsr: interest, dti: dtiInt, dtiDesc, desc: '이자만 반영' };
     case 'midpay':  return { dsr: amt / S.deem.midpay + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.midpay}년 + 이자` };
-    case 'direct':  return { dsr: num(l.annual), dti: dtiInt, dtiDesc, desc: '연상환액 직접입력' };
+    case 'direct': {
+      const mo = Math.max(1, Math.round(num(l.months) || 1));
+      return { dsr: annualPay(amt, rate, mo / 12, 'equal'), dti: dtiInt, dtiDesc, desc: `원리금균등 · 잔여 ${mo}개월` };
+    }
   }
   return { dsr: 0, dti: 0, desc: '', dtiDesc: '' };
 }
@@ -544,8 +547,8 @@ function loanRowHTML(l, i) {
         <option value="principal" ${l.method === 'principal' ? 'selected' : ''}>원금균등</option></select></div></div>`);
   }
   if (l.type === 'direct') {
-    f.push(`<div class="field"><label>연 상환액</label>
-      <div class="inp"><input class="money" data-i="${i}" data-k="annual" inputmode="numeric" value="${l.annual}" placeholder="0"><span class="u">만원</span></div><div class="hint">${l.annual ? korMan(num(l.annual)) : ''}</div></div>`);
+    f.push(`<div class="field"><label>잔여기간</label>
+      <div class="inp"><input type="number" step="1" min="1" max="120" inputmode="numeric" data-i="${i}" data-k="months" value="${l.months}"><span class="u">개월</span></div></div>`);
   }
   return `<div class="loan">
     <div class="loan-top"><div class="inp"><select data-i="${i}" data-k="type">${opts}</select></div>
@@ -557,7 +560,7 @@ function renderLoans() {
   $('#loans').innerHTML = loans.length ? loans.map(loanRowHTML).join('') : '<div class="empty">등록된 기존 대출이 없습니다.</div>';
   recalc();
 }
-function newLoan() { return { type: 'credit', amt: '', rate: '', years: 20, method: 'equal', annual: '' }; }
+function newLoan() { return { type: 'credit', amt: '', rate: '', years: 20, method: 'equal', months: 12 }; }
 
 /* ---------- 입력 UI 구성 ---------- */
 function segHTML(name, items, checked) {
