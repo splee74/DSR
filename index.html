@@ -1,0 +1,929 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest"><!-- pwa -->
+<link rel="apple-touch-icon" href="apple-touch-icon.png"><!-- pwa -->
+<meta name="theme-color" content="#ff6f0f"><!-- pwa -->
+<meta name="mobile-web-app-capable" content="yes"><!-- pwa -->
+<meta name="apple-mobile-web-app-capable" content="yes"><!-- pwa -->
+<meta name="apple-mobile-web-app-title" content="DSR계산기"><!-- pwa -->
+<title>DSR·DTI 계산기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{
+  --brand:#ff6f0f;--brand-dark:#e85d00;--brand-weak:#fff4ec;--brand-line:#ffdcc4;
+  --bg:#f6f6f4;--card:#fff;--line:#ecebe8;--soft:#f5f5f3;--text:#26262a;--sub:#55575e;--muted:#8d9098;
+  --ok:#0b9e6a;--okbg:#e8f6f0;--warn:#e08e00;--warnbg:#fff6e2;--bad:#ea3d34;--badbg:#ffefee;
+  --surface:#fff;--line-strong:#d4d5d9;--faint:#b4b6bc;--mark:#55575e88;--foot:#fcfcfb;--head-grad:#fff6ef;--header:#fffffff0;--header-solid:#fff;
+  --shadow:0 1px 2px #0000000a,0 8px 24px #00000009;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#ff7a1f;--brand-dark:#ff6f0f;--brand-weak:#3a2416;--brand-line:#5c3819;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --ok:#3ccf91;--okbg:#10301f;--warn:#f0b23c;--warnbg:#33280e;--bad:#ff6b63;--badbg:#3a1918;
+  --surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--mark:#b9bbc288;--foot:#19191c;--head-grad:#2a1d14;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --shadow:0 1px 2px #00000066;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#ff7a1f;--brand-dark:#ff6f0f;--brand-weak:#3a2416;--brand-line:#5c3819;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --ok:#3ccf91;--okbg:#10301f;--warn:#f0b23c;--warnbg:#33280e;--bad:#ff6b63;--badbg:#3a1918;
+  --surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--mark:#b9bbc288;--foot:#19191c;--head-grad:#2a1d14;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --shadow:0 1px 2px #00000066;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.55;letter-spacing:-.2px;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;letter-spacing:inherit}
+
+/* ── header ── */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:25;background:var(--header-solid)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1360px;margin:0 auto;padding-block:12px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px}
+.brand h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.4px}
+.brand span{display:block;font-size:12px;color:var(--muted);margin-top:-2px}
+.tabs{display:flex;gap:2px;background:var(--soft);border-radius:999px;padding:4px}
+.tabs button{border:0;background:transparent;color:var(--muted);padding:7px 18px;border-radius:999px;font-weight:600;font-size:14.5px}
+.tabs button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 4px #00000014}
+.actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.actions button{border:0;background:transparent;color:var(--sub);padding:8px 14px;border-radius:999px;font-size:14px;font-weight:500}
+.actions button:hover{background:var(--soft)}
+.actions button.primary{background:var(--brand);color:#fff;font-weight:600;padding:8px 18px}
+.actions button.primary:hover{background:var(--brand-dark)}
+
+/* ── layout ── */
+.layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:24px;max-width:1360px;margin:0 auto;padding-block:24px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+@media (max-width:1000px){.layout{grid-template-columns:1fr;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));gap:16px}}
+@media (max-width:560px){
+  .top-in{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));gap:10px}
+  .tabs{order:3;width:100%}.tabs button{flex:1}
+  .inp input,.inp select{font-size:16px}
+  .card{padding:18px}
+}
+.card{background:var(--card);border-radius:20px;padding:22px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card h2{margin:0 0 18px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px;letter-spacing:-.3px}
+.card h2 .num{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--brand-weak);color:var(--brand);font-size:12px;font-weight:700}
+.results{position:sticky;top:78px;align-self:start}
+@media (max-width:1000px){.results{position:static}}
+
+/* ── fields ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px}
+@media (max-width:560px){.grid2,.grid3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.flabel{font-size:13px;font-weight:500;color:var(--sub)}
+.full{grid-column:1/-1}
+.inp{display:flex;align-items:center;border:1.5px solid transparent;border-radius:12px;background:var(--soft);padding:0 14px;min-height:46px;transition:.15s}
+.inp input,.inp select{border:0;outline:0;flex:1;min-width:0;padding:10px 0;font:inherit;font-weight:600;background:transparent;text-align:right;color:var(--text)}
+.inp input::placeholder{color:var(--faint);font-weight:400;font-size:14px}
+.inp select{text-align:left;cursor:pointer}
+.inp input.left{text-align:left}
+.inp .u{color:var(--muted);font-size:13px;margin-left:6px;white-space:nowrap}
+.inp:focus-within{border-color:var(--brand);background:var(--surface)}
+.hint{font-size:12px;color:var(--brand);font-weight:500;text-align:right;min-height:18px;margin-top:-2px}
+.note{font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:12px;padding:10px 14px;line-height:1.7}
+.note b{color:var(--text);font-weight:600}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;user-select:none}
+.chk input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line-strong);background:var(--surface);margin:0;display:grid;place-items:center;cursor:pointer;flex:none}
+.chk input:checked{background:var(--brand);border-color:var(--brand)}
+.chk input:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{flex:1 1 0;min-width:92px;position:relative}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;text-align:center;padding:10px 6px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-weight:600;font-size:14px;line-height:1.3;color:var(--sub);transition:.15s}
+.seg span small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
+.seg span:hover{border-color:var(--line-strong)}
+.seg input:checked+span{border-color:var(--brand);background:var(--brand-weak);color:var(--brand)}
+.seg input:checked+span small{color:var(--brand)}
+.seg input:focus-visible+span{box-shadow:0 0 0 3px #ff6f0f33}
+.seg input:checked+span.x{border-color:var(--bad);background:var(--badbg);color:var(--bad)}
+.seg input:checked+span.x small{color:var(--bad)}
+
+/* ── existing loans ── */
+.loan{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+.loan-top{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.loan-top .inp{flex:1}
+.loan .del{border:0;background:var(--soft);color:var(--muted);border-radius:12px;width:46px;height:46px;font-size:18px}
+.loan .del:hover{background:var(--badbg);color:var(--bad)}
+.loan-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.loan-calc{margin-top:4px;font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:8px}
+.loan-calc b{color:var(--text);font-weight:600}
+.add{width:100%;border:1.5px dashed var(--brand-line);background:var(--brand-weak);color:var(--brand);border-radius:14px;padding:12px;font-weight:600}
+.add:hover{border-color:var(--brand)}
+.empty{font-size:13px;color:var(--muted);text-align:center;padding:4px 0 12px}
+.other-rate{margin-bottom:16px}
+
+/* ── report ── */
+.report{background:var(--card);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
+.rp-head{padding:26px 30px 22px;background:linear-gradient(180deg,var(--head-grad) 0%,var(--card) 100%);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.eyebrow{font-size:12px;color:var(--brand);font-weight:600;letter-spacing:.4px}
+.rp-head h2{margin:4px 0 0;font-size:23px;font-weight:700;letter-spacing:-.6px}
+.rp-meta{font-size:12.5px;color:var(--muted);text-align:right;line-height:1.75}
+.rp-meta b{color:var(--sub);font-weight:600}
+.rp-body{padding:6px 30px 10px}
+@media (max-width:560px){.rp-head,.rp-body{padding-left:18px;padding-right:18px}}
+
+.summary{margin:22px 0 0;font-size:15.5px;line-height:1.8;color:var(--sub);padding:2px 0 2px 16px;border-left:3px solid var(--brand)}
+.summary b{color:var(--text);font-weight:600}
+.summary .hl{color:var(--brand);font-weight:700}
+
+.kpis{display:grid;grid-template-columns:1.35fr 1fr 1fr;margin-top:22px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kpis.two{grid-template-columns:1.35fr 1fr}
+@media (max-width:560px){.kpis,.kpis.two{grid-template-columns:1fr}.kpi{border-left:0!important;border-top:1px solid var(--line);padding-left:0!important}.kpi:first-child{border-top:0}}
+.kpi{padding:18px 18px 14px;border-left:1px solid var(--line)}
+.kpi:first-child{border-left:0;padding-left:0}
+.kpi .k{font-size:12.5px;color:var(--muted);font-weight:500}
+.kpi .v{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1.25;margin:2px 0 4px}
+.kpi.main .v{font-size:40px}
+.kpi .s{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px}
+.kpi.ok .v{color:var(--ok)}.kpi.warn .v{color:var(--warn)}.kpi.bad .v{color:var(--bad)}.kpi.na .v{color:var(--faint)}
+.kpi.ok .s{background:var(--okbg);color:var(--ok)}.kpi.warn .s{background:var(--warnbg);color:var(--warn)}.kpi.bad .s{background:var(--badbg);color:var(--bad)}.kpi.na .s{background:var(--soft);color:var(--muted)}
+.gauge{height:4px;background:var(--soft);border-radius:4px;position:relative;margin:12px 0 18px}
+.gauge i{display:block;height:100%;border-radius:4px;max-width:100%;transition:width .3s}
+.kpi.ok .gauge i{background:var(--ok)}.kpi.warn .gauge i{background:var(--warn)}.kpi.bad .gauge i{background:var(--bad)}
+.gauge .mk{position:absolute;top:-4px;height:12px;width:1.5px;background:var(--mark)}
+.gauge .mk b{position:absolute;top:13px;left:0;transform:translateX(-50%);font-size:10px;color:var(--muted);font-weight:500;white-space:nowrap}
+
+.rp-sec{margin-top:30px}
+.rp-sec h3{display:flex;align-items:baseline;gap:10px;margin:0 0 12px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.rp-sec h3 em{font-style:normal;font-size:12px;font-weight:700;color:var(--brand)}
+.rp-sec h3 small{font-size:12.5px;font-weight:400;color:var(--muted)}
+
+.cond{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin:0}
+@media (max-width:560px){.cond{grid-template-columns:1fr}}
+.cond div{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.cond dt{color:var(--muted)}
+.cond dd{margin:0;font-weight:600;text-align:right}
+
+.amount{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.amount.one{grid-template-columns:1fr}
+@media (max-width:560px){.amount{grid-template-columns:1fr}}
+.amount div{background:var(--brand-weak);border-radius:16px;padding:16px 18px}
+.amount div.b2{background:var(--soft)}
+.amount small{display:block;font-size:12.5px;color:var(--sub)}
+.amount strong{display:block;font-size:26px;font-weight:700;letter-spacing:-.8px;color:var(--brand);margin:2px 0}
+.amount div.b2 strong{color:var(--text)}
+.amount em{display:block;font-style:normal;font-size:12px;color:var(--muted)}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:10px 4px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:500;border-bottom-color:var(--line-strong)}
+td:first-child,th:first-child{text-align:left}
+tr:last-child td{border-bottom:0}
+tr.bind td{color:var(--brand);font-weight:600}
+tr.bind td:first-child::before{content:"● ";font-size:9px;vertical-align:2px}
+.tw{overflow-x:auto}
+
+.formula{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;margin-bottom:10px}
+.formula span{background:var(--soft);border-radius:10px;padding:8px 12px}
+.formula span b{display:block;font-size:11.5px;color:var(--muted);font-weight:500}
+.formula span.res{background:var(--brand-weak);color:var(--brand);font-weight:700}
+.formula span.res b{color:var(--brand)}
+.formula i{font-style:normal;color:var(--muted);font-weight:600}
+.legend{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}
+.legend span{border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:12.5px;color:var(--muted)}
+.legend span.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.small{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+.kv{display:grid;grid-template-columns:auto 1fr;margin:0;font-size:14px}
+.kv dt,.kv dd{padding:9px 0;border-bottom:1px solid var(--line)}
+.kv dt{color:var(--muted)}.kv dd{margin:0;text-align:right;font-weight:600}
+.kv dt:last-of-type,.kv dd:last-of-type{border-bottom:0}
+
+.alert{margin-top:12px;font-size:13.5px;font-weight:600;color:var(--bad);background:var(--badbg);padding:10px 14px;border-radius:12px}
+.block{text-align:center;padding:40px 16px;background:var(--badbg);border-radius:18px;color:var(--bad);margin-top:22px}
+.block strong{display:block;font-size:21px;font-weight:700;margin:6px 0}
+.block p{margin:0;color:var(--sub);font-size:13.5px}
+
+.rp-foot{margin-top:30px;padding:16px 30px 20px;border-top:1px solid var(--line);background:var(--foot);font-size:12.5px;color:var(--muted)}
+.rp-foot b{display:block;font-size:14px;color:var(--text);font-weight:600;margin-bottom:2px}
+
+/* ── settings ── */
+dialog{background:var(--card);color:var(--text);border:0;border-radius:24px;padding:0;width:min(660px,calc(100vw - 32px));max-height:calc(100vh - 40px);box-shadow:0 20px 60px #0003}
+dialog::backdrop{background:#0006}
+.dlg-head{position:sticky;top:0;z-index:1;background:var(--card);border-bottom:1px solid var(--line);padding:18px 22px;display:flex;justify-content:space-between;align-items:center}
+.dlg-head h2{margin:0;font-size:17px;font-weight:700}
+.dlg-head button{background:var(--soft);border:0;color:var(--sub);font-size:20px;line-height:1;width:34px;height:34px;border-radius:50%}
+.dlg-body{padding:18px 22px}
+.sgroup{margin-bottom:20px}
+.sgroup h3{font-size:14px;font-weight:700;margin:0 0 10px}
+.dlg-foot{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 22px;display:flex;justify-content:space-between;gap:8px}
+.btn{border:0;background:var(--soft);color:var(--sub);border-radius:999px;padding:10px 18px;font-weight:600}
+.btn.primary{background:var(--brand);color:#fff}
+
+.credit{max-width:1360px;margin:0 auto;font-size:12px;color:var(--muted);text-align:right;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.credit.top-credit{padding-block:6px 4px}
+.credit.end-credit{padding-block:0 24px}
+@media (max-width:560px){.credit{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+.mbar{display:none}
+@media (max-width:1000px){
+  body{padding-bottom:84px}
+  .mbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -4px 16px #0000001a;
+    padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+}
+.mbar-in{display:flex;align-items:center;gap:14px;font-size:12.5px;color:var(--muted);max-width:720px;margin:0 auto}
+.mbar-in div{display:flex;flex-direction:column;line-height:1.3;min-width:0}
+.mbar-in b{color:var(--text);font-size:16px;font-weight:700;white-space:nowrap}
+.mbar-in b.ok{color:var(--ok)}.mbar-in b.warn{color:var(--warn)}.mbar-in b.bad{color:var(--bad)}
+.mbar-in button{margin-left:auto;border:0;background:var(--brand);color:#fff;border-radius:999px;padding:11px 18px;font-weight:600;white-space:nowrap}
+@media print{
+  .mbar{display:none!important}
+  @page{size:A4;margin:10mm}
+  body{background:#fff;font-size:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .top,.inputs,dialog{display:none!important}
+  .layout{display:block;padding:0;max-width:none}
+  .results{position:static}
+  .report{box-shadow:none;border-radius:0}
+  .rp-head,.rp-body{padding-left:4px;padding-right:4px}
+  .rp-foot{padding-left:4px;padding-right:4px;border:2px solid var(--brand);border-radius:10px}
+  .rp-sec{break-inside:avoid;margin-top:22px}
+  .kpi.main .v{font-size:32px}
+}
+</style>
+</head>
+<body>
+
+<div class="credit top-credit">제작자 : 대출상담 이승표 010-3797-3313</div>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <div class="logo">%</div>
+      <div><h1>DSR · DTI 계산기</h1><span>주택담보대출 · 전세자금대출 상담</span></div>
+    </div>
+    <nav class="tabs">
+      <button type="button" data-tab="mort" class="on">주택담보대출</button>
+      <button type="button" data-tab="jeonse">전세자금대출</button>
+    </nav>
+    <div class="actions">
+      <button type="button" id="btnSettings">⚙ 규제설정</button>
+      <button type="button" id="btnReset">초기화</button>
+      <button type="button" id="btnPrint" class="primary">결과지 인쇄</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="inputs">
+    <!-- 상담 정보 -->
+    <div class="card">
+      <h2>상담 정보</h2>
+      <div class="grid2">
+        <div class="field">
+          <label for="counselor">상담자명</label>
+          <div class="inp"><input id="counselor" class="left" placeholder="상담자 이름 입력"></div>
+        </div>
+        <div class="field">
+          <label for="cdate">상담일</label>
+          <div class="inp"><input id="cdate" type="date" class="left"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ① 소득 -->
+    <div class="card">
+      <h2><span class="num">1</span>고객 소득</h2>
+      <div class="grid2">
+        <div class="field full">
+          <span class="flabel">소득 유형</span>
+          <div class="seg">
+            <label><input type="radio" name="incType" value="증빙소득" checked><span>증빙소득<small>근로·사업</small></span></label>
+            <label><input type="radio" name="incType" value="인정소득"><span>인정소득<small>건보료·국민연금</small></span></label>
+            <label><input type="radio" name="incType" value="신고소득"><span>신고소득<small>카드사용액 등</small></span></label>
+          </div>
+          <div class="small" style="margin:0">※ 신고소득: 본인소득 없거나, 부부합산 소득24백만 이하</div>
+        </div>
+        <div class="field">
+          <label for="income">본인 연소득</label>
+          <div class="inp"><input id="income" class="money" inputmode="numeric" value="6,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+          <div class="small" style="margin:-4px 0 0">나이에 따른 장래 예상소득 확인 필요(무주택인경우)</div>
+        </div>
+        <div class="field">
+          <label class="chk" style="font-size:13px"><input type="checkbox" id="spouseOn"> 배우자 소득 합산</label>
+          <div class="inp" id="spouseBox" style="opacity:.45"><input id="spouse" class="money" inputmode="numeric" disabled placeholder="0"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 신규 대출: 주담대 -->
+    <div class="card" id="panel-mort">
+      <h2><span class="num">2</span>신규 주택담보대출</h2>
+      <div class="grid2">
+        <div class="field full">
+          <span class="flabel">지역 (LTV)</span>
+          <div class="seg" id="segRegion"></div>
+          <label class="chk" style="margin-top:4px"><input type="checkbox" id="firstHome"> 생애최초 주택구입 <span id="firstNote" style="color:var(--muted);font-size:12.5px;font-weight:400"></span></label>
+        </div>
+        <div class="field">
+          <label for="mPrice">주택가격 (KB시세)</label>
+          <div class="inp"><input id="mPrice" class="money" inputmode="numeric" value="60,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field">
+          <label for="mAmt">대출 희망금액</label>
+          <div class="inp"><input id="mAmt" class="money" inputmode="numeric" value="30,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field">
+          <label for="mRate">금리 (실제 적용금리)</label>
+          <div class="inp"><input id="mRate" type="number" step="0.01" min="0" inputmode="decimal" value="4.00"><span class="u">%</span></div>
+        </div>
+        <div class="field">
+          <label for="mYears">대출기간</label>
+          <div class="inp"><select id="mYears"></select></div>
+        </div>
+        <div class="field full">
+          <span class="flabel">금리유형 (스트레스 DSR 가산금리)</span>
+          <div class="seg" id="segRtype"></div>
+        </div>
+        <div class="field full">
+          <span class="flabel">상환방식</span>
+          <div class="seg">
+            <label><input type="radio" name="mMethod" value="equal" checked><span>원리금균등</span></label>
+            <label><input type="radio" name="mMethod" value="principal"><span>원금균등</span></label>
+          </div>
+        </div>
+        <div class="field full"><div class="note" id="methodNote"></div></div>
+      </div>
+    </div>
+
+    <!-- ② 신규 대출: 전세 -->
+    <div class="card" id="panel-jeonse" hidden>
+      <h2><span class="num">2</span>신규 전세자금대출</h2>
+      <div class="grid2">
+        <div class="field full">
+          <span class="flabel">주택 보유</span>
+          <div class="seg">
+            <label><input type="radio" name="jHouse" value="none" checked><span>무주택<small>DSR 미적용</small></span></label>
+            <label><input type="radio" name="jHouse" value="one"><span>1주택<small id="jStressLbl">DSR 적용</small></span></label>
+            <label><input type="radio" name="jHouse" value="multi"><span class="x">다주택<small>전세대출 불가</small></span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="jDeposit">전세보증금</label>
+          <div class="inp"><input id="jDeposit" class="money" inputmode="numeric" value="40,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field">
+          <label for="jAmt">대출 희망금액</label>
+          <div class="inp"><input id="jAmt" class="money" inputmode="numeric" value="25,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field">
+          <label for="jRate">금리 (실제 적용금리)</label>
+          <div class="inp"><input id="jRate" type="number" step="0.01" min="0" inputmode="decimal" value="3.80"><span class="u">%</span></div>
+        </div>
+        <div class="field">
+          <label for="jYears">대출기간</label>
+          <div class="inp"><select id="jYears"></select></div>
+        </div>
+        <div class="field full"><div class="note" id="jNote"></div></div>
+      </div>
+    </div>
+
+    <!-- ③ 기존 대출 -->
+    <div class="card">
+      <h2><span class="num">3</span>기존 대출</h2>
+      <div class="field other-rate" id="otherRateBox" hidden>
+        <label for="otherRate">기타부채 DTI 산정금리 (매월 고시)</label>
+        <div class="inp"><input id="otherRate" type="number" step="0.01" min="0" inputmode="decimal" placeholder="미입력 시 각 대출 실제 금리"><span class="u">%</span></div>
+        <div class="note" style="margin-top:2px">DTI 계산 시 주택담보대출을 제외한 <b>기타부채 이자</b>(신규 전세대출 포함)는 이 고시금리로 계산합니다.</div>
+      </div>
+      <div id="loans"></div>
+      <button type="button" class="add" id="addLoan">+ 기존 대출 추가</button>
+    </div>
+  </section>
+
+  <section class="results">
+    <div class="report" id="results"></div>
+  </section>
+</main>
+
+<footer class="credit end-credit">제작자 : 대출상담 이승표 010-3797-3313</footer>
+
+<div class="mbar" id="mbar"><div class="mbar-in">
+  <div><span id="mbK">스트레스 DSR</span><b id="mbV">—</b></div>
+  <div><span>최대 가능금액</span><b id="mbM">—</b></div>
+  <button type="button" id="mbGo">결과 보기</button>
+</div></div>
+
+<dialog id="dlg">
+  <div class="dlg-head"><h2>⚙ 규제 설정</h2><button type="button" data-close aria-label="닫기">×</button></div>
+  <div class="dlg-body" id="dlgBody"></div>
+  <div class="dlg-foot">
+    <button type="button" class="btn" id="btnDefaults">기본값 복원</button>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="btn" data-close>취소</button>
+      <button type="button" class="btn primary" id="btnSave">저장</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+
+/* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
+const DEFAULTS = {
+  ltv:    { metro: 70, reg: 40, local: 70, first: 70 },
+  stress: { variable: 3.0, mixed: 2.4, periodic: 1.2, jeonse: 1.5 },
+  dsr:    { bank1: 40, bank2: 50 },
+  dti:    { metro: 60, reg: 40, local: 60 },
+  cap:    { on: { metro: true, reg: true, local: false }, t1: 150000, c1: 60000, t2: 250000, c2: 40000, c3: 20000 },
+  deem:   { credit: 5, other: 8, midpay: 25 },
+  jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000 }
+};
+const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
+const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
+const HOUSES  = { none: '무주택', one: '1주택', multi: '다주택' };
+const LOAN_TYPES = {
+  mort:    '주택담보대출',
+  credit:  '신용대출',
+  minus:   '마이너스통장',
+  jeonse:  '전세자금대출',
+  other:   '기타담보대출 (비주택·오피스텔 등)',
+  deposit: '예적금담보대출',
+  midpay:  '중도금·이주비대출',
+  direct:  '할부·리스·카드론 (연상환액 직접입력)'
+};
+
+const clone = o => JSON.parse(JSON.stringify(o));
+function merge(a, b) {
+  for (const k in b) {
+    if (!(k in a)) continue;
+    if (b[k] && typeof b[k] === 'object') merge(a[k], b[k]); else a[k] = b[k];
+  }
+  return a;
+}
+let S = clone(DEFAULTS);
+try { const v = JSON.parse(localStorage.getItem('dsrcalc.settings')); if (v) S = merge(clone(DEFAULTS), v); } catch (e) {}
+function saveSettings() { try { localStorage.setItem('dsrcalc.settings', JSON.stringify(S)); } catch (e) {} }
+const getPath = (o, p) => p.split('.').reduce((a, k) => a[k], o);
+function setPath(o, p, v) { const ks = p.split('.'), last = ks.pop(); ks.reduce((a, k) => a[k], o)[last] = v; }
+
+/* ---------- 포맷 ---------- */
+const num = v => { const n = parseFloat(String(v).replace(/,/g, '')); return isFinite(n) ? n : 0; };
+function korMan(v) {                       // 만원 → "3억 2,000만원"
+  if (!isFinite(v)) return '제한없음';
+  v = Math.floor(v);
+  if (v <= 0) return '0원';
+  const eok = Math.floor(v / 10000), man = v % 10000;
+  let s = '';
+  if (eok) s += eok.toLocaleString() + '억';
+  if (man) s += (s ? ' ' : '') + man.toLocaleString() + '만';
+  return s + '원';
+}
+const won = man => Math.round(man * 10000).toLocaleString() + '원';
+const pct = v => isFinite(v) ? v.toFixed(2) + '%' : '—';
+const fx = v => (+v).toFixed(1);
+
+/* ---------- 상환 계산 ---------- */
+// DSR 연간 원리금
+//  원리금균등: 최초 1년간 내는 금액
+//  원금균등  : 만기까지 총 원금+이자 ÷ 대출기간(년)
+const equalPay = (L, r, n) => r ? L * r / (1 - Math.pow(1 + r, -n)) : L / n;
+function annualPay(L, ratePct, years, method) {
+  const N = Math.max(1, Math.round(years * 12)), r = ratePct / 100 / 12;
+  if (method === 'equal') return equalPay(L, r, N) * Math.min(12, N);
+  return (L + L * r * (N + 1) / 2) / (N / 12);
+}
+// 월별 상환 스케줄 (실제 금리)
+function schedule(L, ratePct, years, method, months) {
+  const N = Math.max(1, Math.round(years * 12)), r = ratePct / 100 / 12, P = equalPay(L, r, N);
+  const rows = [];
+  let bal = L;
+  for (let m = 1; m <= Math.min(months, N); m++) {
+    const int = bal * r, prin = method === 'equal' ? P - int : L / N;
+    bal -= prin;
+    rows.push({ m, prin, int, total: prin + int, bal: Math.max(0, bal) });
+  }
+  return rows;
+}
+
+/* ---------- 기존 대출 ---------- */
+let loans = [];
+let MB = { k: '', v: '—', st: 'na', m: '—' };   // 모바일 하단 요약
+const otherRate = () => num($('#otherRate').value);   // 0 = 미입력
+const dtiRateOf = rate => otherRate() || rate;         // 기타부채 DTI 금리
+// DSR: 실제 금리 / DTI: 주담대는 실제 원리금, 기타부채는 고시금리 이자
+function loanCalc(l) {
+  const amt = num(l.amt), rate = num(l.rate), interest = amt * rate / 100;
+  const dtiInt = amt * dtiRateOf(rate) / 100;
+  const dtiDesc = otherRate() ? `고시금리 ${otherRate().toFixed(2)}%` : '실제 금리';
+  switch (l.type) {
+    case 'mort': {
+      const y = num(l.years) || 1, a = annualPay(amt, rate, y, l.method);
+      return { dsr: a, dti: a, desc: (l.method === 'equal' ? '원리금균등' : '원금균등 · 총 원리금÷기간'), dtiDesc: '원리금' };
+    }
+    case 'credit': case 'minus':
+      return { dsr: amt / S.deem.credit + interest, dti: dtiInt, dtiDesc, desc: `${l.type === 'minus' ? '한도' : '원금'}÷${S.deem.credit}년 + 이자` };
+    case 'jeonse':  return { dsr: interest, dti: dtiInt, dtiDesc, desc: '이자만 반영' };
+    case 'other':   return { dsr: amt / S.deem.other + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.other}년 + 이자` };
+    case 'deposit': return { dsr: interest, dti: dtiInt, dtiDesc, desc: '이자만 반영' };
+    case 'midpay':  return { dsr: amt / S.deem.midpay + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.midpay}년 + 이자` };
+    case 'direct':  return { dsr: num(l.annual), dti: dtiInt, dtiDesc, desc: '연상환액 직접입력' };
+  }
+  return { dsr: 0, dti: 0, desc: '', dtiDesc: '' };
+}
+function loanRowHTML(l, i) {
+  const opts = Object.entries(LOAN_TYPES).map(([k, v]) => `<option value="${k}" ${k === l.type ? 'selected' : ''}>${v}</option>`).join('');
+  const f = [];
+  f.push(`<div class="field"><label>${l.type === 'minus' ? '한도' : '대출잔액'}</label>
+    <div class="inp"><input class="money" data-i="${i}" data-k="amt" inputmode="numeric" value="${l.amt}" placeholder="0"><span class="u">만원</span></div><div class="hint">${l.amt ? korMan(num(l.amt)) : ''}</div></div>`);
+  f.push(`<div class="field"><label>금리 (실제)</label>
+    <div class="inp"><input type="number" step="0.01" min="0" data-i="${i}" data-k="rate" value="${l.rate}" placeholder="0.00"><span class="u">%</span></div></div>`);
+  if (l.type === 'mort') {
+    f.push(`<div class="field"><label>잔여기간</label>
+      <div class="inp"><input type="number" step="1" min="1" max="50" data-i="${i}" data-k="years" value="${l.years}"><span class="u">년</span></div></div>`);
+    f.push(`<div class="field"><label>상환방식</label>
+      <div class="inp"><select data-i="${i}" data-k="method">
+        <option value="equal" ${l.method === 'equal' ? 'selected' : ''}>원리금균등</option>
+        <option value="principal" ${l.method === 'principal' ? 'selected' : ''}>원금균등</option></select></div></div>`);
+  }
+  if (l.type === 'direct') {
+    f.push(`<div class="field"><label>연 상환액</label>
+      <div class="inp"><input class="money" data-i="${i}" data-k="annual" inputmode="numeric" value="${l.annual}" placeholder="0"><span class="u">만원</span></div><div class="hint">${l.annual ? korMan(num(l.annual)) : ''}</div></div>`);
+  }
+  return `<div class="loan">
+    <div class="loan-top"><div class="inp"><select data-i="${i}" data-k="type">${opts}</select></div>
+      <button type="button" class="del" data-del="${i}" aria-label="삭제">×</button></div>
+    <div class="loan-fields">${f.join('')}</div>
+    <div class="loan-calc" id="lc${i}"></div></div>`;
+}
+function renderLoans() {
+  $('#loans').innerHTML = loans.length ? loans.map(loanRowHTML).join('') : '<div class="empty">등록된 기존 대출이 없습니다.</div>';
+  recalc();
+}
+function newLoan() { return { type: 'credit', amt: '', rate: '', years: 20, method: 'equal', annual: '' }; }
+
+/* ---------- 입력 UI 구성 ---------- */
+function segHTML(name, items, checked) {
+  return Object.entries(items).map(([k, lbl]) =>
+    `<label><input type="radio" name="${name}" value="${k}" ${k === checked ? 'checked' : ''}><span>${lbl}</span></label>`).join('');
+}
+function buildSegs() {
+  const r = $('input[name=mRegion]:checked')?.value || 'metro';
+  const t = $('input[name=mRtype]:checked')?.value || 'variable';
+  $('#segRegion').innerHTML = segHTML('mRegion', Object.fromEntries(Object.entries(REGIONS).map(([k, v]) => [k, `${v}<small>LTV ${S.ltv[k]}%</small>`])), r);
+  $('#firstNote').textContent = `(규제지역 포함 LTV 최대 ${S.ltv.first}%)`;
+  $('#segRtype').innerHTML = segHTML('mRtype', Object.fromEntries(Object.entries(RTYPES).map(([k, v]) => [k, `${v}<small>스트레스 +${fx(S.stress[k])}%p</small>`])), t);
+  $('#jStressLbl').textContent = `DSR 적용 (+${fx(S.stress.jeonse)}%p)`;
+  $('#jNote').innerHTML = `· <b>1주택자</b>만 DSR 적용 — 실제 금리 + 스트레스 <b>${fx(S.stress.jeonse)}%p</b>로 이자 산정, 기준 <b>${S.jeonse.dsr}%</b> · 최대 <b>${korMan(S.jeonse.capOne)}</b><br>
+    · <b>무주택자</b>는 DSR 미적용, DTI만 계산 · DTI 한도 <b>${S.jeonse.dti}%</b> (지역 무관)<br>
+    · <b>다주택자</b>는 전세자금대출 불가<br>
+    · 만기일시상환이므로 DSR·DTI 모두 <b>연 이자</b>만 반영 (DTI는 고시금리 적용)`;
+}
+function fillYears(sel, max, def) {
+  sel.innerHTML = Array.from({ length: max }, (_, i) => `<option value="${i + 1}" ${i + 1 === def ? 'selected' : ''}>${i + 1}년</option>`).join('');
+}
+
+function formatMoney(el) {
+  const raw = el.value.replace(/[^\d]/g, '');
+  el.value = raw ? Number(raw).toLocaleString('ko-KR') : '';
+  const h = el.closest('.field')?.querySelector('.hint');
+  if (h) h.textContent = raw ? korMan(+raw) : '';
+}
+
+/* ---------- 결과 공통 ---------- */
+function dsrStatus(v) {
+  if (!isFinite(v)) return ['na', '소득 입력 필요'];
+  if (v <= S.dsr.bank1) return ['ok', '1·2금융권 기준 이내'];
+  if (v <= S.dsr.bank2) return ['warn', '1금융권 초과 · 2금융권 이내'];
+  return ['bad', '1·2금융권 모두 초과'];
+}
+function limitStatus(v, lim) {
+  if (!isFinite(v)) return ['na', '입력 필요'];
+  return v <= lim ? ['ok', `기준 ${lim}% 이내`] : ['bad', `기준 ${lim}% 초과`];
+}
+function kpi(title, v, st, scale, marks, main) {
+  const w = isFinite(v) ? Math.min(v / scale, 1) * 100 : 0;
+  const mk = marks.map(m => `<span class="mk" style="left:${m.v / scale * 100}%"><b>${m.label}</b></span>`).join('');
+  return `<div class="kpi ${st[0]} ${main ? 'main' : ''}">
+    <div class="k">${title}</div>
+    <div class="v">${pct(v)}</div>
+    <span class="s">${st[1]}</span>
+    <div class="gauge"><i style="width:${w}%"></i>${mk}</div></div>`;
+}
+const dsrMarks = () => [{ v: S.dsr.bank1, label: `1금융 ${S.dsr.bank1}%` }, { v: S.dsr.bank2, label: `2금융 ${S.dsr.bank2}%` }];
+function maxTable(rows) {
+  return `<div class="tw"><table><tr><th>한도 기준</th><th>최대 금액</th></tr>
+    ${rows.map(r => `<tr class="${r.bind ? 'bind' : ''}"><td>${r.label}</td><td>${r.text ?? korMan(r.v)}</td></tr>`).join('')}</table></div>`;
+}
+const pickMin = items => items.reduce((a, b) => (b.v < a.v ? b : a));
+const cond = rows => `<dl class="cond">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+const sec = (n, title, body, sub = '') => `<section class="rp-sec"><h3><em>${String(n).padStart(2, '0')}</em>${title}${sub ? ` <small>${sub}</small>` : ''}</h3>${body}</section>`;
+function reportHead(eyebrow, title) {
+  const c = $('#counselor').value.trim(), d = $('#cdate').value;
+  return `<div class="rp-head"><div><div class="eyebrow">${eyebrow}</div><h2>${title}</h2></div>
+    <div class="rp-meta">상담일 <b>${d || '-'}</b><br>상담자 <b>${c || '________'}</b></div></div>`;
+}
+const reportFoot = () => `<div class="rp-foot"><b>※ 참고용, 실제 심사결과와 다를 수 있음</b>
+  본 결과는 입력된 정보를 바탕으로 산출한 예상치이며, 금융기관의 실제 심사 기준·소득 인정 방식에 따라 달라질 수 있습니다.</div>`;
+
+function income() { return num($('#income').value) + ($('#spouseOn').checked ? num($('#spouse').value) : 0); }
+function incomeText() {
+  const t = $('input[name=incType]:checked').value, sp = $('#spouseOn').checked;
+  return `${korMan(income())} <span style="color:var(--muted);font-weight:400">(${t}${sp ? ' · 배우자 합산' : ''})</span>`;
+}
+function existingSum() {
+  let dsr = 0, dti = 0, amt = 0;
+  loans.forEach((l, i) => {
+    const c = loanCalc(l); dsr += c.dsr; dti += c.dti; amt += num(l.amt);
+    const el = $('#lc' + i);
+    if (el) el.innerHTML = `<span>DSR: ${c.desc} → <b>${korMan(c.dsr)}</b></span>` +
+      (tab === 'jeonse' ? `<span>DTI: ${c.dtiDesc} → <b>${korMan(c.dti)}</b></span>` : '');
+  });
+  return { dsr, dti, amt };
+}
+const exText = ex => loans.length ? `${loans.length}건 · 잔액 ${korMan(ex.amt)}` : '없음';
+
+/* ---------- 주택담보대출 보고서 ---------- */
+function renderMort() {
+  const inc = income(), ex = existingSum();
+  const region = $('input[name=mRegion]:checked').value, rtype = $('input[name=mRtype]:checked').value;
+  const method = $('input[name=mMethod]:checked').value, mName = method === 'equal' ? '원리금균등' : '원금균등';
+  const L = num($('#mAmt').value), price = num($('#mPrice').value), rate = num($('#mRate').value);
+  const years = +$('#mYears').value, first = $('#firstHome').checked;
+  const add = S.stress[rtype], sRate = rate + add;
+
+  const newA = annualPay(L, rate, years, method);
+  const newS = annualPay(L, sRate, years, method);
+  const SDSR = inc ? (newS + ex.dsr) / inc * 100 : NaN;
+  const DTI  = inc ? (newA + ex.dti) / inc * 100 : NaN;
+  const LTV  = price ? L / price * 100 : NaN;
+  const dtiLim = S.dti[region];
+  const ltvLim = first ? Math.max(S.ltv[region], S.ltv.first) : S.ltv[region];
+  const ltvName = `${REGIONS[region]}${first ? ' · 생애최초' : ''}`;
+
+  // 최대 가능 금액 (연 원리금은 대출금액에 비례 → 1원당 연 원리금으로 역산)
+  const unitS = annualPay(1, sRate, years, method);
+  const dsrMax = lim => inc ? Math.max(0, (inc * lim / 100 - ex.dsr) / unitS) : 0;
+  let cap = Infinity, capLabel = `금액 상한 (${REGIONS[region]} 해당없음)`;
+  if (S.cap.on[region]) {
+    if (price <= S.cap.t1) { cap = S.cap.c1; capLabel = `금액 상한 (주택가격 ${korMan(S.cap.t1)} 이하)`; }
+    else if (price <= S.cap.t2) { cap = S.cap.c2; capLabel = `금액 상한 (주택가격 ${korMan(S.cap.t2)} 이하)`; }
+    else { cap = S.cap.c3; capLabel = `금액 상한 (주택가격 ${korMan(S.cap.t2)} 초과)`; }
+  }
+  const cLtv = { label: `LTV ${ltvLim}% (${ltvName})`, v: price * ltvLim / 100, short: 'LTV' };
+  const cCap = { label: capLabel, v: cap, short: '금액 상한', text: isFinite(cap) ? korMan(cap) : '해당없음' };
+  const cD1  = { label: `스트레스 DSR ${S.dsr.bank1}% (1금융권)`, v: dsrMax(S.dsr.bank1), short: `스트레스 DSR ${S.dsr.bank1}%` };
+  const cD2  = { label: `스트레스 DSR ${S.dsr.bank2}% (2금융권)`, v: dsrMax(S.dsr.bank2), short: `스트레스 DSR ${S.dsr.bank2}%` };
+  const f1 = pickMin([cLtv, cCap, cD1]), f2 = pickMin([cLtv, cCap, cD2]);
+  [cLtv, cCap, cD1].forEach(c => c.bind = c === f1);
+  const ready = inc && price;
+  MB = { k: '스트레스 DSR', v: pct(SDSR), st: dsrStatus(SDSR)[0], m: ready ? korMan(f1.v) : '—' };
+
+  const phrase = SDSR <= S.dsr.bank1 ? `1·2금융권 기준(${S.dsr.bank1}%·${S.dsr.bank2}%) <b>이내</b>입니다`
+    : SDSR <= S.dsr.bank2 ? `1금융권 기준(${S.dsr.bank1}%)은 <b>초과</b>하나 2금융권 기준(${S.dsr.bank2}%) 이내입니다`
+    : `1·2금융권 기준을 <b>모두 초과</b>합니다`;
+  const summary = !ready ? '연소득과 주택가격을 입력하면 분석 결과가 표시됩니다.'
+    : `희망 대출금액 <b>${korMan(L)}</b> 기준 스트레스 DSR은 <span class="hl">${pct(SDSR)}</span>로 ${phrase}.
+       1금융권 기준 최대 <span class="hl">${korMan(f1.v)}</span>, 2금융권 기준 최대 <b>${korMan(f2.v)}</b>까지 가능하며,
+       한도를 결정하는 요인은 <b>${f1.short}</b>입니다.`;
+
+  const sch = schedule(L, rate, years, method, 6);
+
+  return `${reportHead('상담 결과 보고서', '주택담보대출 한도 분석')}
+  <div class="rp-body">
+    <p class="summary">${summary}</p>
+    <div class="kpis">
+      ${kpi('스트레스 DSR', SDSR, dsrStatus(SDSR), 70, dsrMarks(), true)}
+      ${kpi('DTI', DTI, limitStatus(DTI, dtiLim), 100, [{ v: dtiLim, label: dtiLim + '%' }])}
+      ${kpi(`LTV${first ? ' · 생애최초' : ''}`, LTV, limitStatus(LTV, ltvLim), 100, [{ v: ltvLim, label: ltvLim + '%' }])}
+    </div>
+    <p class="small">1금융권은 DSR ${S.dsr.bank1}%, 2금융권은 DSR ${S.dsr.bank2}% 기준이 적용됩니다.</p>
+
+    ${sec(1, '상담 조건', cond([
+      ['연소득', incomeText()],
+      ['지역', ltvName],
+      ['주택가격 (KB시세)', korMan(price)],
+      ['대출 희망금액', korMan(L)],
+      ['금리 (실제)', `${rate.toFixed(2)}% · ${RTYPES[rtype]}`],
+      ['대출기간 · 상환', `${years}년 · ${mName}`],
+      ['기존 대출', exText(ex)]
+    ]))}
+
+    ${sec(2, '최대 가능 대출금액', `
+      <div class="amount">
+        <div><small>1금융권 기준</small><strong>${ready ? korMan(f1.v) : '—'}</strong><em>제한 요인 · ${f1.short}</em></div>
+        <div class="b2"><small>2금융권 기준</small><strong>${ready ? korMan(f2.v) : '—'}</strong><em>제한 요인 · ${f2.short}</em></div>
+      </div>
+      ${maxTable([cLtv, cCap, cD1, cD2])}
+      ${ready && L > f1.v ? `<div class="alert">희망 대출금액 ${korMan(L)}이 1금융권 최대 가능금액을 초과합니다.</div>` : ''}`)}
+
+    ${sec(3, '스트레스 DSR 산정', `
+      <div class="formula">
+        <span><b>실제 금리</b>${rate.toFixed(2)}%</span><i>+</i>
+        <span><b>스트레스 (${RTYPES[rtype]})</b>${fx(add)}%p</span><i>=</i>
+        <span class="res"><b>DSR 산정금리</b>${sRate.toFixed(2)}%</span>
+      </div>
+      <div class="legend">${Object.entries(RTYPES).map(([k, v]) => `<span class="${k === rtype ? 'on' : ''}">${v} ${fx(S.stress[k])}%</span>`).join('')}</div>
+      <dl class="kv">
+        <dt>DSR 산정 연 원리금 (신규)</dt><dd>${korMan(newS)}</dd>
+        <dt>기존 대출 연 원리금</dt><dd>${korMan(ex.dsr)}</dd>
+        ${method === 'equal' ? '' : '<dt>산정 방식</dt><dd>원금균등 · 총 원리금 ÷ 대출기간</dd>'}
+      </dl>
+      <p class="small">금리 입력란은 실제 적용 금리이며, 스트레스 금리는 DSR 한도 산정에만 반영됩니다.</p>`)}
+
+    ${sec(4, '월 상환 예정표', `<div class="tw"><table>
+      <tr><th>회차</th><th>원금</th><th>이자</th><th>합계</th><th>대출잔액</th></tr>
+      ${sch.map(s => `<tr><td>${s.m}개월</td><td>${won(s.prin)}</td><td>${won(s.int)}</td><td><b>${won(s.total)}</b></td><td>${won(s.bal)}</td></tr>`).join('')}
+    </table></div>`, `실제 금리 ${rate.toFixed(2)}% · ${mName}`)}
+  </div>
+  ${reportFoot()}`;
+}
+
+/* ---------- 전세자금대출 보고서 ---------- */
+function renderJeonse() {
+  const inc = income(), ex = existingSum();
+  const house = $('input[name=jHouse]:checked').value;
+  const head = reportHead('상담 결과 보고서', '전세자금대출 한도 분석');
+  if (house === 'multi') {
+    MB = { k: '전세대출', v: '불가', st: 'bad', m: '—' };
+    return `${head}<div class="rp-body"><div class="block">⛔<strong>다주택자는 전세자금대출 불가</strong>
+      <p>2주택 이상 보유자는 전세자금대출을 받을 수 없습니다.</p></div></div>${reportFoot()}`;
+  }
+  const dsrOn = house === 'one';
+  const dep = num($('#jDeposit').value), L = num($('#jAmt').value), rate = num($('#jRate').value);
+  const years = +$('#jYears').value, dtiLim = S.jeonse.dti, dsrLim = S.jeonse.dsr;
+  const add = S.stress.jeonse, sRate = rate + add, dRate = dtiRateOf(rate);
+  const intA = L * rate / 100, intS = L * sRate / 100, intD = L * dRate / 100;
+  const DSR = dsrOn && inc ? (intS + ex.dsr) / inc * 100 : NaN;
+  const DTI = inc ? (intD + ex.dti) / inc * 100 : NaN;
+  const ratio = dep ? L / dep * 100 : NaN;
+  const byLim = (lim, base, r) => !inc ? 0 : r ? Math.max(0, (inc * lim / 100 - base) / (r / 100)) : Infinity;
+
+  const cDep = { label: `보증금 대비 ${S.jeonse.ratio}%`, v: dep * S.jeonse.ratio / 100, short: `보증금 ${S.jeonse.ratio}%` };
+  const cDti = { label: `DTI ${dtiLim}%`, v: byLim(dtiLim, ex.dti, dRate), short: `DTI ${dtiLim}%` };
+  const cDsr = dsrOn
+    ? { label: `스트레스 DSR ${dsrLim}%`, v: byLim(dsrLim, ex.dsr, sRate), short: `스트레스 DSR ${dsrLim}%` }
+    : { label: 'DSR (무주택자 미적용)', v: Infinity, text: '해당없음' };
+  const items = [cDep, cDsr, cDti];
+  if (dsrOn) items.splice(1, 0, { label: '1주택자 최대 한도', v: S.jeonse.capOne, short: `1주택자 한도 ${korMan(S.jeonse.capOne)}` });
+  const f = pickMin(items);
+  items.forEach(c => c.bind = c === f);
+  const ready = inc && dep;
+  MB = dsrOn ? { k: '스트레스 DSR', v: pct(DSR), st: isFinite(DSR) ? (DSR <= dsrLim ? 'ok' : 'bad') : 'na', m: ready ? korMan(f.v) : '—' }
+             : { k: 'DTI', v: pct(DTI), st: limitStatus(DTI, dtiLim)[0], m: ready ? korMan(f.v) : '—' };
+
+  const dtiOk = DTI <= dtiLim ? '이내' : '<b>초과</b>';
+  const summary = !ready ? '연소득과 전세보증금을 입력하면 분석 결과가 표시됩니다.'
+    : dsrOn
+      ? `1주택자로 스트레스 DSR(+${fx(add)}%p)은 <span class="hl">${pct(DSR)}</span>로 기준(${dsrLim}%) ${DSR <= dsrLim ? '이내' : '<b>초과</b>'}이며,
+         DTI는 <b>${pct(DTI)}</b>로 한도(${dtiLim}%) ${dtiOk}입니다. 최대 <span class="hl">${korMan(f.v)}</span>까지 가능하며, 한도를 결정하는 요인은 <b>${f.short}</b>입니다.`
+      : `무주택자로 DSR은 적용되지 않으며, DTI는 <span class="hl">${pct(DTI)}</span>로 한도(${dtiLim}%) ${dtiOk}입니다.
+         최대 <span class="hl">${korMan(f.v)}</span>까지 가능하며, 한도를 결정하는 요인은 <b>${f.short}</b>입니다.`;
+
+  const dsrSt = !isFinite(DSR) ? ['na', '소득 입력 필요'] : DSR <= dsrLim ? ['ok', `기준 ${dsrLim}% 이내`] : ['bad', `기준 ${dsrLim}% 초과`];
+
+  return `${head}
+  <div class="rp-body">
+    <p class="summary">${summary}</p>
+    <div class="kpis">
+      ${dsrOn ? kpi('스트레스 DSR · 1주택', DSR, dsrSt, 70, [{ v: dsrLim, label: dsrLim + '%' }], true)
+              : kpi('DSR', NaN, ['na', '무주택자 미적용'], 70, [], true)}
+      ${kpi('DTI', DTI, limitStatus(DTI, dtiLim), 100, [{ v: dtiLim, label: dtiLim + '%' }])}
+      ${kpi('보증금 대비', ratio, limitStatus(ratio, S.jeonse.ratio), 100, [{ v: S.jeonse.ratio, label: S.jeonse.ratio + '%' }])}
+    </div>
+
+    ${sec(1, '상담 조건', cond([
+      ['연소득', incomeText()],
+      ['주택 보유', HOUSES[house]],
+      ['전세보증금', korMan(dep)],
+      ['대출 희망금액', korMan(L)],
+      ['금리 (실제)', rate.toFixed(2) + '%'],
+      ['대출기간', `${years}년 · 만기일시`],
+      ['기존 대출', exText(ex)]
+    ]))}
+
+    ${sec(2, '최대 가능 대출금액', `
+      <div class="amount one">
+        <div><small>최대 가능 대출금액</small><strong>${ready ? korMan(f.v) : '—'}</strong><em>제한 요인 · ${f.short}</em></div>
+      </div>
+      ${maxTable(items)}
+      ${ready && L > f.v ? `<div class="alert">희망 대출금액 ${korMan(L)}이 최대 가능금액을 초과합니다.</div>` : ''}`)}
+
+    ${dsrOn ? sec(3, '스트레스 DSR 산정', `
+      <div class="formula">
+        <span><b>실제 금리</b>${rate.toFixed(2)}%</span><i>+</i>
+        <span><b>스트레스 (1주택자)</b>${fx(add)}%p</span><i>=</i>
+        <span class="res"><b>DSR 산정금리</b>${sRate.toFixed(2)}%</span>
+      </div>
+      <p class="small">금리 입력란은 실제 적용 금리이며, 스트레스 금리는 DSR 산정에만 반영됩니다.</p>`) : ''}
+
+    ${sec(dsrOn ? 4 : 3, '이자 정보', `<dl class="kv">
+      <dt>월 이자 (실제 금리)</dt><dd>${won(intA / 12)}</dd>
+      <dt>연 이자 (실제 금리)</dt><dd>${korMan(intA)}</dd>
+      ${dsrOn ? `<dt>DSR 반영 연 이자 (스트레스 ${sRate.toFixed(2)}%)</dt><dd>${korMan(intS)}</dd>` : ''}
+      <dt>DTI 반영 연 이자 (${otherRate() ? '고시금리 ' + dRate.toFixed(2) + '%' : '실제 금리'})</dt><dd>${korMan(intD)}</dd>
+    </dl>`)}
+  </div>
+  ${reportFoot()}`;
+}
+
+let tab = 'mort';
+function recalc() {
+  const m = $('input[name=mMethod]:checked').value;
+  $('#methodNote').hidden = m === 'equal';
+  $('#methodNote').innerHTML = '<b>원금균등</b> · DSR 연 원리금 = <b>만기까지 총 원금 + 총 이자 ÷ 대출기간(년)</b>';
+  $('#otherRateBox').hidden = tab !== 'jeonse';
+  $('#results').innerHTML = tab === 'mort' ? renderMort() : renderJeonse();
+  $('#mbK').textContent = MB.k; $('#mbV').textContent = MB.v; $('#mbV').className = MB.st; $('#mbM').textContent = MB.m;
+}
+
+/* ---------- 설정 다이얼로그 ---------- */
+const SETTINGS = [
+  ['LTV 비율', [['ltv.metro', '수도권', '%'], ['ltv.reg', '규제지역', '%'], ['ltv.local', '지방', '%'], ['ltv.first', '생애최초 (규제지역 포함)', '%']]],
+  ['스트레스 가산금리 (주담대)', [['stress.variable', '변동금리', '%p'], ['stress.mixed', '혼합형', '%p'], ['stress.periodic', '5년 주기형', '%p']]],
+  ['DSR 기준 (주담대)', [['dsr.bank1', '1금융권', '%'], ['dsr.bank2', '2금융권', '%']]],
+  ['DTI 한도 (주담대)', [['dti.metro', '수도권', '%'], ['dti.reg', '규제지역', '%'], ['dti.local', '지방', '%']]],
+  ['주담대 금액 상한', [['cap.on.metro', '수도권 적용', 'chk'], ['cap.on.reg', '규제지역 적용', 'chk'], ['cap.on.local', '지방 적용', 'chk'],
+    ['cap.t1', '구간1: 주택가격 이하', '만원'], ['cap.c1', '구간1 한도', '만원'], ['cap.t2', '구간2: 주택가격 이하', '만원'], ['cap.c2', '구간2 한도', '만원'], ['cap.c3', '구간2 초과 한도', '만원']]],
+  ['DSR 간주 만기 (기존 대출)', [['deem.credit', '신용대출·마이너스통장', '년'], ['deem.other', '기타담보대출', '년'], ['deem.midpay', '중도금·이주비', '년']]],
+  ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (1주택자)', '%'], ['stress.jeonse', '1주택자 스트레스 가산', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원']]]
+];
+function openSettings(src = S) {
+  $('#dlgBody').innerHTML = SETTINGS.map(([title, items]) => `<div class="sgroup"><h3>${title}</h3><div class="grid3">${
+    items.map(([p, lbl, u]) => u === 'chk'
+      ? `<label class="chk"><input type="checkbox" data-p="${p}" ${getPath(src, p) ? 'checked' : ''}> ${lbl}</label>`
+      : `<div class="field"><label>${lbl}</label><div class="inp"><input type="number" step="any" data-p="${p}" value="${getPath(src, p)}"><span class="u">${u}</span></div></div>`).join('')
+  }</div></div>`).join('') + '<p class="note">설정값은 이 PC의 브라우저에 저장됩니다. 규제가 바뀌면 여기서 수정하세요.</p>';
+  if (!$('#dlg').open) $('#dlg').showModal();
+}
+
+/* ---------- 이벤트 ---------- */
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.closest('#dlg')) return;
+  if (t.classList.contains('money')) formatMoney(t);
+  if (t.dataset.i !== undefined) loans[+t.dataset.i][t.dataset.k] = t.value;
+  recalc();
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.closest('#dlg')) return;
+  if (t.dataset.k === 'type') { loans[+t.dataset.i].type = t.value; renderLoans(); return; }
+  if (t.dataset.i !== undefined) loans[+t.dataset.i][t.dataset.k] = t.value;
+  recalc();
+});
+$('#loans').addEventListener('click', e => {
+  const d = e.target.closest('[data-del]');
+  if (d) { loans.splice(+d.dataset.del, 1); renderLoans(); }
+});
+$('#addLoan').onclick = () => { loans.push(newLoan()); renderLoans(); };
+$('#spouseOn').onchange = e => {
+  $('#spouse').disabled = !e.target.checked;
+  $('#spouseBox').style.opacity = e.target.checked ? 1 : .45;
+  recalc();
+};
+$$('.tabs button').forEach(b => b.onclick = () => {
+  tab = b.dataset.tab;
+  $$('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  $('#panel-mort').hidden = tab !== 'mort';
+  $('#panel-jeonse').hidden = tab !== 'jeonse';
+  recalc();
+});
+$('#btnPrint').onclick = () => window.print();
+$('#mbGo').onclick = () => $('.results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+// 웹 링크(프레임 안)에서는 인쇄 창을 열 수 없으므로 인쇄 버튼을 숨김
+{ let framed = true; try { framed = window.self !== window.top; } catch (e) {} if (framed) $('#btnPrint').hidden = true; }
+// 초기화는 두 번 눌러 확인 (팝업 확인창 없이)
+let resetArm = 0;
+$('#btnReset').onclick = () => {
+  const b = $('#btnReset');
+  if (!resetArm) {
+    b.textContent = '한 번 더 누르면 초기화';
+    resetArm = setTimeout(() => { resetArm = 0; b.textContent = '초기화'; }, 3000);
+    return;
+  }
+  clearTimeout(resetArm); resetArm = 0; b.textContent = '초기화';
+  ['#income', '#spouse', '#mPrice', '#mAmt', '#jDeposit', '#jAmt'].forEach(s => { $(s).value = ''; formatMoney($(s)); });
+  ['#mRate', '#jRate', '#otherRate'].forEach(s => $(s).value = '');
+  $('#spouseOn').checked = false; $('#spouseOn').onchange({ target: $('#spouseOn') });
+  $('#mYears').value = 30; $('#jYears').value = 2; $('#firstHome').checked = false;
+  $('input[name=mMethod][value=equal]').checked = true;
+  $('input[name=jHouse][value=none]').checked = true;
+  loans = []; renderLoans();
+};
+$('#btnSettings').onclick = () => openSettings();
+$$('#dlg [data-close]').forEach(b => b.onclick = () => $('#dlg').close());
+$('#btnDefaults').onclick = () => openSettings(DEFAULTS);
+$('#btnSave').onclick = () => {
+  $$('#dlgBody [data-p]').forEach(el => setPath(S, el.dataset.p, el.type === 'checkbox' ? el.checked : num(el.value)));
+  saveSettings(); buildSegs(); $('#dlg').close(); recalc();
+};
+
+/* ---------- 초기화 ---------- */
+fillYears($('#mYears'), 40, 30);
+fillYears($('#jYears'), 10, 2);
+buildSegs();
+{ const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('#cdate').value = d.toISOString().slice(0, 10); }
+$$('.money').forEach(formatMoney);
+renderLoans();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {}); // pwa
+</script>
+</body>
+</html>
