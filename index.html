@@ -251,14 +251,14 @@ dialog::backdrop{background:#0006}
 /* 2줄 헤더: 1줄 = 로고 · 버튼, 2줄 = 탭 · 의견·문의 */
 .tabbar{order:3;width:100%;display:flex;align-items:center;gap:12px;border-top:1px solid var(--line)}
 .tabbar .tabs{width:auto;flex:0 1 auto}
-.fb-box{margin-left:auto;border:0;background:var(--brand);color:#fff;border-radius:6px;padding:8px 18px;font-size:14px;font-weight:700;white-space:nowrap}
-.fb-box:hover{background:var(--brand-dark);animation:none}
+.actions button.fb-box{border:1px solid var(--brand);background:var(--brand);color:#fff;border-radius:6px;font-weight:700;white-space:nowrap}
+.actions button.fb-box:hover{background:var(--brand-dark);animation:none}
 /* 0.5초 간격 점등 (켜짐 0.5초 → 흐림 0.5초) */
 .fb-box{animation:fbBlink 1s steps(1, end) infinite}
 @keyframes fbBlink{0%{opacity:1}50%{opacity:.3}}
 @media (prefers-reduced-motion: reduce){.fb-box{animation:none}}
 @media print{.fb-box{animation:none}}
-@media (max-width:560px){.tabbar .tabs{flex:1}.fb-box{padding:8px 12px}}
+@media (max-width:560px){.tabbar .tabs{flex:1}}
 .inp textarea{border:0;outline:0;flex:1;min-width:0;padding:10px 0;font:inherit;background:transparent;color:var(--text);resize:vertical;min-height:120px}
 .inp:has(textarea){align-items:stretch}
 .fb-result{margin-top:14px;font-weight:600}
@@ -346,13 +346,13 @@ dialog{border-radius:10px}
       <button type="button" id="btnSettings">⚙ 규제설정</button>
       <button type="button" id="btnReset">초기화</button>
       <button type="button" id="btnPrint">결과지 인쇄</button>
+      <button type="button" id="btnFeedback" class="fb-box">의견·문의</button>
     </div>
     <div class="tabbar">
       <nav class="tabs">
         <button type="button" data-tab="mort" class="on">주택담보대출</button>
         <button type="button" data-tab="jeonse">전세자금대출</button>
       </nav>
-      <button type="button" id="btnFeedback" class="fb-box">의견·문의</button>
     </div>
   </div>
 </header>
