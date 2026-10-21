@@ -1,0 +1,8 @@
+{
+  "name": "dsr-calculator",
+  "private": true,
+  "description": "DSR·DTI 계산기 — 의견·문의 카카오톡 알림용 Netlify 함수",
+  "dependencies": {
+    "@netlify/blobs": "8.1.0"
+  }
+}
