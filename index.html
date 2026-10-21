@@ -484,7 +484,7 @@ const DEFAULTS = {
   cap:    { on: { metro: true, reg: true, local: false }, t1: 150000, c1: 60000, t2: 250000, c2: 40000, c3: 20000 },
   deem:   { credit: 5, other: 8, midpay: 25 },
   jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000 },
-  inc:    { cardRate: 40.9 }
+  inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000 }
 };
 const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
 const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
@@ -738,10 +738,13 @@ function syncCardIncome() {
   el.closest('.inp').classList.toggle('auto', card);
   if (!card) return;
   const use = num($('#cardUse').value), r = S.inc.cardRate;
-  const v = r ? Math.floor(use / (r / 100)) : 0;
+  const calc = r ? Math.floor(use / (r / 100)) : 0;
+  const pctV = Math.floor(calc * S.inc.cardPct / 100), v = Math.min(pctV, S.inc.cardCap);
   el.value = v ? v.toLocaleString('ko-KR') : '';
   formatMoney(el);
-  $('#cardCalc').innerHTML = `연간 카드사용액 <b>${korMan(use)}</b> ÷ 신용카드 사용요율 <b>${r.toFixed(2)}%</b> = 신고소득 <b>${korMan(v)}</b>`;
+  $('#cardCalc').innerHTML = `연간 카드사용액 <b>${korMan(use)}</b> ÷ 신용카드 사용요율 <b>${r.toFixed(2)}%</b> = 산출 소득 <b>${korMan(calc)}</b><br>
+    산출 소득 × 인정비율 <b>${S.inc.cardPct}%</b> = <b>${korMan(pctV)}</b>${pctV > S.inc.cardCap ? ` → 상한 <b>${korMan(S.inc.cardCap)}</b> 적용` : ` (상한 ${korMan(S.inc.cardCap)})`}<br>
+    <span style="color:var(--brand);font-weight:700">실제 적용 신고소득 ${korMan(v)}</span>`;
 }
 function renderIncomeSum() {
   const on = $('#spouseOn').checked, box = $('#incSum');
@@ -987,7 +990,7 @@ function recalc() {
 
 /* ---------- 설정 다이얼로그 ---------- */
 const SETTINGS = [
-  ['소득', [['inc.cardRate', '신용카드 사용요율 (신고소득)', '%']]],
+  ['소득', [['inc.cardRate', '신용카드 사용요율 (신고소득)', '%'], ['inc.cardPct', '신고소득 인정비율', '%'], ['inc.cardCap', '신고소득 상한', '만원']]],
   ['LTV 비율', [['ltv.metro', '수도권', '%'], ['ltv.reg', '규제지역', '%'], ['ltv.local', '지방', '%'], ['ltv.first', '생애최초 (규제지역 포함)', '%']]],
   ['스트레스 가산금리 (주담대)', [['stress.variable', '변동금리', '%p'], ['stress.mixed', '혼합형', '%p'], ['stress.periodic', '5년 주기형', '%p']]],
   ['DSR 기준 (주담대)', [['dsr.bank1', '1금융권', '%'], ['dsr.bank2', '2금융권', '%']]],
