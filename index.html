@@ -742,7 +742,7 @@ function buildSegs() {
   const t = $('input[name=mRtype]:checked')?.value || 'variable';
   $('#segRegion').innerHTML = segHTML('mRegion', Object.fromEntries(Object.entries(REGIONS).map(([k, v]) => [k, `${v}<small>LTV ${S.ltv[k]}%</small>`])), r);
   $('#firstNote').textContent = `(규제지역 포함 LTV 최대 ${S.ltv.first}%)`;
-  $('#seominNote').textContent = `(규제지역 LTV ${S.ltv.seomin}%)`;
+  $('#seominNote').textContent = `(규제지역 LTV 최대 ${S.ltv.seomin}%)`;
   $('#segRtype').innerHTML = segHTML('mRtype', Object.fromEntries(Object.entries(RTYPES).map(([k, v]) => [k, `${v}<small>스트레스 +${fx(S.stress[k])}%p</small>`])), t);
   $('#jStressLbl').textContent = `DSR 적용 · 최대 ${korMan(S.jeonse.capOne)}`;
   $('#jMemberLbl').textContent = `DSR 적용 · 최대 ${korMan(S.jeonse.capMember)}`;
@@ -934,7 +934,7 @@ function renderMort() {
   smBox.innerHTML = `요건: <b>현재 무주택</b> · 주택가격(담보가액) <b>${korMan(S.seomin.price)} 이하</b> · 부부합산 소득 <b>${korMan(S.seomin.income)} 이하</b><br>` +
     (smFail.length ? `<span style="color:var(--bad);font-weight:600">✕ 요건 미충족: ${smFail.join(', ')}</span>`
       : region !== 'reg' ? `<span style="color:var(--muted)">규제지역에만 적용됩니다. (${REGIONS[region]} LTV ${S.ltv[region]}%)</span>`
-      : `<span style="color:var(--ok);font-weight:600">✔ 요건 충족 → 규제지역 LTV ${S.ltv.seomin}% 적용</span> (무주택 여부는 상담자 확인)`);
+      : `<span style="color:var(--ok);font-weight:600">✔ 요건 충족 → 규제지역 LTV 최대 ${S.ltv.seomin}% 적용</span> (무주택 여부는 상담자 확인)`);
   let ltvLim = S.ltv[region];
   if (first) ltvLim = Math.max(ltvLim, S.ltv.first);
   if (smOk) ltvLim = Math.max(ltvLim, S.ltv.seomin);
