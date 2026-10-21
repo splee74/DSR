@@ -848,7 +848,8 @@ function renderFuture(f) {
     ? `<div class="future-res"><b>${who}</b> · 만 ${p.age}세 · 대출기간 ${f.years}년(만기 ${colTerm}년 기준) → 증가율 <b>${p.rate.toFixed(1)}%</b><br>
        ${korMan(p.base)} → 장래 예상소득 <span class="hl">${korMan(p.fut)}</span>${p.apply ? ' <b>· DSR 반영</b>' : ''}</div>`
     : `<div class="future-res off"><b>${who}</b> · ${p.reason}</div>`;
-  $('#futureInfo').innerHTML = line('본인', f.me) + (f.sp ? line('배우자', f.sp) : '') + table;
+  $('#futureInfo').innerHTML = line('본인', f.me) + (f.sp ? line('배우자', f.sp) : '') + table +
+    '<p class="small" style="color:var(--bad);margin:6px 0 0;font-size:11.5px;line-height:1.5">※ 여신심사 선진화를 위한 모범규준 및 통계청 연령대별 소득 통계에 따라 계산된 값으로, 30~34세는 만기 30년의 비율이 낮으므로 29년으로 하는 것이 좀 더 유리합니다.</p>';
   $('#futureOn').disabled = !f.me.ok;
   $('#futureSpBox').hidden = !f.sp;
   $('#futureSpOn').disabled = !(f.sp && f.sp.ok);
