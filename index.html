@@ -252,12 +252,7 @@ dialog::backdrop{background:#0006}
 .tabbar{order:3;width:100%;display:flex;align-items:center;gap:12px;border-top:1px solid var(--line)}
 .tabbar .tabs{width:auto;flex:0 1 auto}
 .actions button.fb-box{border:1px solid var(--brand);background:var(--brand);color:#fff;border-radius:6px;font-weight:700;white-space:nowrap}
-.actions button.fb-box:hover{background:var(--brand-dark);animation:none}
-/* 0.5초 간격 점등 (켜짐 0.5초 → 흐림 0.5초) */
-.fb-box{animation:fbBlink 1s steps(1, end) infinite}
-@keyframes fbBlink{0%{opacity:1}50%{opacity:.3}}
-@media (prefers-reduced-motion: reduce){.fb-box{animation:none}}
-@media print{.fb-box{animation:none}}
+.actions button.fb-box:hover{background:var(--brand-dark)}
 @media (max-width:560px){.tabbar .tabs{flex:1}}
 .inp textarea{border:0;outline:0;flex:1;min-width:0;padding:10px 0;font:inherit;background:transparent;color:var(--text);resize:vertical;min-height:120px}
 .inp:has(textarea){align-items:stretch}
