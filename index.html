@@ -513,7 +513,7 @@ dialog{border-radius:10px}
       <div class="field other-rate" id="otherRateBox" hidden>
         <label for="otherRate">기타부채 DTI 산정금리 (매월 고시)</label>
         <div class="inp"><input id="otherRate" type="number" step="0.01" min="0" inputmode="decimal" placeholder="미입력 시 각 대출 실제 금리"><span class="u">%</span></div>
-        <div class="note" style="margin-top:2px">DTI 계산 시 주택담보대출을 제외한 <b>기타부채 이자</b>(신규 전세대출 포함)는 이 고시금리로 계산합니다.</div>
+        <div class="note" style="margin-top:2px">DTI 계산 시 주택담보대출을 제외한 <b>기존 기타부채 이자</b>는 이 고시금리로 계산합니다. (신규 전세자금대출은 실제 금리 적용)</div>
       </div>
       <div id="loans"></div>
       <button type="button" class="add" id="addLoan">+ 기존 대출 추가</button>
@@ -747,7 +747,7 @@ function buildSegs() {
     · DSR 적용 시 실제 금리 + 스트레스 <b>${fx(S.stress.jeonse)}%p</b>로 이자 산정, 기준 <b>${S.jeonse.dsr}%</b><br>
     · <b>무주택자</b>는 DSR 미적용, DTI만 계산 · DTI 한도 <b>${S.jeonse.dti}%</b> (지역 무관)<br>
     · <b>다주택자</b>는 전세자금대출 불가<br>
-    · 만기일시상환이므로 DSR·DTI 모두 <b>연 이자</b>만 반영 (DTI는 고시금리 적용)`;
+    · 만기일시상환이므로 DSR·DTI 모두 <b>연 이자</b>만 반영 (DTI: 신규 전세대출은 실제 금리, 기존 기타부채는 고시금리)`;
 }
 function fillYears(sel, max, def) {
   sel.innerHTML = Array.from({ length: max }, (_, i) => `<option value="${i + 1}" ${i + 1 === def ? 'selected' : ''}>${i + 1}년</option>`).join('');
@@ -1019,7 +1019,7 @@ function renderJeonse() {
   const capV = house === 'one' ? S.jeonse.capOne : S.jeonse.capMember;
   const dep = num($('#jDeposit').value), L = num($('#jAmt').value), rate = num($('#jRate').value);
   const years = +$('#jYears').value, dtiLim = S.jeonse.dti, dsrLim = S.jeonse.dsr;
-  const add = S.stress.jeonse, sRate = rate + add, dRate = dtiRateOf(rate);
+  const add = S.stress.jeonse, sRate = rate + add, dRate = rate;   // 본건 신규 전세대출 DTI는 실제 금리
   const intA = L * rate / 100, intS = L * sRate / 100, intD = L * dRate / 100;
   const DSR = dsrOn && inc ? (intS + ex.dsr) / inc * 100 : NaN;
   const DTI = inc ? (intD + ex.dti) / inc * 100 : NaN;
@@ -1088,7 +1088,7 @@ function renderJeonse() {
       <dt>월 이자 (실제 금리)</dt><dd>${won(intA / 12)}</dd>
       <dt>연 이자 (실제 금리)</dt><dd>${korMan(intA)}</dd>
       ${dsrOn ? `<dt>DSR 반영 연 이자 (스트레스 ${sRate.toFixed(2)}%)</dt><dd>${korMan(intS)}</dd>` : ''}
-      <dt>DTI 반영 연 이자 (${otherRate() ? '고시금리 ' + dRate.toFixed(2) + '%' : '실제 금리'})</dt><dd>${korMan(intD)}</dd>
+      <dt>DTI 반영 연 이자 (실제 금리)</dt><dd>${korMan(intD)}</dd>
     </dl>`)}
   </div>
   ${reportFoot()}`;
