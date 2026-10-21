@@ -230,6 +230,8 @@ dialog::backdrop{background:#0006}
 .ftable th{background:transparent;color:var(--muted);font-weight:500}
 .ftable td:first-child,.ftable th:first-child{text-align:left}
 .ftable td.on{background:var(--brand);color:#fff;font-weight:700}
+.ftable td.on2{box-shadow:inset 0 0 0 2px var(--brand);color:var(--brand);font-weight:700}
+.ftable td.on.on2{box-shadow:inset 0 0 0 2px var(--text)}
 .ftable tr:last-child td{border-bottom:0}
 .mbar{display:none}
 @media (max-width:1000px){
@@ -323,11 +325,19 @@ dialog::backdrop{background:#0006}
           <label class="chk" style="font-size:13px"><input type="checkbox" id="spouseOn"> 배우자 소득 합산</label>
           <div class="inp" id="spouseBox" style="opacity:.45"><input id="spouse" class="money" inputmode="numeric" disabled placeholder="0"><span class="u">만원</span></div>
           <div class="hint"></div>
+          <div id="spBirthBox" hidden>
+            <label for="spBirth" class="flabel">배우자 생년월일</label>
+            <div class="inp" style="margin-top:6px"><input id="spBirth" type="date" class="left"></div>
+            <div class="hint" id="spAgeHint"></div>
+          </div>
         </div>
         <div class="field full future" id="futureBox">
           <div class="future-head">
             <span class="flabel" style="color:var(--text);font-weight:600">나이에 따른 장래 예상소득</span>
-            <label class="chk"><input type="checkbox" id="futureOn"> DSR에 반영</label>
+            <div style="display:flex;gap:14px;flex-wrap:wrap">
+              <label class="chk"><input type="checkbox" id="futureOn"> 본인 DSR 반영</label>
+              <label class="chk" id="futureSpBox" hidden><input type="checkbox" id="futureSpOn"> 배우자 DSR 반영</label>
+            </div>
           </div>
           <div class="future-cond">
             <span>1년 이상 근로자</span><span>무주택</span><span>구입자금만 가능</span>
@@ -663,56 +673,63 @@ const FUTURE = [
   { from: 25, to: 29, rates: [16.8, 23.5, 28.4, 31.6] },
   { from: 30, to: 34, rates: [13.0, 16.6, 18.4, 13.5] }
 ];
-function ageNow() {                       // 상담일 기준 만 나이
-  const b = $('#birth').value;
+function ageOf(b) {                      // 상담일 기준 만 나이
   if (!b) return null;
   const ref = $('#cdate').value ? new Date($('#cdate').value) : new Date(), bd = new Date(b);
   let a = ref.getFullYear() - bd.getFullYear();
   if (ref.getMonth() < bd.getMonth() || (ref.getMonth() === bd.getMonth() && ref.getDate() < bd.getDate())) a--;
   return a >= 0 ? a : null;
 }
+const ageNow = () => ageOf($('#birth').value);
+// 한 사람의 장래 예상소득
+function futureOne(base, age, col) {
+  const p = { base, age, ok: false, rate: 0, row: -1, fut: base, reason: '' };
+  p.row = age === null ? -1 : FUTURE.findIndex(r => age >= r.from && age <= r.to);
+  if (age === null) p.reason = '생년월일을 입력하면 만 나이로 자동 계산됩니다.';
+  else if (p.row < 0) p.reason = `만 ${age}세는 적용 대상이 아닙니다. (만 20~34세만 해당)`;
+  else if (col < 0) p.reason = '대출기간 10년 이상만 해당됩니다.';
+  else if ($('input[name=incType]:checked').value !== '증빙소득') p.reason = '1년 이상 근로자(증빙소득)만 해당됩니다.';
+  else if (!base) p.reason = '연소득을 입력하세요.';
+  else { p.ok = true; p.rate = FUTURE[p.row].rates[col]; p.fut = base * (1 + p.rate / 100); }
+  return p;
+}
 function futureCalc() {
-  const self = num($('#income').value), age = ageNow(), years = +$('#mYears').value;
-  const out = { self, age, years, apply: false, ok: false, rate: 0, row: -1, col: -1, fut: self, reason: '' };
-  out.col = years >= 30 ? 3 : years >= 20 ? 2 : years >= 15 ? 1 : years >= 10 ? 0 : -1;
-  out.row = age === null ? -1 : FUTURE.findIndex(r => age >= r.from && age <= r.to);
-  if (age === null) out.reason = '생년월일을 입력하면 만 나이로 자동 계산됩니다.';
-  else if (out.row < 0) out.reason = `만 ${age}세는 적용 대상이 아닙니다. (만 20~34세만 해당)`;
-  else if (out.col < 0) out.reason = `대출기간 ${years}년은 적용 대상이 아닙니다. (만기 10년 이상만 해당)`;
-  else if ($('input[name=incType]:checked').value !== '증빙소득') out.reason = '1년 이상 근로자(증빙소득)만 해당됩니다.';
-  else if (!self) out.reason = '본인 연소득을 입력하세요.';
-  else {
-    out.ok = true;
-    out.rate = FUTURE[out.row].rates[out.col];
-    out.fut = self * (1 + out.rate / 100);
-    out.apply = $('#futureOn').checked;
-  }
-  return out;
+  const years = +$('#mYears').value, spOn = $('#spouseOn').checked;
+  const col = years >= 30 ? 3 : years >= 20 ? 2 : years >= 15 ? 1 : years >= 10 ? 0 : -1;
+  const me = futureOne(num($('#income').value), ageNow(), col);
+  const sp = spOn ? futureOne(num($('#spouse').value), ageOf($('#spBirth').value), col) : null;
+  me.apply = me.ok && $('#futureOn').checked;
+  if (sp) sp.apply = sp.ok && $('#futureSpOn').checked;
+  return { years, col, me, sp, any: me.apply || !!(sp && sp.apply) };
 }
 function renderFuture(f) {
   const colTerm = f.col >= 0 ? FUTURE_TERMS[f.col] : null;
+  const cls = (i, j) => j !== f.col ? '' : [f.me.ok && f.me.row === i ? 'on' : '', f.sp && f.sp.ok && f.sp.row === i ? 'on2' : ''].join(' ');
   const table = `<table class="ftable"><tr><th>연령</th>${FUTURE_TERMS.map(t => `<th>만기 ${t}년</th>`).join('')}</tr>
     ${FUTURE.map((r, i) => `<tr><td>${r.from}~${r.to}세</td>${r.rates.map((v, j) =>
-      `<td class="${f.ok && i === f.row && j === f.col ? 'on' : ''}">${v.toFixed(1)}%</td>`).join('')}</tr>`).join('')}</table>`;
-  const txt = f.ok
-    ? `<div class="future-res">만 <b>${f.age}세</b> · 대출기간 <b>${f.years}년</b>(만기 ${colTerm}년 기준) → 증가율 <b>${f.rate.toFixed(1)}%</b><br>
-       본인 연소득 ${korMan(f.self)} → 장래 예상소득 <span class="hl">${korMan(f.fut)}</span>
-       ${f.apply ? '<br><b>주택담보대출 DSR에 장래 예상소득을 반영했습니다.</b>' : ''}</div>`
-    : `<div class="future-res off">${f.reason}</div>`;
-  $('#futureInfo').innerHTML = txt + table;
-  $('#futureOn').disabled = !f.ok;
+      `<td class="${cls(i, j)}">${v.toFixed(1)}%</td>`).join('')}</tr>`).join('')}</table>`;
+  const line = (who, p) => p.ok
+    ? `<div class="future-res"><b>${who}</b> · 만 ${p.age}세 · 대출기간 ${f.years}년(만기 ${colTerm}년 기준) → 증가율 <b>${p.rate.toFixed(1)}%</b><br>
+       ${korMan(p.base)} → 장래 예상소득 <span class="hl">${korMan(p.fut)}</span>${p.apply ? ' <b>· DSR 반영</b>' : ''}</div>`
+    : `<div class="future-res off"><b>${who}</b> · ${p.reason}</div>`;
+  $('#futureInfo').innerHTML = line('본인', f.me) + (f.sp ? line('배우자', f.sp) : '') + table;
+  $('#futureOn').disabled = !f.me.ok;
+  $('#futureSpBox').hidden = !f.sp;
+  $('#futureSpOn').disabled = !(f.sp && f.sp.ok);
 }
 const spouseInc = () => $('#spouseOn').checked ? num($('#spouse').value) : 0;
-// useFuture: 주택담보대출에서 장래 예상소득 반영 시 본인 소득을 장래 예상소득으로 대체
+// useFuture: 주택담보대출에서 장래 예상소득 반영 시 해당 소득을 장래 예상소득으로 대체
 function income(useFuture) {
-  const f = useFuture ? futureCalc() : null;
-  return (f && f.apply ? f.fut : num($('#income').value)) + spouseInc();
+  if (!useFuture) return num($('#income').value) + spouseInc();
+  const f = futureCalc();
+  return (f.me.apply ? f.me.fut : f.me.base) + (f.sp ? (f.sp.apply ? f.sp.fut : f.sp.base) : 0);
 }
 function incomeText(useFuture) {
   const t = $('input[name=incType]:checked').value, sp = $('#spouseOn').checked;
-  const f = useFuture ? futureCalc() : null;
-  const extra = f && f.apply ? ` · 장래소득 +${f.rate.toFixed(1)}%` : '';
-  return `${korMan(income(useFuture))} <span style="color:var(--muted);font-weight:400">(${t}${sp ? ' · 배우자 합산' : ''}${extra})</span>`;
+  const f = useFuture ? futureCalc() : null, ex = [];
+  if (f && f.me.apply) ex.push(`본인 장래소득 +${f.me.rate.toFixed(1)}%`);
+  if (f && f.sp && f.sp.apply) ex.push(`배우자 장래소득 +${f.sp.rate.toFixed(1)}%`);
+  return `${korMan(income(useFuture))} <span style="color:var(--muted);font-weight:400">(${t}${sp ? ' · 배우자 합산' : ''}${ex.length ? ' · ' + ex.join(' · ') : ''})</span>`;
 }
 function existingSum() {
   let dsr = 0, dti = 0, amt = 0;
@@ -769,7 +786,10 @@ function renderMort() {
     : `희망 대출금액 <b>${korMan(L)}</b> 기준 스트레스 DSR은 <span class="hl">${pct(SDSR)}</span>로 ${phrase}.
        1금융권 기준 최대 <span class="hl">${korMan(f1.v)}</span>, 2금융권 기준 최대 <b>${korMan(f2.v)}</b>까지 가능하며,
        한도를 결정하는 요인은 <b>${f1.short}</b>입니다.`;
-  const futNote = (() => { const f = futureCalc(); return f.apply ? ` <br>※ 장래 예상소득 <b>${korMan(f.fut)}</b>(만 ${f.age}세 · +${f.rate.toFixed(1)}%)을 반영한 결과입니다.` : ''; })();
+  const futNote = (() => { const f = futureCalc(), t = [];
+    if (f.me.apply) t.push(`본인 <b>${korMan(f.me.fut)}</b>(만 ${f.me.age}세 · +${f.me.rate.toFixed(1)}%)`);
+    if (f.sp && f.sp.apply) t.push(`배우자 <b>${korMan(f.sp.fut)}</b>(만 ${f.sp.age}세 · +${f.sp.rate.toFixed(1)}%)`);
+    return t.length ? ` <br>※ 장래 예상소득 ${t.join(', ')}을 반영한 결과입니다.` : ''; })();
 
   const sch = schedule(L, rate, years, method, 6);
 
@@ -919,6 +939,7 @@ function recalc() {
   $('#otherRateBox').hidden = tab !== 'jeonse';
   $('#futureBox').hidden = tab !== 'mort';
   { const a = ageNow(); $('#ageHint').textContent = a !== null ? `만 ${a}세` : ''; }
+  { const a = ageOf($('#spBirth').value); $('#spAgeHint').textContent = a !== null ? `만 ${a}세` : ''; }
   renderFuture(futureCalc());
   $('#results').innerHTML = tab === 'mort' ? renderMort() : renderJeonse();
   $('#mbK').textContent = MB.k; $('#mbV').textContent = MB.v; $('#mbV').className = MB.st; $('#mbM').textContent = MB.m;
@@ -967,6 +988,7 @@ $('#addLoan').onclick = () => { loans.push(newLoan()); renderLoans(); };
 $('#spouseOn').onchange = e => {
   $('#spouse').disabled = !e.target.checked;
   $('#spouseBox').style.opacity = e.target.checked ? 1 : .45;
+  $('#spBirthBox').hidden = !e.target.checked;
   recalc();
 };
 $$('.tabs button').forEach(b => b.onclick = () => {
@@ -994,7 +1016,7 @@ $('#btnReset').onclick = () => {
   ['#mRate', '#jRate', '#otherRate'].forEach(s => $(s).value = '');
   $('#spouseOn').checked = false; $('#spouseOn').onchange({ target: $('#spouseOn') });
   $('#mYears').value = 30; $('#jYears').value = 2; $('#firstHome').checked = false;
-  ['#custName', '#birth'].forEach(s => $(s).value = ''); $('#futureOn').checked = false;
+  ['#custName', '#birth', '#spBirth'].forEach(s => $(s).value = ''); $('#futureOn').checked = false; $('#futureSpOn').checked = false;
   $('input[name=mMethod][value=equal]').checked = true;
   $('input[name=jHouse][value=none]').checked = true;
   loans = []; renderLoans();
