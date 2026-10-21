@@ -217,6 +217,20 @@ dialog::backdrop{background:#0006}
 .credit.top-credit{padding-block:6px 4px}
 .credit.end-credit{padding-block:0 24px}
 @media (max-width:560px){.credit{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+.future{border:1px solid var(--brand-line);background:var(--brand-weak);border-radius:14px;padding:14px;gap:10px}
+.future-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.future-cond{display:flex;gap:6px;flex-wrap:wrap}
+.future-cond span{font-size:12px;font-weight:600;color:var(--brand);background:var(--surface);border:1px solid var(--brand-line);border-radius:999px;padding:2px 10px}
+.future-res{font-size:13.5px;color:var(--sub);line-height:1.7}
+.future-res b{color:var(--text);font-weight:600}
+.future-res .hl{color:var(--brand);font-weight:700}
+.future-res.off{color:var(--muted)}
+.ftable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px;background:var(--surface);border-radius:10px;overflow:hidden}
+.ftable th,.ftable td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--line)}
+.ftable th{background:transparent;color:var(--muted);font-weight:500}
+.ftable td:first-child,.ftable th:first-child{text-align:left}
+.ftable td.on{background:var(--brand);color:#fff;font-weight:700}
+.ftable tr:last-child td{border-bottom:0}
 .mbar{display:none}
 @media (max-width:1000px){
   body{padding-bottom:84px}
@@ -270,10 +284,15 @@ dialog::backdrop{background:#0006}
     <!-- 상담 정보 -->
     <div class="card">
       <h2>상담 정보</h2>
-      <div class="grid2">
+      <div class="grid3">
         <div class="field">
-          <label for="counselor">상담자명</label>
-          <div class="inp"><input id="counselor" class="left" placeholder="상담자 이름 입력"></div>
+          <label for="custName">고객명</label>
+          <div class="inp"><input id="custName" class="left" placeholder="고객 이름 입력"></div>
+        </div>
+        <div class="field">
+          <label for="birth">생년월일</label>
+          <div class="inp"><input id="birth" type="date" class="left"></div>
+          <div class="hint" id="ageHint"></div>
         </div>
         <div class="field">
           <label for="cdate">상담일</label>
@@ -299,12 +318,21 @@ dialog::backdrop{background:#0006}
           <label for="income">본인 연소득</label>
           <div class="inp"><input id="income" class="money" inputmode="numeric" value="6,000"><span class="u">만원</span></div>
           <div class="hint"></div>
-          <div class="small" style="margin:-4px 0 0">나이에 따른 장래 예상소득 확인 필요(무주택인경우)</div>
         </div>
         <div class="field">
           <label class="chk" style="font-size:13px"><input type="checkbox" id="spouseOn"> 배우자 소득 합산</label>
           <div class="inp" id="spouseBox" style="opacity:.45"><input id="spouse" class="money" inputmode="numeric" disabled placeholder="0"><span class="u">만원</span></div>
           <div class="hint"></div>
+        </div>
+        <div class="field full future" id="futureBox">
+          <div class="future-head">
+            <span class="flabel" style="color:var(--text);font-weight:600">나이에 따른 장래 예상소득</span>
+            <label class="chk"><input type="checkbox" id="futureOn"> DSR에 반영</label>
+          </div>
+          <div class="future-cond">
+            <span>1년 이상 근로자</span><span>무주택</span><span>구입자금만 가능</span>
+          </div>
+          <div id="futureInfo"></div>
         </div>
       </div>
     </div>
@@ -619,17 +647,72 @@ const pickMin = items => items.reduce((a, b) => (b.v < a.v ? b : a));
 const cond = rows => `<dl class="cond">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
 const sec = (n, title, body, sub = '') => `<section class="rp-sec"><h3><em>${String(n).padStart(2, '0')}</em>${title}${sub ? ` <small>${sub}</small>` : ''}</h3>${body}</section>`;
 function reportHead(eyebrow, title) {
-  const c = $('#counselor').value.trim(), d = $('#cdate').value;
+  const c = $('#custName').value.trim(), d = $('#cdate').value, age = ageNow();
   return `<div class="rp-head"><div><div class="eyebrow">${eyebrow}</div><h2>${title}</h2></div>
-    <div class="rp-meta">상담일 <b>${d || '-'}</b><br>상담자 <b>${c || '________'}</b></div></div>`;
+    <div class="rp-meta">상담일 <b>${d || '-'}</b><br>고객 <b>${c || '________'}</b>${age !== null ? ` (만 ${age}세)` : ''}</div></div>`;
 }
 const reportFoot = () => `<div class="rp-foot"><b>※ 참고용, 실제 심사결과와 다를 수 있음</b>
   본 결과는 입력된 정보를 바탕으로 산출한 예상치이며, 금융기관의 실제 심사 기준·소득 인정 방식에 따라 달라질 수 있습니다.</div>`;
 
-function income() { return num($('#income').value) + ($('#spouseOn').checked ? num($('#spouse').value) : 0); }
-function incomeText() {
+/* ---------- 장래 예상소득 ----------
+   은행연합회 「여신심사 선진화를 위한 모범규준」, 통계청 연령대별 소득 통계 기준 증가율 (예시)
+   조건: 1년 이상 근로자 · 무주택 · 구입자금(주택담보대출)만 가능 */
+const FUTURE_TERMS = [10, 15, 20, 30];
+const FUTURE = [
+  { from: 20, to: 24, rates: [20.6, 31.1, 39.7, 50.7] },
+  { from: 25, to: 29, rates: [16.8, 23.5, 28.4, 31.6] },
+  { from: 30, to: 34, rates: [13.0, 16.6, 18.4, 13.5] }
+];
+function ageNow() {                       // 상담일 기준 만 나이
+  const b = $('#birth').value;
+  if (!b) return null;
+  const ref = $('#cdate').value ? new Date($('#cdate').value) : new Date(), bd = new Date(b);
+  let a = ref.getFullYear() - bd.getFullYear();
+  if (ref.getMonth() < bd.getMonth() || (ref.getMonth() === bd.getMonth() && ref.getDate() < bd.getDate())) a--;
+  return a >= 0 ? a : null;
+}
+function futureCalc() {
+  const self = num($('#income').value), age = ageNow(), years = +$('#mYears').value;
+  const out = { self, age, years, apply: false, ok: false, rate: 0, row: -1, col: -1, fut: self, reason: '' };
+  out.col = years >= 30 ? 3 : years >= 20 ? 2 : years >= 15 ? 1 : years >= 10 ? 0 : -1;
+  out.row = age === null ? -1 : FUTURE.findIndex(r => age >= r.from && age <= r.to);
+  if (age === null) out.reason = '생년월일을 입력하면 만 나이로 자동 계산됩니다.';
+  else if (out.row < 0) out.reason = `만 ${age}세는 적용 대상이 아닙니다. (만 20~34세만 해당)`;
+  else if (out.col < 0) out.reason = `대출기간 ${years}년은 적용 대상이 아닙니다. (만기 10년 이상만 해당)`;
+  else if ($('input[name=incType]:checked').value !== '증빙소득') out.reason = '1년 이상 근로자(증빙소득)만 해당됩니다.';
+  else if (!self) out.reason = '본인 연소득을 입력하세요.';
+  else {
+    out.ok = true;
+    out.rate = FUTURE[out.row].rates[out.col];
+    out.fut = self * (1 + out.rate / 100);
+    out.apply = $('#futureOn').checked;
+  }
+  return out;
+}
+function renderFuture(f) {
+  const colTerm = f.col >= 0 ? FUTURE_TERMS[f.col] : null;
+  const table = `<table class="ftable"><tr><th>연령</th>${FUTURE_TERMS.map(t => `<th>만기 ${t}년</th>`).join('')}</tr>
+    ${FUTURE.map((r, i) => `<tr><td>${r.from}~${r.to}세</td>${r.rates.map((v, j) =>
+      `<td class="${f.ok && i === f.row && j === f.col ? 'on' : ''}">${v.toFixed(1)}%</td>`).join('')}</tr>`).join('')}</table>`;
+  const txt = f.ok
+    ? `<div class="future-res">만 <b>${f.age}세</b> · 대출기간 <b>${f.years}년</b>(만기 ${colTerm}년 기준) → 증가율 <b>${f.rate.toFixed(1)}%</b><br>
+       본인 연소득 ${korMan(f.self)} → 장래 예상소득 <span class="hl">${korMan(f.fut)}</span>
+       ${f.apply ? '<br><b>주택담보대출 DSR에 장래 예상소득을 반영했습니다.</b>' : ''}</div>`
+    : `<div class="future-res off">${f.reason}</div>`;
+  $('#futureInfo').innerHTML = txt + table;
+  $('#futureOn').disabled = !f.ok;
+}
+const spouseInc = () => $('#spouseOn').checked ? num($('#spouse').value) : 0;
+// useFuture: 주택담보대출에서 장래 예상소득 반영 시 본인 소득을 장래 예상소득으로 대체
+function income(useFuture) {
+  const f = useFuture ? futureCalc() : null;
+  return (f && f.apply ? f.fut : num($('#income').value)) + spouseInc();
+}
+function incomeText(useFuture) {
   const t = $('input[name=incType]:checked').value, sp = $('#spouseOn').checked;
-  return `${korMan(income())} <span style="color:var(--muted);font-weight:400">(${t}${sp ? ' · 배우자 합산' : ''})</span>`;
+  const f = useFuture ? futureCalc() : null;
+  const extra = f && f.apply ? ` · 장래소득 +${f.rate.toFixed(1)}%` : '';
+  return `${korMan(income(useFuture))} <span style="color:var(--muted);font-weight:400">(${t}${sp ? ' · 배우자 합산' : ''}${extra})</span>`;
 }
 function existingSum() {
   let dsr = 0, dti = 0, amt = 0;
@@ -645,7 +728,7 @@ const exText = ex => loans.length ? `${loans.length}건 · 잔액 ${korMan(ex.am
 
 /* ---------- 주택담보대출 보고서 ---------- */
 function renderMort() {
-  const inc = income(), ex = existingSum();
+  const inc = income(true), ex = existingSum();
   const region = $('input[name=mRegion]:checked').value, rtype = $('input[name=mRtype]:checked').value;
   const method = $('input[name=mMethod]:checked').value, mName = method === 'equal' ? '원리금균등' : '원금균등';
   const L = num($('#mAmt').value), price = num($('#mPrice').value), rate = num($('#mRate').value);
@@ -686,12 +769,13 @@ function renderMort() {
     : `희망 대출금액 <b>${korMan(L)}</b> 기준 스트레스 DSR은 <span class="hl">${pct(SDSR)}</span>로 ${phrase}.
        1금융권 기준 최대 <span class="hl">${korMan(f1.v)}</span>, 2금융권 기준 최대 <b>${korMan(f2.v)}</b>까지 가능하며,
        한도를 결정하는 요인은 <b>${f1.short}</b>입니다.`;
+  const futNote = (() => { const f = futureCalc(); return f.apply ? ` <br>※ 장래 예상소득 <b>${korMan(f.fut)}</b>(만 ${f.age}세 · +${f.rate.toFixed(1)}%)을 반영한 결과입니다.` : ''; })();
 
   const sch = schedule(L, rate, years, method, 6);
 
   return `${reportHead('상담 결과 보고서', '주택담보대출 한도 분석')}
   <div class="rp-body">
-    <p class="summary">${summary}</p>
+    <p class="summary">${summary}${ready ? futNote : ''}</p>
     <div class="kpis">
       ${kpi('스트레스 DSR', SDSR, dsrStatus(SDSR), 70, dsrMarks(), true)}
       ${kpi('DTI', DTI, limitStatus(DTI, dtiLim), 100, [{ v: dtiLim, label: dtiLim + '%' }])}
@@ -700,7 +784,7 @@ function renderMort() {
     <p class="small">1금융권은 DSR ${S.dsr.bank1}%, 2금융권은 DSR ${S.dsr.bank2}% 기준이 적용됩니다.</p>
 
     ${sec(1, '상담 조건', cond([
-      ['연소득', incomeText()],
+      ['연소득', incomeText(true)],
       ['지역', ltvName],
       ['주택가격 (KB시세)', korMan(price)],
       ['대출 희망금액', korMan(L)],
@@ -833,6 +917,9 @@ function recalc() {
   $('#methodNote').hidden = m === 'equal';
   $('#methodNote').innerHTML = '<b>원금균등</b> · DSR 연 원리금 = <b>만기까지 총 원금 + 총 이자 ÷ 대출기간(년)</b>';
   $('#otherRateBox').hidden = tab !== 'jeonse';
+  $('#futureBox').hidden = tab !== 'mort';
+  { const a = ageNow(); $('#ageHint').textContent = a !== null ? `만 ${a}세` : ''; }
+  renderFuture(futureCalc());
   $('#results').innerHTML = tab === 'mort' ? renderMort() : renderJeonse();
   $('#mbK').textContent = MB.k; $('#mbV').textContent = MB.v; $('#mbV').className = MB.st; $('#mbM').textContent = MB.m;
 }
@@ -907,6 +994,7 @@ $('#btnReset').onclick = () => {
   ['#mRate', '#jRate', '#otherRate'].forEach(s => $(s).value = '');
   $('#spouseOn').checked = false; $('#spouseOn').onchange({ target: $('#spouseOn') });
   $('#mYears').value = 30; $('#jYears').value = 2; $('#firstHome').checked = false;
+  ['#custName', '#birth'].forEach(s => $(s).value = ''); $('#futureOn').checked = false;
   $('input[name=mMethod][value=equal]').checked = true;
   $('input[name=jHouse][value=none]').checked = true;
   loans = []; renderLoans();
