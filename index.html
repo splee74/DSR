@@ -476,6 +476,7 @@ dialog{border-radius:10px}
           <div class="seg">
             <label><input type="radio" name="jHouse" value="none" checked><span>무주택<small>DSR 미적용</small></span></label>
             <label><input type="radio" name="jHouse" value="one"><span>1주택<small id="jStressLbl">DSR 적용</small></span></label>
+            <label><input type="radio" name="jHouse" value="member"><span>본인 무주택<br>세대원 유주택<small id="jMemberLbl">DSR 적용</small></span></label>
             <label><input type="radio" name="jHouse" value="multi"><span class="x">다주택<small>전세대출 불가</small></span></label>
           </div>
         </div>
@@ -594,12 +595,12 @@ const DEFAULTS = {
   dti:    { metro: 60, reg: 40, local: 60 },
   cap:    { on: { metro: true, reg: true, local: false }, t1: 150000, c1: 60000, t2: 250000, c2: 40000, c3: 20000 },
   deem:   { credit: 5, other: 8, midpay: 25 },
-  jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000 },
+  jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000, capMember: 50000 },
   inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000 }
 };
 const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
 const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
-const HOUSES  = { none: '무주택', one: '1주택', multi: '다주택' };
+const HOUSES  = { none: '무주택', one: '1주택 (본인·배우자)', member: '본인·배우자 무주택 · 세대원 유주택', multi: '다주택' };
 const LOAN_TYPES = {
   mort:    '주택담보대출',
   credit:  '신용대출',
@@ -734,8 +735,11 @@ function buildSegs() {
   $('#segRegion').innerHTML = segHTML('mRegion', Object.fromEntries(Object.entries(REGIONS).map(([k, v]) => [k, `${v}<small>LTV ${S.ltv[k]}%</small>`])), r);
   $('#firstNote').textContent = `(규제지역 포함 LTV 최대 ${S.ltv.first}%)`;
   $('#segRtype').innerHTML = segHTML('mRtype', Object.fromEntries(Object.entries(RTYPES).map(([k, v]) => [k, `${v}<small>스트레스 +${fx(S.stress[k])}%p</small>`])), t);
-  $('#jStressLbl').textContent = `DSR 적용 (+${fx(S.stress.jeonse)}%p)`;
-  $('#jNote').innerHTML = `· <b>1주택자</b>만 DSR 적용 — 실제 금리 + 스트레스 <b>${fx(S.stress.jeonse)}%p</b>로 이자 산정, 기준 <b>${S.jeonse.dsr}%</b> · 최대 <b>${korMan(S.jeonse.capOne)}</b><br>
+  $('#jStressLbl').textContent = `DSR 적용 · 최대 ${korMan(S.jeonse.capOne)}`;
+  $('#jMemberLbl').textContent = `DSR 적용 · 최대 ${korMan(S.jeonse.capMember)}`;
+  $('#jNote').innerHTML = `· <b>1주택</b>(본인+배우자 1주택): DSR 적용 · 최대 <b>${korMan(S.jeonse.capOne)}</b><br>
+    · <b>본인 무주택 · 세대원 유주택</b>(등본상 부모·자녀 등 유주택): DSR 적용 · 최대 <b>${korMan(S.jeonse.capMember)}</b><br>
+    · DSR 적용 시 실제 금리 + 스트레스 <b>${fx(S.stress.jeonse)}%p</b>로 이자 산정, 기준 <b>${S.jeonse.dsr}%</b><br>
     · <b>무주택자</b>는 DSR 미적용, DTI만 계산 · DTI 한도 <b>${S.jeonse.dti}%</b> (지역 무관)<br>
     · <b>다주택자</b>는 전세자금대출 불가<br>
     · 만기일시상환이므로 DSR·DTI 모두 <b>연 이자</b>만 반영 (DTI는 고시금리 적용)`;
@@ -1005,7 +1009,9 @@ function renderJeonse() {
     return `${head}<div class="rp-body"><div class="block">⛔<strong>다주택자는 전세자금대출 불가</strong>
       <p>2주택 이상 보유자는 전세자금대출을 받을 수 없습니다.</p></div></div>${reportFoot()}`;
   }
-  const dsrOn = house === 'one';
+  const dsrOn = house === 'one' || house === 'member';
+  const who = house === 'one' ? '1주택자' : house === 'member' ? '세대원 유주택' : '무주택자';
+  const capV = house === 'one' ? S.jeonse.capOne : S.jeonse.capMember;
   const dep = num($('#jDeposit').value), L = num($('#jAmt').value), rate = num($('#jRate').value);
   const years = +$('#jYears').value, dtiLim = S.jeonse.dti, dsrLim = S.jeonse.dsr;
   const add = S.stress.jeonse, sRate = rate + add, dRate = dtiRateOf(rate);
@@ -1021,7 +1027,7 @@ function renderJeonse() {
     ? { label: `스트레스 DSR ${dsrLim}%`, v: byLim(dsrLim, ex.dsr, sRate), short: `스트레스 DSR ${dsrLim}%` }
     : { label: 'DSR (무주택자 미적용)', v: Infinity, text: '해당없음' };
   const items = [cDep, cDsr, cDti];
-  if (dsrOn) items.splice(1, 0, { label: '1주택자 최대 한도', v: S.jeonse.capOne, short: `1주택자 한도 ${korMan(S.jeonse.capOne)}` });
+  if (dsrOn) items.splice(1, 0, { label: `${who} 최대 한도`, v: capV, short: `${who} 한도 ${korMan(capV)}` });
   const f = pickMin(items);
   items.forEach(c => c.bind = c === f);
   const ready = inc && dep;
@@ -1031,7 +1037,7 @@ function renderJeonse() {
   const dtiOk = DTI <= dtiLim ? '이내' : '<b>초과</b>';
   const summary = !ready ? '연소득과 전세보증금을 입력하면 분석 결과가 표시됩니다.'
     : dsrOn
-      ? `1주택자로 스트레스 DSR(+${fx(add)}%p)은 <span class="hl">${pct(DSR)}</span>로 기준(${dsrLim}%) ${DSR <= dsrLim ? '이내' : '<b>초과</b>'}이며,
+      ? `${house === 'one' ? '1주택자로' : '본인·배우자는 무주택이나 세대원이 유주택이므로'} 스트레스 DSR(+${fx(add)}%p)은 <span class="hl">${pct(DSR)}</span>로 기준(${dsrLim}%) ${DSR <= dsrLim ? '이내' : '<b>초과</b>'}이며,
          DTI는 <b>${pct(DTI)}</b>로 한도(${dtiLim}%) ${dtiOk}입니다. 최대 <span class="hl">${korMan(f.v)}</span>까지 가능하며, 한도를 결정하는 요인은 <b>${f.short}</b>입니다.`
       : `무주택자로 DSR은 적용되지 않으며, DTI는 <span class="hl">${pct(DTI)}</span>로 한도(${dtiLim}%) ${dtiOk}입니다.
          최대 <span class="hl">${korMan(f.v)}</span>까지 가능하며, 한도를 결정하는 요인은 <b>${f.short}</b>입니다.`;
@@ -1042,7 +1048,7 @@ function renderJeonse() {
   <div class="rp-body">
     <p class="summary">${summary}</p>
     <div class="kpis">
-      ${dsrOn ? kpi('스트레스 DSR · 1주택', DSR, dsrSt, 70, [{ v: dsrLim, label: dsrLim + '%' }], true)
+      ${dsrOn ? kpi(`스트레스 DSR · ${who}`, DSR, dsrSt, 70, [{ v: dsrLim, label: dsrLim + '%' }], true)
               : kpi('DSR', NaN, ['na', '무주택자 미적용'], 70, [], true)}
       ${kpi('DTI', DTI, limitStatus(DTI, dtiLim), 100, [{ v: dtiLim, label: dtiLim + '%' }])}
       ${kpi('보증금 대비', ratio, limitStatus(ratio, S.jeonse.ratio), 100, [{ v: S.jeonse.ratio, label: S.jeonse.ratio + '%' }])}
@@ -1068,7 +1074,7 @@ function renderJeonse() {
     ${dsrOn ? sec(3, '스트레스 DSR 산정', `
       <div class="formula">
         <span><b>실제 금리</b>${rate.toFixed(2)}%</span><i>+</i>
-        <span><b>스트레스 (1주택자)</b>${fx(add)}%p</span><i>=</i>
+        <span><b>스트레스 (${who})</b>${fx(add)}%p</span><i>=</i>
         <span class="res"><b>DSR 산정금리</b>${sRate.toFixed(2)}%</span>
       </div>
       <p class="small">금리 입력란은 실제 적용 금리이며, 스트레스 금리는 DSR 산정에만 반영됩니다.</p>`) : ''}
@@ -1109,7 +1115,7 @@ const SETTINGS = [
   ['주담대 금액 상한', [['cap.on.metro', '수도권 적용', 'chk'], ['cap.on.reg', '규제지역 적용', 'chk'], ['cap.on.local', '지방 적용', 'chk'],
     ['cap.t1', '구간1: 주택가격 이하', '만원'], ['cap.c1', '구간1 한도', '만원'], ['cap.t2', '구간2: 주택가격 이하', '만원'], ['cap.c2', '구간2 한도', '만원'], ['cap.c3', '구간2 초과 한도', '만원']]],
   ['DSR 간주 만기 (기존 대출)', [['deem.credit', '신용대출·마이너스통장', '년'], ['deem.other', '기타담보대출', '년'], ['deem.midpay', '중도금·이주비', '년']]],
-  ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (1주택자)', '%'], ['stress.jeonse', '1주택자 스트레스 가산', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원']]]
+  ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (DSR 적용 대상)', '%'], ['stress.jeonse', '스트레스 가산 (DSR 적용 대상)', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원'], ['jeonse.capMember', '세대원 유주택 최대 한도', '만원']]]
 ];
 function openSettings(src = S) {
   $('#dlgBody').innerHTML = SETTINGS.map(([title, items]) => `<div class="sgroup"><h3>${title}</h3><div class="grid3">${
