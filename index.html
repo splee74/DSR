@@ -480,8 +480,8 @@ dialog{border-radius:10px}
           <span class="flabel">주택 보유</span>
           <div class="seg seg-even">
             <label><input type="radio" name="jHouse" value="none" checked><span>무주택<small>DSR 미적용</small></span></label>
-            <label><input type="radio" name="jHouse" value="one"><span>1주택<small id="jStressLbl">DSR 적용</small></span></label>
-            <label><input type="radio" name="jHouse" value="member"><span>본인 무주택<br>세대원 유주택<small id="jMemberLbl">DSR 적용</small></span></label>
+            <label><input type="radio" name="jHouse" value="one"><span>1주택<br>(본인,배우자)<small id="jStressLbl">DSR 적용</small></span></label>
+            <label><input type="radio" name="jHouse" value="member"><span>본인,배우자 무주택<br>세대원 유주택<small id="jMemberLbl">DSR 적용</small></span></label>
             <label><input type="radio" name="jHouse" value="multi"><span class="x">다주택<small>전세대출 불가</small></span></label>
           </div>
         </div>
@@ -605,7 +605,7 @@ const DEFAULTS = {
 };
 const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
 const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
-const HOUSES  = { none: '무주택', one: '1주택 (본인·배우자)', member: '본인·배우자 무주택 · 세대원 유주택', multi: '다주택' };
+const HOUSES  = { none: '무주택', one: '1주택 (본인,배우자)', member: '본인,배우자 무주택 · 세대원 유주택', multi: '다주택' };
 const LOAN_TYPES = {
   mort:    '주택담보대출',
   credit:  '신용대출',
