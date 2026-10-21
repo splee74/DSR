@@ -803,7 +803,7 @@ const reportFoot = () => `<div class="rp-foot"><b>※ 참고용, 실제 심사�
 /* ---------- 장래 예상소득 ----------
    은행연합회 「여신심사 선진화를 위한 모범규준」, 통계청 연령대별 소득 통계 기준 증가율 (예시)
    조건: 1년 이상 근로자 · 무주택 · 구입자금(주택담보대출)만 가능 */
-const FUTURE_TERMS = ['10년 초과<br>15년 이하', '15년 초과<br>20년 이하', '20년 초과<br>30년 이하', '30년 초과'];
+const FUTURE_TERMS = ['10년 이상<br>15년 미만', '15년 이상<br>20년 미만', '20년 이상<br>30년 미만', '30년 이상'];
 const FUTURE = [
   { from: 20, to: 24, rates: [20.6, 31.1, 39.7, 50.7] },
   { from: 25, to: 29, rates: [16.8, 23.5, 28.4, 31.6] },
@@ -823,7 +823,7 @@ function futureOne(base, age, col) {
   p.row = age === null ? -1 : FUTURE.findIndex(r => age >= r.from && age <= r.to);
   if (age === null) p.reason = '생년월일을 입력하면 만 나이로 자동 계산됩니다.';
   else if (p.row < 0) p.reason = `만 ${age}세는 적용 대상이 아닙니다. (만 20~34세만 해당)`;
-  else if (col < 0) p.reason = '대출기간 10년 초과만 해당됩니다.';
+  else if (col < 0) p.reason = '대출기간 10년 이상만 해당됩니다.';
   else if ($('input[name=incType]:checked').value !== '증빙소득') p.reason = '1년 이상 근로자(증빙소득)만 해당됩니다.';
   else if (!base) p.reason = '연소득을 입력하세요.';
   else { p.ok = true; p.rate = FUTURE[p.row].rates[col]; p.fut = base * (1 + p.rate / 100); }
@@ -831,7 +831,7 @@ function futureOne(base, age, col) {
 }
 function futureCalc() {
   const years = +$('#mYears').value, spOn = $('#spouseOn').checked;
-  const col = years > 30 ? 3 : years > 20 ? 2 : years > 15 ? 1 : years > 10 ? 0 : -1;
+  const col = years >= 30 ? 3 : years >= 20 ? 2 : years >= 15 ? 1 : years >= 10 ? 0 : -1;
   const me = futureOne(num($('#income').value), ageNow(), col);
   const sp = spOn ? futureOne(num($('#spouse').value), ageOf($('#spBirth').value), col) : null;
   me.apply = me.ok && $('#futureOn').checked;
@@ -849,7 +849,7 @@ function renderFuture(f) {
        ${korMan(p.base)} → 장래 예상소득 <span class="hl">${korMan(p.fut)}</span>${p.apply ? ' <b>· DSR 반영</b>' : ''}</div>`
     : `<div class="future-res off"><b>${who}</b> · ${p.reason}</div>`;
   $('#futureInfo').innerHTML = line('본인', f.me) + (f.sp ? line('배우자', f.sp) : '') + table +
-    '<p class="small" style="color:var(--bad);margin:6px 0 0;font-size:11.5px;line-height:1.5">※ 여신심사 선진화를 위한 모범규준 및 통계청 연령대별 소득 통계에 따라 계산된 값으로, 30~34세는 만기 30년 초과 구간의 비율이 낮으므로 30년 이하로 하는 것이 좀 더 유리합니다.</p>';
+    '<p class="small" style="color:var(--bad);margin:6px 0 0;font-size:11.5px;line-height:1.5">※ 여신심사 선진화를 위한 모범규준 및 통계청 연령대별 소득 통계에 따라 계산된 값으로, 30~34세는 만기 30년 이상 구간의 비율이 낮으므로 29년으로 하는 것이 좀 더 유리합니다.</p>';
   $('#futureOn').disabled = !f.me.ok;
   $('#futureSpBox').hidden = !f.sp;
   $('#futureSpOn').disabled = !(f.sp && f.sp.ok);
