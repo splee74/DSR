@@ -217,6 +217,10 @@ dialog::backdrop{background:#0006}
 .credit.top-credit{padding-block:6px 4px}
 .credit.end-credit{padding-block:0 24px}
 @media (max-width:560px){.credit{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+.inc-sum{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;background:var(--soft);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--sub)}
+.inc-sum strong{font-size:18px;font-weight:700;color:var(--text)}
+.inc-sum .fut{width:100%;font-size:12.5px;color:var(--brand);font-weight:600}
+.inp.auto{background:var(--brand-weak)}
 .future{border:1px solid var(--brand-line);background:var(--brand-weak);border-radius:14px;padding:14px;gap:10px}
 .future-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .future-cond{display:flex;gap:6px;flex-wrap:wrap}
@@ -316,6 +320,12 @@ dialog::backdrop{background:#0006}
           </div>
           <div class="small" style="margin:0">※ 신고소득: 본인소득 없거나, 부부합산 소득24백만 이하</div>
         </div>
+        <div class="field full" id="cardBox" hidden>
+          <label for="cardUse">연간 카드사용액</label>
+          <div class="inp"><input id="cardUse" class="money" inputmode="numeric" placeholder="0"><span class="u">만원</span></div>
+          <div class="hint"></div>
+          <div class="note" id="cardCalc"></div>
+        </div>
         <div class="field">
           <label for="income">본인 연소득</label>
           <div class="inp"><input id="income" class="money" inputmode="numeric" value="6,000"><span class="u">만원</span></div>
@@ -331,6 +341,7 @@ dialog::backdrop{background:#0006}
             <div class="hint" id="spAgeHint"></div>
           </div>
         </div>
+        <div class="field full" id="incSum" hidden></div>
         <div class="field full future" id="futureBox">
           <div class="future-head">
             <span class="flabel" style="color:var(--text);font-weight:600">나이에 따른 장래 예상소득</span>
@@ -472,7 +483,8 @@ const DEFAULTS = {
   dti:    { metro: 60, reg: 40, local: 60 },
   cap:    { on: { metro: true, reg: true, local: false }, t1: 150000, c1: 60000, t2: 250000, c2: 40000, c3: 20000 },
   deem:   { credit: 5, other: 8, midpay: 25 },
-  jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000 }
+  jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000 },
+  inc:    { cardRate: 40.9 }
 };
 const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
 const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
@@ -717,6 +729,32 @@ function renderFuture(f) {
   $('#futureSpBox').hidden = !f.sp;
   $('#futureSpOn').disabled = !(f.sp && f.sp.ok);
 }
+// 신고소득: 연간 카드사용액 ÷ 신용카드 사용요율
+function syncCardIncome() {
+  const card = $('input[name=incType]:checked').value === '신고소득';
+  const el = $('#income');
+  $('#cardBox').hidden = !card;
+  el.readOnly = card;
+  el.closest('.inp').classList.toggle('auto', card);
+  if (!card) return;
+  const use = num($('#cardUse').value), r = S.inc.cardRate;
+  const v = r ? Math.floor(use / (r / 100)) : 0;
+  el.value = v ? v.toLocaleString('ko-KR') : '';
+  formatMoney(el);
+  $('#cardCalc').innerHTML = `연간 카드사용액 <b>${korMan(use)}</b> ÷ 신용카드 사용요율 <b>${r.toFixed(2)}%</b> = 신고소득 <b>${korMan(v)}</b>`;
+}
+function renderIncomeSum() {
+  const on = $('#spouseOn').checked, box = $('#incSum');
+  box.hidden = !on;
+  if (!on) return;
+  const me = num($('#income').value), sp = num($('#spouse').value);
+  let fut = '';
+  if (tab === 'mort') {
+    const f = futureCalc();
+    if (f.any) fut = `<span class="fut">장래 예상소득 반영 시 합계 ${korMan(income(true))}</span>`;
+  }
+  box.innerHTML = `<div class="inc-sum"><span>부부 합산 소득 (본인 ${korMan(me)} + 배우자 ${korMan(sp)})</span><strong>${korMan(me + sp)}</strong>${fut}</div>`;
+}
 const spouseInc = () => $('#spouseOn').checked ? num($('#spouse').value) : 0;
 // useFuture: 주택담보대출에서 장래 예상소득 반영 시 해당 소득을 장래 예상소득으로 대체
 function income(useFuture) {
@@ -940,13 +978,16 @@ function recalc() {
   $('#futureBox').hidden = tab !== 'mort';
   { const a = ageNow(); $('#ageHint').textContent = a !== null ? `만 ${a}세` : ''; }
   { const a = ageOf($('#spBirth').value); $('#spAgeHint').textContent = a !== null ? `만 ${a}세` : ''; }
+  syncCardIncome();
   renderFuture(futureCalc());
+  renderIncomeSum();
   $('#results').innerHTML = tab === 'mort' ? renderMort() : renderJeonse();
   $('#mbK').textContent = MB.k; $('#mbV').textContent = MB.v; $('#mbV').className = MB.st; $('#mbM').textContent = MB.m;
 }
 
 /* ---------- 설정 다이얼로그 ---------- */
 const SETTINGS = [
+  ['소득', [['inc.cardRate', '신용카드 사용요율 (신고소득)', '%']]],
   ['LTV 비율', [['ltv.metro', '수도권', '%'], ['ltv.reg', '규제지역', '%'], ['ltv.local', '지방', '%'], ['ltv.first', '생애최초 (규제지역 포함)', '%']]],
   ['스트레스 가산금리 (주담대)', [['stress.variable', '변동금리', '%p'], ['stress.mixed', '혼합형', '%p'], ['stress.periodic', '5년 주기형', '%p']]],
   ['DSR 기준 (주담대)', [['dsr.bank1', '1금융권', '%'], ['dsr.bank2', '2금융권', '%']]],
@@ -1012,7 +1053,7 @@ $('#btnReset').onclick = () => {
     return;
   }
   clearTimeout(resetArm); resetArm = 0; b.textContent = '초기화';
-  ['#income', '#spouse', '#mPrice', '#mAmt', '#jDeposit', '#jAmt'].forEach(s => { $(s).value = ''; formatMoney($(s)); });
+  ['#income', '#spouse', '#cardUse', '#mPrice', '#mAmt', '#jDeposit', '#jAmt'].forEach(s => { $(s).value = ''; formatMoney($(s)); });
   ['#mRate', '#jRate', '#otherRate'].forEach(s => $(s).value = '');
   $('#spouseOn').checked = false; $('#spouseOn').onchange({ target: $('#spouseOn') });
   $('#mYears').value = 30; $('#jYears').value = 2; $('#firstHome').checked = false;
