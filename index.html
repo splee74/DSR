@@ -248,6 +248,13 @@ dialog::backdrop{background:#0006}
 .mbar-in b{color:var(--text);font-size:16px;font-weight:700;white-space:nowrap}
 .mbar-in b.ok{color:var(--ok)}.mbar-in b.warn{color:var(--warn)}.mbar-in b.bad{color:var(--bad)}
 .mbar-in button{margin-left:auto;border:0;background:var(--brand);color:#fff;border-radius:999px;padding:11px 18px;font-weight:600;white-space:nowrap}
+.actions button.fb{border-color:var(--brand);color:var(--brand-ink);font-weight:700}
+.actions button.fb:hover{background:var(--brand-weak)}
+.inp textarea{border:0;outline:0;flex:1;min-width:0;padding:10px 0;font:inherit;background:transparent;color:var(--text);resize:vertical;min-height:120px}
+.inp:has(textarea){align-items:stretch}
+.fb-result{margin-top:14px;font-weight:600}
+.fb-result.ok{background:var(--okbg);color:var(--ok)}
+.fb-result.bad{background:var(--badbg);color:var(--bad)}
 /* ── 포털 스타일: 각진 모서리 · 1px 테두리 · 초록 포인트 ── */
 .top{border-bottom:1px solid var(--line)}
 .top-in{padding-block:0}
@@ -334,6 +341,7 @@ dialog{border-radius:10px}
       <button type="button" id="btnSettings">⚙ 규제설정</button>
       <button type="button" id="btnReset">초기화</button>
       <button type="button" id="btnPrint" class="primary">결과지 인쇄</button>
+      <button type="button" id="btnFeedback" class="fb">의견·문의</button>
     </div>
   </div>
 </header>
@@ -512,6 +520,50 @@ dialog{border-radius:10px}
   <div><span>최대 가능금액</span><b id="mbM">—</b></div>
   <button type="button" id="mbGo">결과 보기</button>
 </div></div>
+
+<dialog id="fbDlg">
+  <form id="fbForm" name="feedback" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+    <input type="hidden" name="form-name" value="feedback">
+    <p hidden><label>bot <input name="bot-field"></label></p>
+    <div class="dlg-head"><h2>의견·문의 보내기</h2><button type="button" data-fbclose aria-label="닫기">×</button></div>
+    <div class="dlg-body">
+      <p class="note">계산기를 쓰면서 궁금한 점, 추가했으면 하는 기능, 오류를 알려주세요. 확인 후 남겨주신 연락처로 답변드립니다.</p>
+      <div class="grid2" style="margin-top:14px">
+        <div class="field">
+          <label for="fbName">이름</label>
+          <div class="inp"><input id="fbName" name="name" class="left" required maxlength="30" autocomplete="name" placeholder="홍길동"></div>
+        </div>
+        <div class="field">
+          <label for="fbPhone">연락처</label>
+          <div class="inp"><input id="fbPhone" name="phone" type="tel" inputmode="tel" class="left" required maxlength="20" autocomplete="tel" placeholder="010-0000-0000"></div>
+        </div>
+        <div class="field full">
+          <span class="flabel">유형</span>
+          <div class="seg">
+            <label><input type="radio" name="type" value="질문" checked><span>질문</span></label>
+            <label><input type="radio" name="type" value="요청사항"><span>요청사항</span></label>
+            <label><input type="radio" name="type" value="오류신고"><span>오류신고</span></label>
+          </div>
+        </div>
+        <div class="field full">
+          <label for="fbMsg">내용</label>
+          <div class="inp"><textarea id="fbMsg" name="message" required maxlength="2000" rows="5" placeholder="내용을 적어주세요."></textarea></div>
+        </div>
+        <div class="field full">
+          <label class="chk"><input type="checkbox" id="fbAgree" name="agree" value="동의" required> 답변을 위한 이름·연락처 수집에 동의합니다 (답변 후 파기)</label>
+        </div>
+      </div>
+      <div class="note fb-result" id="fbResult" hidden></div>
+    </div>
+    <div class="dlg-foot">
+      <span class="small" style="margin:0;align-self:center">제작 : 이승표</span>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="btn" data-fbclose>닫기</button>
+        <button type="submit" class="btn primary" id="fbSend">보내기</button>
+      </div>
+    </div>
+  </form>
+</dialog>
 
 <dialog id="dlg">
   <div class="dlg-head"><h2>⚙ 규제 설정</h2><button type="button" data-close aria-label="닫기">×</button></div>
@@ -1065,14 +1117,14 @@ function openSettings(src = S) {
 /* ---------- 이벤트 ---------- */
 document.addEventListener('input', e => {
   const t = e.target;
-  if (t.closest('#dlg')) return;
+  if (t.closest('dialog')) return;
   if (t.classList.contains('money')) formatMoney(t);
   if (t.dataset.i !== undefined) loans[+t.dataset.i][t.dataset.k] = t.value;
   recalc();
 });
 document.addEventListener('change', e => {
   const t = e.target;
-  if (t.closest('#dlg')) return;
+  if (t.closest('dialog')) return;
   if (t.dataset.k === 'type') { loans[+t.dataset.i].type = t.value; renderLoans(); return; }
   if (t.dataset.i !== undefined) loans[+t.dataset.i][t.dataset.k] = t.value;
   recalc();
@@ -1119,6 +1171,28 @@ $('#btnReset').onclick = () => {
   loans = []; renderLoans();
 };
 $('#btnSettings').onclick = () => openSettings();
+
+/* ---------- 의견·문의 (Netlify Forms로 전송) ---------- */
+function fbShow(ok, msg) { const r = $('#fbResult'); r.hidden = false; r.className = 'note fb-result ' + (ok ? 'ok' : 'bad'); r.textContent = msg; }
+$('#btnFeedback').onclick = () => { $('#fbResult').hidden = true; $('#fbDlg').showModal(); };
+$$('[data-fbclose]').forEach(b => b.onclick = () => $('#fbDlg').close());
+$('#fbForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = e.target, btn = $('#fbSend');
+  if (!f.reportValidity()) return;
+  btn.disabled = true; btn.textContent = '보내는 중…';
+  try {
+    const r = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(new FormData(f)).toString() });
+    if (!r.ok) throw new Error(r.status);
+    f.reset();
+    fbShow(true, '보냈습니다. 확인 후 남겨주신 연락처로 답변드리겠습니다.');
+  } catch (err) {
+    fbShow(false, '보내지 못했습니다. 인터넷 연결을 확인한 뒤 다시 보내주세요. 계속 안 되면 splee4649@gmail.com 으로 보내주세요.');
+  } finally {
+    btn.disabled = false; btn.textContent = '보내기';
+  }
+});
 $$('#dlg [data-close]').forEach(b => b.onclick = () => $('#dlg').close());
 $('#btnDefaults').onclick = () => openSettings(DEFAULTS);
 $('#btnSave').onclick = () => {
