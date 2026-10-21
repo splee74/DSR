@@ -99,6 +99,11 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .seg input:checked+span{border-color:var(--brand-ink);background:var(--brand-weak);color:var(--brand-ink)}
 .seg input:checked+span small{color:var(--brand-ink)}
 .seg input:focus-visible+span{box-shadow:0 0 0 3px #ff6f0f33}
+/* 주택 보유 탭: 같은 너비·같은 높이 */
+.seg-even{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.seg-even label{min-width:0;display:flex}
+.seg-even span{width:100%;display:flex;flex-direction:column;justify-content:center;min-height:64px}
+@media (max-width:560px){.seg-even{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .seg input:checked+span.x{border-color:var(--bad);background:var(--badbg);color:var(--bad)}
 .seg input:checked+span.x small{color:var(--bad)}
 
@@ -473,7 +478,7 @@ dialog{border-radius:10px}
       <div class="grid2">
         <div class="field full">
           <span class="flabel">주택 보유</span>
-          <div class="seg">
+          <div class="seg seg-even">
             <label><input type="radio" name="jHouse" value="none" checked><span>무주택<small>DSR 미적용</small></span></label>
             <label><input type="radio" name="jHouse" value="one"><span>1주택<small id="jStressLbl">DSR 적용</small></span></label>
             <label><input type="radio" name="jHouse" value="member"><span>본인 무주택<br>세대원 유주택<small id="jMemberLbl">DSR 적용</small></span></label>
