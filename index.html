@@ -348,7 +348,7 @@ dialog{border-radius:10px}
 </head>
 <body>
 
-<div class="credit top-credit">제작 : 이승표 (splee4649@gmail.com)</div>
+<div class="credit top-credit">제작 : 이승표 (splee4649@gmail.com) · <span class="app-ver"></span></div>
 
 <header class="top">
   <div class="top-in">
@@ -550,7 +550,7 @@ dialog{border-radius:10px}
   </section>
 </main>
 
-<footer class="credit end-credit">제작 : 이승표 (splee4649@gmail.com)</footer>
+<footer class="credit end-credit">제작 : 이승표 (splee4649@gmail.com) · <span class="app-ver"></span></footer>
 
 <div class="mbar" id="mbar"><div class="mbar-in">
   <div><span id="mbK">스트레스 DSR</span><b id="mbV">—</b></div>
@@ -616,6 +616,8 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const APP_VERSION = 'v28';   // sw.js 의 VERSION 과 같이 올릴 것
+document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
 const DEFAULTS = {
