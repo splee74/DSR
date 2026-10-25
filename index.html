@@ -1211,6 +1211,7 @@ $('#btnReset').onclick = () => {
 $('#btnSettings').onclick = () => openSettings();
 
 /* ---------- 의견·문의 (Netlify Forms로 전송) ---------- */
+const FEEDBACK_ENDPOINT = 'https://rad-klepon-472426.netlify.app/';
 function fbShow(ok, msg) { const r = $('#fbResult'); r.hidden = false; r.className = 'note fb-result ' + (ok ? 'ok' : 'bad'); r.textContent = msg; }
 $('#btnFeedback').onclick = () => { $('#fbResult').hidden = true; $('#fbDlg').showModal(); };
 $$('[data-fbclose]').forEach(b => b.onclick = () => $('#fbDlg').close());
@@ -1220,9 +1221,16 @@ $('#fbForm').addEventListener('submit', async e => {
   if (!f.reportValidity()) return;
   btn.disabled = true; btn.textContent = '보내는 중…';
   try {
-    const r = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(new FormData(f)).toString() });
-    if (!r.ok) throw new Error(r.status);
+    // Netlify 주소에서는 같은 사이트로, 그 외(GitHub Pages 등)에서는 Netlify Forms로 직접 전송
+    const body = new URLSearchParams(new FormData(f)).toString();
+    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    if (location.hostname.endsWith('netlify.app')) {
+      const r = await fetch('/', { method: 'POST', headers, body });
+      if (!r.ok) throw new Error(r.status);
+    } else {
+      if (!/^https?:$/.test(location.protocol)) throw new Error('offline file');
+      await fetch(FEEDBACK_ENDPOINT, { method: 'POST', mode: 'no-cors', headers, body });   // 응답은 읽을 수 없음(다른 사이트)
+    }
     f.reset();
     fbShow(true, '보냈습니다. 확인 후 남겨주신 연락처로 답변드리겠습니다.');
   } catch (err) {
