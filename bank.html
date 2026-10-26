@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>은행별 금리 비교</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" type="image/png" href="icon-192.png?v=2">
+<meta name="robots" content="noindex">
+<style>
+/* 레이아웃: 위 조건 선택 → 요약 → 금리 범위 막대 → 상세 표(휴대폰은 카드) → 내 조건 월 상환액 */
+:root{
+  --brand:#03c75a;--ink:#008a3e;--weak:#eafaf1;--weak-line:#b8ebcd;
+  --bg:#f5f6f7;--card:#fff;--surface:#fff;--soft:#f5f6f7;--line:#e3e5e8;--line-strong:#d4d5d9;
+  --text:#1e1e23;--sub:#4e5258;--muted:#8b8f96;--faint:#c4c6cb;
+  --up:#ea3d34;--down:#2f6fde;--range:#cdeedd;--warnbg:#fff6e2;--warn:#b77400;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#1ed36f;--ink:#4fe393;--weak:#10301f;--weak-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--surface:#2b2c31;--soft:#26272b;--line:#323338;--line-strong:#46474e;
+  --text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;--faint:#4a4c52;
+  --up:#ff6b63;--down:#6ea2ff;--range:#1d4a33;--warnbg:#33280e;--warn:#f0b23c;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#1ed36f;--ink:#4fe393;--weak:#10301f;--weak-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--surface:#2b2c31;--soft:#26272b;--line:#323338;--line-strong:#46474e;
+  --text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;--faint:#4a4c52;
+  --up:#ff6b63;--down:#6ea2ff;--range:#1d4a33;--warnbg:#33280e;--warn:#f0b23c;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.55;letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+.top{background:var(--card);border-bottom:1px solid var(--line)}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+@media (max-width:640px){.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+.top .wrap{padding-block:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.back{width:100%;font-size:13.5px;font-weight:700;color:var(--ink);text-decoration:none}
+.logo{width:36px;height:36px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800}
+.top h1{margin:0;font-size:18px;font-weight:800;letter-spacing:-.5px}
+.top span{display:block;font-size:12px;color:var(--muted)}
+.asof{margin-left:auto;font-size:12.5px;color:var(--muted);text-align:right}
+.asof b{color:var(--text)}
+main{padding-block:20px 8px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px}
+.card h2{margin:0 0 14px;font-size:16px;font-weight:800;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.card h2 small{font-size:12.5px;font-weight:400;color:var(--muted)}
+.sample{display:inline-block;font-size:11.5px;font-weight:800;color:var(--warn);background:var(--warnbg);border-radius:4px;padding:2px 8px;margin-left:4px}
+
+/* 조건 선택 */
+.filters{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:center}
+@media (max-width:640px){.filters{grid-template-columns:1fr}}
+.filters .lab{font-size:13px;color:var(--sub);font-weight:600}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips label{position:relative}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips span{display:block;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:14px;font-weight:600;color:var(--sub);cursor:pointer}
+.chips input:checked+span{border-color:var(--brand);background:var(--weak);color:var(--ink);box-shadow:inset 0 0 0 1px var(--brand)}
+.chips input:focus-visible+span{outline:2px solid var(--brand);outline-offset:2px}
+
+/* 요약 */
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.summary{grid-template-columns:1fr}}
+.sum{border-radius:8px;padding:14px 16px;background:var(--soft)}
+.sum.best{background:var(--weak);border:1px solid var(--weak-line)}
+.sum small{display:block;font-size:12.5px;color:var(--sub)}
+.sum strong{display:block;font-size:22px;font-weight:800;letter-spacing:-.6px;margin:2px 0}
+.sum.best strong{color:var(--ink)}
+.sum em{font-style:normal;font-size:12.5px;color:var(--muted)}
+
+/* 금리 범위 막대 */
+.chart{display:grid;grid-template-columns:96px minmax(0,1fr) 64px;gap:10px 12px;align-items:center}
+@media (max-width:640px){.chart{grid-template-columns:72px minmax(0,1fr) 52px}}
+.chart .bn{font-size:14px;font-weight:700}
+.track{position:relative;height:26px}
+.track .grid{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+.track .rng{position:absolute;top:8px;height:10px;border-radius:5px;background:var(--range)}
+.track .avg{position:absolute;top:3px;width:4px;height:20px;margin-left:-2px;border-radius:2px;background:var(--brand)}
+.chart .av{font-size:14px;font-weight:800;text-align:right}
+.chart .best-row .bn,.chart .best-row .av{color:var(--ink)}
+.axis{grid-column:2;position:relative;height:18px;font-size:11px;color:var(--muted)}
+.axis span{position:absolute;transform:translateX(-50%)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;vertical-align:-1px;margin-right:6px}
+.legend .l1{width:22px;height:10px;border-radius:5px;background:var(--range)}
+.legend .l2{width:4px;height:14px;border-radius:2px;background:var(--brand)}
+
+/* 상세 표 */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:760px}
+th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:600;background:var(--soft)}
+th:first-child,td:first-child{text-align:left}
+tr.best td{background:var(--weak)}
+td .b{font-weight:800}
+.chg.up{color:var(--up)}.chg.down{color:var(--down)}.chg.same{color:var(--muted)}
+.badge{display:inline-block;font-size:11px;font-weight:800;color:#fff;background:var(--brand);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+.dot{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--soft);color:var(--sub);font-size:11.5px;font-weight:800;margin-right:8px;vertical-align:middle}
+a.go{color:var(--ink);font-weight:600;text-decoration:none;font-size:13px}
+
+/* 휴대폰: 표 대신 카드 */
+.cards{display:none}
+@media (max-width:640px){.tw{display:none}.cards{display:flex;flex-direction:column;gap:10px}}
+.bc{border:1px solid var(--line);border-radius:8px;padding:14px}
+.bc.best{border-color:var(--weak-line);background:var(--weak)}
+.bc-h{display:flex;align-items:center;gap:8px}
+.bc-h b{font-size:15.5px}
+.bc-h .r{margin-left:auto;text-align:right}
+.bc-h .r strong{display:block;font-size:19px;font-weight:800}
+.bc dl{display:grid;grid-template-columns:auto 1fr;margin:10px 0 0;font-size:13px}
+.bc dt,.bc dd{padding:5px 0;border-top:1px solid var(--line)}
+.bc dt{color:var(--muted)}.bc dd{margin:0;text-align:right;font-weight:600}
+
+/* 내 조건 월 상환액 */
+.calc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+@media (max-width:640px){.calc{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:13px;color:var(--sub);font-weight:500}
+.inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:0 12px;min-height:44px}
+.inp:focus-within{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.inp input,.inp select{border:0;outline:0;flex:1;min-width:0;padding:10px 0;font:inherit;font-weight:600;background:transparent;color:var(--text);text-align:right}
+.inp select{text-align:left}
+.inp .u{color:var(--muted);font-size:13px;margin-left:6px}
+@media (max-width:640px){.inp input,.inp select{font-size:16px}}
+.hint{font-size:12px;color:var(--ink);text-align:right;min-height:16px}
+.pay{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.pay{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pay div{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.pay div.best{border-color:var(--brand);background:var(--weak)}
+.pay small{display:block;font-size:12.5px;color:var(--sub)}
+.pay strong{display:block;font-size:16px;font-weight:800}
+.pay em{font-style:normal;font-size:12px;color:var(--muted)}
+
+.edit-btn{border:0;background:var(--brand);color:#fff;font:inherit;font-size:14px;font-weight:700;border-radius:6px;padding:9px 16px;cursor:pointer;white-space:nowrap}
+.edit-btn:hover{filter:brightness(.95)}
+.edit-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.miss{margin:-6px 0 10px;font-size:12.5px;color:var(--warn)}
+.miss:empty{display:none}
+dialog{border:0;border-radius:10px;padding:0;width:min(860px,calc(100vw - 24px));max-height:calc(100vh - 32px);background:var(--card);color:var(--text);box-shadow:0 20px 60px #0004}
+dialog::backdrop{background:#0006}
+.ed-head{position:sticky;top:0;z-index:1;background:var(--card);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ed-head h2{margin:0;font-size:17px;font-weight:800}
+.ed-head span{font-size:13px;color:var(--ink);font-weight:600}
+.ed-head button{background:var(--soft);border:0;color:var(--sub);font-size:20px;width:34px;height:34px;border-radius:6px;cursor:pointer}
+.ed-body{padding:14px 18px}
+.ed-top{display:grid;grid-template-columns:220px 1fr;gap:12px;align-items:end;margin-bottom:12px}
+@media (max-width:640px){.ed-top{grid-template-columns:1fr}}
+.note-s{margin:0;font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:6px;padding:9px 12px}
+.ed-bank{border:1px solid var(--line);border-radius:8px;padding:10px 12px 12px;margin:0 0 10px}
+.ed-bank legend{font-weight:800;font-size:14.5px;padding:0 6px;display:flex;align-items:center}
+.ed-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 10px}
+@media (max-width:640px){.ed-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ed-grid .inp{min-height:40px}
+.ed-grid input::placeholder{color:var(--faint)}
+.ed-foot{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 18px;display:flex;flex-direction:column;gap:8px}
+.ed-msg{font-size:12.5px;color:var(--warn);min-height:16px}
+.ed-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--sub);font:inherit;font-size:13.5px;font-weight:600;border-radius:6px;padding:8px 12px;cursor:pointer}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.foot{padding-block:4px 28px;font-size:12.5px;color:var(--muted);line-height:1.7}
+.foot b{color:var(--text)}
+/* ── 우대금리 · 관리자 ── */
+.prefs{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-start;max-width:300px;white-space:normal}
+.pchip{display:inline-block;font-size:11.5px;font-weight:600;color:var(--ink);background:var(--weak);border:1px solid var(--weak-line);border-radius:4px;padding:1px 7px;white-space:nowrap}
+.pchip b{font-weight:800}
+.bc .prefs{max-width:none;justify-content:flex-end}
+.ed-prefs{grid-column:1/-1;border-top:1px dashed var(--line);padding-top:8px;margin-top:2px}
+.ed-prefs .lab{font-size:13px;color:var(--sub);font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ed-prefs .lab span{font-weight:400;color:var(--muted);font-size:12px}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) 120px 40px;gap:6px;margin-top:6px}
+.prow .inp{min-height:38px}
+.prow input.name{text-align:left}
+.prow .del{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:6px;font-size:16px;cursor:pointer}
+.prow .del:hover{color:var(--up)}
+.addp{margin-top:6px;border:1px dashed var(--brand);background:var(--surface);color:var(--ink);font:inherit;font-size:13px;font-weight:700;border-radius:6px;padding:7px 10px;cursor:pointer}
+.admin-link{background:none;border:0;padding:0;font:inherit;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer}
+.mode{font-size:12px;font-weight:700;border-radius:4px;padding:2px 8px;background:var(--soft);color:var(--sub)}
+.mode.admin{background:var(--weak);color:var(--ink)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="back" href="./">‹ DSR·DTI 계산기</a>
+  <div class="logo">%</div>
+  <div><h1>은행별 금리 비교</h1><span>주택담보대출 · 전세자금대출 · 6개 은행</span></div>
+  <div class="asof" id="asof"></div>
+  <button type="button" class="edit-btn" id="btnEdit" hidden>✎ 금리 입력</button>
+</div></header>
+
+<main class="wrap">
+  <section class="card">
+    <div class="filters">
+      <span class="lab">상품</span>
+      <div class="chips">
+        <label><input type="radio" name="prod" value="mort" checked><span>주택담보대출</span></label>
+        <label><input type="radio" name="prod" value="jeonse"><span>전세자금대출</span></label>
+      </div>
+      <span class="lab">금리 유형</span>
+      <div class="chips" id="fType"></div>
+      <span class="lab">정렬</span>
+      <div class="chips">
+        <label><input type="radio" name="sort" value="rate" checked><span>실질적용금리 낮은 순</span></label>
+        <label><input type="radio" name="sort" value="min"><span>최저 금리 낮은 순</span></label>
+        <label><input type="radio" name="sort" value="chg"><span>전월 대비 많이 내린 순</span></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="summary" id="summary"></section>
+
+  <section class="card">
+    <h2>은행별 금리 범위 <small>막대: 최저~최고 · 초록 선: 실질적용금리</small><span class="sample">예시 수치</span></h2>
+    <div class="chart" id="chart"></div>
+    <div class="legend"><span><i class="l1"></i>최저 ~ 최고 금리</span><span><i class="l2"></i>실질적용금리</span></div>
+  </section>
+
+  <section class="card">
+    <h2>상세 비교 <small id="tblSub"></small><span class="sample">예시 수치</span></h2>
+    <p class="miss" id="missing"></p>
+    <div class="tw"><table id="tbl"></table></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="card">
+    <h2>내 조건으로 월 상환액 비교 <small>실질적용금리 기준</small></h2>
+    <div class="calc">
+      <div class="field"><label for="amt">대출금액</label>
+        <div class="inp"><input id="amt" inputmode="numeric" value="30,000"><span class="u">만원</span></div><div class="hint" id="amtHint"></div></div>
+      <div class="field"><label for="yrs">대출기간</label>
+        <div class="inp"><select id="yrs"><option value="2">2년 (전세)</option><option value="10">10년</option><option value="20">20년</option><option value="30" selected>30년</option><option value="40">40년</option></select></div></div>
+      <div class="field"><label for="way">상환방식</label>
+        <div class="inp"><select id="way"><option value="equal" selected>원리금균등</option><option value="bullet">만기일시 (이자만)</option></select></div></div>
+    </div>
+    <div class="pay" id="pay"></div>
+  </section>
+
+  <p class="foot"><b>※ 참고용, 실제 심사결과와 다를 수 있음</b> — 금리는 상담사가 직접 확인해 입력한 값이며, 입력 전에는 예시 수치가 표시됩니다. 실제 금리는 신용점수, 소득, 담보, 우대 조건 충족 여부에 따라 달라집니다. 참고: 은행연합회 소비자포털(portal.kfb.or.kr) 대출금리 비교공시.
+    <br><button type="button" class="admin-link" id="btnAdmin">관리자</button> <span id="modeTag"></span></p>
+</main>
+
+<!-- 금리 입력 (관리자만) -->
+<dialog id="ed">
+  <div class="ed-head"><div><h2>✎ 금리 입력</h2><span id="edTitle"></span></div><button type="button" data-edclose aria-label="닫기">×</button></div>
+  <div class="ed-body">
+    <div class="ed-top" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+      <div class="field"><label for="edAsof">기준일</label><div class="inp"><input id="edAsof" type="date" style="text-align:left"></div></div>
+      <div class="field"><label for="edIdx">기준금리 지표</label><div class="inp"><input id="edIdx" style="text-align:left" placeholder="예) 신규 COFIX 6개월"></div></div>
+      <div class="field"><label for="edBaseAll">기준금리 (6개 은행 일괄)</label>
+        <div class="inp"><input id="edBaseAll" type="number" step="0.01" inputmode="decimal" placeholder="0.00"><span class="u">%</span>
+        <button type="button" class="btn" id="edBaseApply" style="margin-left:6px;padding:5px 8px">적용</button></div></div>
+    </div>
+    <p class="note-s" style="margin-bottom:12px">위에서 고른 <b>상품·금리 유형</b>의 금리를 입력합니다. <b>실질적용금리(*)</b>만 넣어도 비교됩니다. 우대금리 항목은 은행마다 <b>[+ 우대금리 항목 추가]</b>로 원하는 만큼 넣으세요.</p>
+    <div id="edBody"></div>
+  </div>
+  <div class="ed-foot">
+    <span id="edMsg" class="ed-msg"></span>
+    <div class="ed-btns">
+      <button type="button" class="btn" id="edRoll" title="새 달 입력 전에 누르세요">실질적용금리 → 전월로 옮기기</button>
+      <button type="button" class="btn" id="edSample">예시 값 채우기</button>
+      <button type="button" class="btn" id="edClear">모두 비우기</button>
+      <button type="button" class="btn" data-edclose>취소</button>
+      <button type="button" class="btn primary" id="edSave">저장</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- 관리자 확인 -->
+<dialog id="adm" style="width:min(520px,calc(100vw - 24px))">
+  <div class="ed-head"><div><h2>관리자 확인</h2><span>금리 입력은 관리자만 할 수 있습니다</span></div><button type="button" data-admclose aria-label="닫기">×</button></div>
+  <div class="ed-body">
+    <div id="admIn">
+      <div class="field"><label for="admTok">GitHub 관리자 토큰</label>
+        <div class="inp"><input id="admTok" type="password" autocomplete="off" style="text-align:left" placeholder="github_pat_로 시작하는 토큰"></div></div>
+      <p class="note-s" style="margin-top:10px">토큰은 이 기기에만 저장됩니다. 저장소(splee74/DSR)에 쓰기 권한이 있는 토큰만 통과합니다.</p>
+    </div>
+    <div id="admOut" hidden><p class="note-s">이 기기는 <b>관리자</b>로 등록되어 있습니다. 공용 기기라면 로그아웃하세요.</p></div>
+    <p class="ed-msg" id="admMsg" style="margin:10px 0 0"></p>
+  </div>
+  <div class="ed-foot"><div class="ed-btns">
+    <button type="button" class="btn" data-admclose>닫기</button>
+    <button type="button" class="btn" id="admLogout" hidden>로그아웃</button>
+    <button type="button" class="btn primary" id="admLogin">확인</button>
+  </div></div>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const num = v => { const n = parseFloat(String(v).replace(/,/g, '')); return isFinite(n) ? n : 0; };
+const korMan = v => { v = Math.floor(v); if (v <= 0) return '0원'; const e = Math.floor(v / 10000), m = v % 10000; return (e ? e.toLocaleString() + '억' : '') + (m ? (e ? ' ' : '') + m.toLocaleString() + '만' : '') + '원'; };
+const won = man => Math.round(man * 10000).toLocaleString() + '원';
+const pct = v => v.toFixed(2) + '%';
+const has = v => typeof v === 'number' && isFinite(v);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const BANKS = [
+  { id: 'kb', name: 'KB국민은행', short: 'KB' },
+  { id: 'woori', name: '우리은행', short: '우리' },
+  { id: 'shinhan', name: '신한은행', short: '신한' },
+  { id: 'hana', name: '하나은행', short: '하나' },
+  { id: 'ibk', name: '기업은행', short: 'IBK' },
+  { id: 'nh', name: '농협은행', short: 'NH' }
+];
+const TYPES = {
+  mort:   { variable: '변동 (신규 COFIX)', mixed: '혼합형 (5년 고정)', periodic: '5년 주기형' },
+  jeonse: { variable: '변동 (신규 COFIX)', mixed: '고정 (2년)' }
+};
+const INDEX = { variable: '신규 COFIX 6개월', mixed: '금융채 5년', periodic: '금융채 5년' };
+const FIELDS = [['rate', '실질적용금리', '%', true], ['min', '최저 금리', '%'], ['max', '최고 금리', '%'], ['base', '기준금리', '%'],
+                ['spread', '가산금리', '%p'], ['prev', '전월 실질적용금리', '%'], ['fee', '중도상환수수료', '%']];
+
+/* ── 예시 수치 (실제 금리 입력 전 화면용) ── */
+const SAMPLE_PREFS = [['급여이체', 0.3], ['신용카드 실적', 0.2], ['자동이체 3건', 0.1], ['청약통장 보유', 0.1]];
+function sampleSet(prod, type) {
+  const base = type === 'variable' ? 2.74 : prod === 'jeonse' ? 2.57 : 2.91;
+  const off = { mort: { variable: 0, mixed: -0.29, periodic: -0.38 }, jeonse: { variable: -0.25, mixed: -0.33 } }[prod][type];
+  const S = { kb: [2.41, 4.21, 4.27, 1.2], woori: [2.55, 4.28, 4.30, 1.2], shinhan: [2.33, 4.18, 4.25, 1.2], hana: [2.62, 4.25, 4.25, 1.2], ibk: [2.20, 4.12, 4.20, 1.0], nh: [2.48, 4.36, 4.33, 1.1] };
+  const banks = {};
+  BANKS.forEach((b, i) => {
+    const [spread, rate, prev, fee] = S[b.id], r = +(rate + off).toFixed(2);
+    banks[b.id] = { rate: r, prev: +(prev + off).toFixed(2), min: +(r - 0.35).toFixed(2), max: +(r + 0.95).toFixed(2), base, spread: +(spread + off / 2).toFixed(2), fee,
+      prefs: SAMPLE_PREFS.slice(0, 2 + (i % 3)).map(([name, v]) => ({ name, rate: v })) };
+  });
+  return { sample: true, asof: '', index: INDEX[type], banks };
+}
+const sampleAll = () => { const d = {}; for (const p in TYPES) { d[p] = {}; for (const t in TYPES[p]) d[p][t] = sampleSet(p, t); } return d; };
+
+/* ── 저장소: 사이트의 rates.json (누구나 읽기) · 쓰기는 GitHub 토큰 보유 관리자만 ── */
+const REPO = 'splee74/DSR', FILE = 'rates.json', TKEY = 'bankAdminToken', LKEY = 'bankRates.v2';
+const ONLINE = /^https?:$/.test(location.protocol) && !/claude/.test(location.hostname) && location.hostname !== 'localhost';
+const token = () => { try { return localStorage.getItem(TKEY) || ''; } catch (e) { return ''; } };
+let DATA = sampleAll();
+function merge(src) { for (const p in src || {}) for (const t in src[p]) if (DATA[p] && DATA[p][t]) DATA[p][t] = src[p][t]; }
+async function load() {
+  if (ONLINE) {
+    try { const r = await fetch(FILE + '?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) merge((await r.json()).data); } catch (e) {}
+  } else {
+    try { merge(JSON.parse(localStorage.getItem(LKEY))); } catch (e) {}
+  }
+  render();
+}
+const b64 = s => btoa(unescape(encodeURIComponent(s)));
+async function publish() {
+  const body = JSON.stringify({ updated: new Date().toISOString(), data: DATA }, null, 1);
+  if (!ONLINE) { try { localStorage.setItem(LKEY, JSON.stringify(DATA)); } catch (e) {} return '미리보기 모드: 이 기기에만 저장했습니다.'; }
+  const h = { Authorization: 'Bearer ' + token(), Accept: 'application/vnd.github+json' };
+  const url = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
+  let sha;
+  const g = await fetch(url, { headers: h, cache: 'no-store' });
+  if (g.ok) sha = (await g.json()).sha; else if (g.status !== 404) throw new Error('GitHub 확인 실패 (' + g.status + ')');
+  const p = await fetch(url, { method: 'PUT', headers: h, body: JSON.stringify({ message: '은행 금리 업데이트', content: b64(body), sha }) });
+  if (!p.ok) throw new Error('저장 실패 (' + p.status + '). 관리자 토큰을 확인하세요.');
+  return '저장했습니다. 1~2분 뒤 모든 방문자에게 반영됩니다.';
+}
+function isAdmin() { return !ONLINE || !!token(); }
+
+/* ── 화면 ── */
+const cur = () => ({ prod: document.querySelector('input[name=prod]:checked').value, type: document.querySelector('input[name=type]:checked').value });
+function typeChips() {
+  const prod = document.querySelector('input[name=prod]:checked').value, was = document.querySelector('input[name=type]:checked')?.value;
+  const keys = Object.keys(TYPES[prod]), sel = keys.includes(was) ? was : keys[0];
+  $('#fType').innerHTML = keys.map(k => `<label><input type="radio" name="type" value="${k}" ${k === sel ? 'checked' : ''}><span>${TYPES[prod][k]}</span></label>`).join('');
+}
+const prefSum = v => (v.prefs || []).reduce((s, p) => s + (has(p.rate) ? p.rate : 0), 0);
+const prefChips = v => (v.prefs || []).length ? `<div class="prefs">${v.prefs.map(p => `<span class="pchip">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>`).join('')}</div>` : '–';
+const chgTxt = c => c === null ? '<span class="chg same">–</span>' : Math.abs(c) < 0.005 ? '<span class="chg same">– 0.00</span>' : c < 0 ? `<span class="chg down">▼ ${Math.abs(c).toFixed(2)}</span>` : `<span class="chg up">▲ ${c.toFixed(2)}</span>`;
+const p2 = v => has(v) ? pct(v) : '–';
+const rng = x => has(x.min) || has(x.max) ? `${p2(x.min)} ~ ${p2(x.max)}` : '–';
+
+function render() {
+  const { prod, type } = cur(), set = DATA[prod][type], sort = document.querySelector('input[name=sort]:checked').value;
+  const all = BANKS.map(b => { const v = set.banks[b.id] || {}; return { ...b, ...v, chg: has(v.rate) && has(v.prev) ? v.rate - v.prev : null }; });
+  const list = all.filter(x => has(x.rate)), missing = all.filter(x => !has(x.rate));
+  const key = x => sort === 'min' ? (has(x.min) ? x.min : x.rate) : sort === 'chg' ? (x.chg ?? 99) : x.rate;
+  list.sort((a, b) => key(a) - key(b));
+
+  $$('.sample').forEach(el => el.hidden = !set.sample);
+  $('#asof').innerHTML = set.sample ? '<b>예시 수치</b><br>실제 금리 입력 전' : `기준일 <b>${esc(set.asof || '-')}</b><br>상담사 직접 확인 금리`;
+  $('#btnEdit').hidden = !isAdmin();
+  $('#modeTag').innerHTML = !ONLINE ? '<span class="mode">미리보기 모드 · 이 기기에만 저장</span>' : token() ? '<span class="mode admin">관리자 기기</span>' : '';
+  $('#missing').innerHTML = missing.length && list.length ? `미입력 은행: ${missing.map(x => x.name).join(', ')}` : '';
+  if (!list.length) {
+    $('#summary').innerHTML = `<div class="sum" style="grid-column:1/-1"><small>입력된 금리가 없습니다</small><strong>금리가 준비되는 대로 표시됩니다</strong></div>`;
+    ['#chart', '#tbl', '#cards', '#pay'].forEach(s => $(s).innerHTML = ''); return;
+  }
+  const best = list.reduce((a, b) => (b.rate < a.rate ? b : a));
+  const withMin = list.filter(x => has(x.min)), bestMin = withMin.length ? withMin.reduce((a, b) => (b.min < a.min ? b : a)) : null;
+  const mean = list.reduce((s, x) => s + x.rate, 0) / list.length, chgs = list.filter(x => x.chg !== null);
+  $('#summary').innerHTML = `
+    <div class="sum best"><small>실질적용금리 가장 낮은 은행</small><strong>${best.name}</strong><em>${pct(best.rate)} · ${list.length}개 은행 평균보다 ${(mean - best.rate).toFixed(2)}%p 낮음</em></div>
+    <div class="sum"><small>최저 금리 가장 낮은 은행</small><strong>${bestMin ? bestMin.name : '–'}</strong><em>${bestMin ? `최저 ${pct(bestMin.min)} (우대 최대 반영 시)` : '최저 금리 미입력'}</em></div>
+    <div class="sum"><small>${list.length}개 은행 평균</small><strong>${pct(mean)}</strong><em>${TYPES[prod][type]}${chgs.length ? ` · 전월 대비 ${chgTxt(chgs.reduce((s, x) => s + x.chg, 0) / chgs.length)}%p` : ''}</em></div>`;
+
+  const vals = list.flatMap(x => [x.rate, x.min, x.max].filter(has));
+  let lo = Math.floor(Math.min(...vals) * 2) / 2, hi = Math.ceil(Math.max(...vals) * 2) / 2; if (hi - lo < 1) hi = lo + 1;
+  const X = v => ((v - lo) / (hi - lo)) * 100, ticks = []; for (let t = lo; t <= hi + 1e-9; t += 0.5) ticks.push(t);
+  const grid = ticks.map(t => `<span class="grid" style="left:${X(t)}%"></span>`).join('');
+  $('#chart').innerHTML = list.map(x => { const c = x === best ? 'color:var(--ink)' : '';
+    return `<span class="bn" style="${c}">${x.name.replace('은행', '')}</span><div class="track">${grid}${has(x.min) && has(x.max) ? `<span class="rng" style="left:${X(x.min)}%;width:${X(x.max) - X(x.min)}%"></span>` : ''}<span class="avg" style="left:${X(x.rate)}%"></span></div><span class="av" style="${c}">${pct(x.rate)}</span>`;
+  }).join('') + `<span></span><div class="axis">${ticks.map(t => `<span style="left:${X(t)}%">${t.toFixed(1)}</span>`).join('')}</div><span></span>`;
+
+  $('#tblSub').textContent = `${TYPES[prod][type]} · 지표 ${set.index || INDEX[type]}`;
+  $('#tbl').innerHTML = `<tr><th>은행</th><th>기준금리</th><th>가산금리</th><th style="text-align:left">우대금리 항목</th><th>최저 ~ 최고</th><th>실질적용금리</th><th>전월 대비(%p)</th><th>중도상환수수료</th></tr>` +
+    list.map(x => `<tr class="${x === best ? 'best' : ''}"><td><span class="dot">${x.short}</span><b>${x.name}</b>${x === best ? '<span class="badge">최저</span>' : ''}</td>
+      <td>${p2(x.base)}</td><td>${p2(x.spread)}</td><td style="text-align:left">${prefChips(x)}${(x.prefs || []).length ? `<div style="font-size:11.5px;color:var(--muted);margin-top:3px">합계 최대 −${prefSum(x).toFixed(2)}%p</div>` : ''}</td>
+      <td>${rng(x)}</td><td><span class="b">${pct(x.rate)}</span></td><td>${chgTxt(x.chg)}</td><td>${p2(x.fee)}</td></tr>`).join('');
+  $('#cards').innerHTML = list.map(x => `<div class="bc ${x === best ? 'best' : ''}">
+      <div class="bc-h"><span class="dot">${x.short}</span><b>${x.name}</b>${x === best ? '<span class="badge">최저</span>' : ''}<div class="r"><strong>${pct(x.rate)}</strong>${chgTxt(x.chg)}</div></div>
+      <dl><dt>최저 ~ 최고</dt><dd>${rng(x)}</dd><dt>기준 + 가산</dt><dd>${p2(x.base)} + ${has(x.spread) ? x.spread.toFixed(2) : '–'}</dd>
+        <dt>우대금리 ${(x.prefs || []).length ? `(최대 −${prefSum(x).toFixed(2)}%p)` : ''}</dt><dd>${prefChips(x)}</dd><dt>중도상환수수료</dt><dd>${p2(x.fee)}</dd></dl></div>`).join('');
+
+  const L = num($('#amt').value), yrs = +$('#yrs').value, way = $('#way').value;
+  $('#amtHint').textContent = L ? korMan(L) : '';
+  const pays = list.map(x => { const r = x.rate / 1200, n = yrs * 12; return { x, m: way === 'bullet' ? L * r : (r ? L * r / (1 - Math.pow(1 + r, -n)) : L / n) }; }).sort((a, b) => a.m - b.m);
+  $('#pay').innerHTML = pays.map((p, i) => `<div class="${i === 0 ? 'best' : ''}"><small>${p.x.name}</small><strong>${won(p.m)}</strong><em>${i === 0 ? '가장 적음' : `+${won(p.m - pays[0].m)}/월`}</em></div>`).join('');
+}
+
+/* ── 금리 입력 창 ── */
+function today() { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+const prefRow = (b, p = {}) => `<div class="prow"><div class="inp"><input class="name" data-pn="${b}" value="${esc(p.name || '')}" placeholder="우대 항목 (예: 급여이체)"></div>
+  <div class="inp"><input data-pr="${b}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(p.rate) ? p.rate : ''}" placeholder="0.00"><span class="u">%p</span></div>
+  <button type="button" class="del" data-pdel aria-label="삭제">×</button></div>`;
+function fillEditor(set, blankOnSample) {
+  const { prod, type } = cur();
+  $('#edTitle').textContent = `${prod === 'mort' ? '주택담보대출' : '전세자금대출'} · ${TYPES[prod][type]}`;
+  $('#edAsof').value = set.asof || today();
+  $('#edIdx').value = set.index || INDEX[type];
+  $('#edBaseAll').value = '';
+  $('#edBody').innerHTML = BANKS.map(b => {
+    const v = blankOnSample && set.sample ? {} : (set.banks[b.id] || {});
+    return `<fieldset class="ed-bank"><legend><span class="dot">${b.short}</span>${b.name}</legend><div class="ed-grid">${
+      FIELDS.map(([k, lbl, u, req]) => `<div class="field"><label for="ed-${b.id}-${k}">${lbl}${req ? ' <b style="color:var(--ink)">*</b>' : ''}</label>
+        <div class="inp"><input id="ed-${b.id}-${k}" data-b="${b.id}" data-k="${k}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(v[k]) ? v[k] : ''}"><span class="u">${u}</span></div></div>`).join('')}
+      <div class="ed-prefs"><div class="lab">우대금리 항목 <span>항목명과 우대 폭을 직접 입력</span></div>
+        <div data-plist="${b.id}">${(v.prefs || []).map(p => prefRow(b.id, p)).join('')}</div>
+        <button type="button" class="addp" data-padd="${b.id}">+ 우대금리 항목 추가</button></div>
+    </div></fieldset>`;
+  }).join('');
+}
+function openEditor() {
+  if (!isAdmin()) { openAdmin(); return; }
+  const { prod, type } = cur();
+  fillEditor(DATA[prod][type], true);
+  $('#edMsg').textContent = DATA[prod][type].sample ? '아직 실제 금리가 없습니다. 은행별로 입력하세요.' : '';
+  $('#ed').showModal();
+}
+function readEditor() {
+  const banks = {};
+  BANKS.forEach(b => {
+    const v = {};
+    $$(`#edBody input[data-b="${b.id}"]`).forEach(el => { if (el.value.trim() !== '') v[el.dataset.k] = parseFloat(el.value); });
+    v.prefs = $$(`[data-plist="${b.id}"] .prow`).map(r => ({ name: r.querySelector('[data-pn]').value.trim(), rate: parseFloat(r.querySelector('[data-pr]').value) }))
+      .filter(p => p.name).map(p => has(p.rate) ? p : { name: p.name });
+    banks[b.id] = v;
+  });
+  return banks;
+}
+$('#edBody').addEventListener('click', e => {
+  const add = e.target.closest('[data-padd]'); if (add) { const b = add.dataset.padd; $(`[data-plist="${b}"]`).insertAdjacentHTML('beforeend', prefRow(b)); $(`[data-plist="${b}"] .prow:last-child input`).focus(); }
+  const del = e.target.closest('[data-pdel]'); if (del) del.closest('.prow').remove();
+});
+$('#btnEdit').onclick = openEditor;
+$$('[data-edclose]').forEach(b => b.onclick = () => $('#ed').close());
+$('#edBaseApply').onclick = () => { const v = $('#edBaseAll').value; if (v === '') return; $$('#edBody input[data-k=base]').forEach(el => el.value = v); $('#edMsg').textContent = `6개 은행 기준금리를 ${v}%로 채웠습니다.`; };
+$('#edRoll').onclick = () => { $$('#edBody input[data-k=rate]').forEach(el => { if (el.value !== '') { $(`#ed-${el.dataset.b}-prev`).value = el.value; el.value = ''; } }); $('#edMsg').textContent = '실질적용금리를 전월 칸으로 옮겼습니다. 이번 달 금리를 입력하고 저장하세요.'; };
+$('#edSample').onclick = () => { const { prod, type } = cur(); fillEditor(sampleSet(prod, type), false); $('#edMsg').textContent = '예시 값을 채웠습니다. 실제 금리로 고친 뒤 저장하세요.'; };
+$('#edClear').onclick = () => { $$('#edBody input').forEach(el => el.value = ''); $$('#edBody .prow').forEach(r => r.remove()); $('#edMsg').textContent = '모두 비웠습니다.'; };
+$('#edSave').onclick = async () => {
+  const { prod, type } = cur(), banks = readEditor();
+  if (!Object.values(banks).some(v => has(v.rate))) { $('#edMsg').textContent = '실질적용금리를 한 곳 이상 입력해야 저장됩니다.'; return; }
+  const prevSet = DATA[prod][type];
+  DATA[prod][type] = { sample: false, asof: $('#edAsof').value || today(), index: $('#edIdx').value.trim() || INDEX[type], banks };
+  // 아직 입력 안 한 다른 상품·유형의 예시 값은 사이트에 올리지 않음
+  const btn = $('#edSave'); btn.disabled = true; btn.textContent = '저장 중…';
+  try {
+    const keep = {}; for (const p in DATA) for (const t in DATA[p]) if (DATA[p][t].sample) { keep[p + t] = DATA[p][t]; DATA[p][t] = { sample: true, asof: '', index: INDEX[t], banks: {} }; }
+    let msg;
+    try { msg = await publish(); } finally { for (const k in keep) { const p = k.startsWith('mort') ? 'mort' : 'jeonse'; DATA[p][k.slice(p.length)] = keep[k]; } }
+    $('#ed').close(); render(); toast(msg);
+  } catch (err) { DATA[prod][type] = prevSet; $('#edMsg').textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = '저장'; }
+};
+
+/* ── 관리자 확인 ── */
+function openAdmin() {
+  const t = token();
+  $('#admIn').hidden = !!t; $('#admOut').hidden = !t; $('#admLogin').hidden = !!t; $('#admLogout').hidden = !t;
+  $('#admMsg').textContent = ONLINE ? '' : '미리보기 모드에서는 관리자 확인 없이 입력할 수 있습니다(이 기기에만 저장).';
+  $('#adm').showModal();
+}
+$('#btnAdmin').onclick = openAdmin;
+$$('[data-admclose]').forEach(b => b.onclick = () => $('#adm').close());
+$('#admLogin').onclick = async () => {
+  const t = $('#admTok').value.trim(); if (!t) return;
+  $('#admMsg').textContent = '확인 중…';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPO}`, { headers: { Authorization: 'Bearer ' + t, Accept: 'application/vnd.github+json' } });
+    const j = await r.json();
+    if (!r.ok || !(j.permissions && j.permissions.push)) throw new Error('쓰기 권한이 없는 토큰입니다.');
+    try { localStorage.setItem(TKEY, t); } catch (e) {}
+    $('#adm').close(); render(); toast('관리자로 등록했습니다. [✎ 금리 입력]을 누르세요.');
+  } catch (e) { $('#admMsg').textContent = e.message === 'Failed to fetch' ? 'GitHub에 연결하지 못했습니다.' : e.message; }
+};
+$('#admLogout').onclick = () => { try { localStorage.removeItem(TKEY); } catch (e) {} $('#adm').close(); render(); toast('로그아웃했습니다.'); };
+
+function toast(msg) {
+  let t = $('#toast'); if (!t) { t = document.createElement('div'); t.id = 'toast'; t.style.cssText = 'position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--card);padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;z-index:50;max-width:calc(100vw - 32px)'; document.body.appendChild(t); }
+  t.textContent = msg; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => t.hidden = true, 3500);
+}
+
+function fmt(el) { const raw = el.value.replace(/[^\d]/g, ''); el.value = raw ? Number(raw).toLocaleString('ko-KR') : ''; }
+document.addEventListener('change', e => {
+  if (e.target.closest('dialog')) return;
+  if (e.target.name === 'prod') { typeChips(); $('#yrs').value = e.target.value === 'jeonse' ? '2' : '30'; $('#way').value = e.target.value === 'jeonse' ? 'bullet' : 'equal'; }
+  render();
+});
+$('#amt').addEventListener('input', e => { fmt(e.target); render(); });
+typeChips(); render(); load();
+</script>
+</body>
+</html>
