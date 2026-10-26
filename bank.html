@@ -158,7 +158,7 @@ dialog::backdrop{background:#0006}
 .foot b{color:var(--text)}
 /* ── 한눈에 보기 표 ── */
 .mxw{overflow-x:auto}
-.mx{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:0}
+.mx{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:640px}
 .mx th,.mx td{padding:0;border-bottom:1px solid var(--line);text-align:center}
 .mx thead th{background:var(--soft);font-size:12.5px;color:var(--sub);font-weight:700}
 .mx thead th:first-child,.mx td:first-child{text-align:left;padding:10px 10px;white-space:nowrap}
@@ -180,6 +180,26 @@ dialog::backdrop{background:#0006}
 .detail-h{margin:6px 0 -4px;font-size:16px;font-weight:800}
 .detail-h span{color:var(--ink)}
 @media (max-width:640px){.mx{font-size:13px}.mx .cell strong{font-size:14px}.mx thead th:first-child,.mx td:first-child{padding:10px 6px}.mx .low strong::after{display:block;width:max-content;margin:2px auto 0}}
+
+/* ── 기준금리 · 자동 계산 ── */
+.bts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.bts{grid-template-columns:1fr}}
+.bt{background:var(--soft);border-radius:8px;padding:12px 14px}
+.bt small{display:block;font-size:12.5px;color:var(--sub);font-weight:700}
+.bt strong{display:block;font-size:22px;font-weight:800;letter-spacing:-.5px}
+.bt em{display:block;font-style:normal;font-size:11.5px;color:var(--muted);line-height:1.5}
+.bt-note{grid-column:1/-1;margin:2px 0 0;font-size:12px;color:var(--muted)}
+.mx th.grp{font-size:13px;color:var(--text);border-bottom:1px solid var(--line);padding:8px 4px}
+.mx th.grp small{display:block;font-size:11.5px;color:var(--ink);font-weight:700}
+.mx thead tr:first-child th:first-child{vertical-align:middle}
+.mx .cell span{white-space:nowrap}
+.autotag{display:inline-block;font-size:10.5px;font-weight:800;color:var(--ink);background:var(--weak);border:1px solid var(--weak-line);border-radius:3px;padding:0 5px;margin-left:2px}
+.sub{font-size:11.5px;color:var(--muted)}
+.ed-base{font-size:14px;font-weight:600;gap:6px}
+.ed-base b{color:var(--ink)}
+.ed-base span{font-size:12px;color:var(--muted);font-weight:400}
+.ed-calc{grid-column:1/-1;font-size:13px;color:var(--sub);background:var(--soft);border-radius:6px;padding:8px 10px}
+.ed-calc b{color:var(--ink)}
 
 /* ── 우대금리 · 관리자 ── */
 .prefs{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-start;max-width:300px;white-space:normal}
@@ -217,9 +237,12 @@ dialog::backdrop{background:#0006}
         <label><input type="radio" name="prod" value="mort" checked><span>주택담보대출</span></label>
         <label><input type="radio" name="prod" value="jeonse"><span>전세자금대출</span></label>
       </div>
-      <span class="lab" hidden>금리 유형</span>
-      <div class="chips" id="fType" hidden></div>
     </div>
+  </section>
+
+  <section class="card">
+    <h2>오늘의 기준금리</h2>
+    <div class="bts" id="baseRates"></div>
   </section>
 
   <section class="card">
@@ -266,13 +289,11 @@ dialog::backdrop{background:#0006}
   <div class="ed-head"><div><h2>✎ 금리 입력</h2><span id="edTitle"></span></div><button type="button" data-edclose aria-label="닫기">×</button></div>
   <div class="ed-body">
     <div class="ed-top" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+      <div class="field"><label for="edType">금리 유형</label><div class="inp"><select id="edType"></select></div></div>
+      <div class="field"><label>기준금리</label><div class="inp ed-base" id="edBaseInfo"></div></div>
       <div class="field"><label for="edAsof">기준일</label><div class="inp"><input id="edAsof" type="date" style="text-align:left"></div></div>
-      <div class="field"><label for="edIdx">기준금리 지표</label><div class="inp"><input id="edIdx" style="text-align:left" placeholder="예) 신규 COFIX 6개월"></div></div>
-      <div class="field"><label for="edBaseAll">기준금리 (6개 은행 일괄)</label>
-        <div class="inp"><input id="edBaseAll" type="number" step="0.01" inputmode="decimal" placeholder="0.00"><span class="u">%</span>
-        <button type="button" class="btn" id="edBaseApply" style="margin-left:6px;padding:5px 8px">적용</button></div></div>
     </div>
-    <p class="note-s" style="margin-bottom:12px">위에서 고른 <b>상품·금리 유형</b>의 금리를 입력합니다. <b>실질적용금리(*)</b>만 넣어도 비교됩니다. 우대금리 항목은 은행마다 <b>[+ 우대금리 항목 추가]</b>로 원하는 만큼 넣으세요.</p>
+    <p class="note-s" style="margin-bottom:12px"><b>가산금리</b>와 <b>우대금리 항목</b>만 넣으면 실질적용금리가 <b>기준금리 + 가산금리 − 우대금리 합계</b>로 자동 계산됩니다. 기준금리는 매일 자동으로 바뀌어 반영됩니다. 은행이 안내한 실질적용금리를 그대로 쓰려면 <b>실질적용금리</b> 칸에 직접 넣으세요(직접 입력이 우선).</p>
     <div id="edBody"></div>
   </div>
   <div class="ed-foot">
@@ -316,45 +337,63 @@ const has = v => typeof v === 'number' && isFinite(v);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const BANKS = [
-  { id: 'kb', name: 'KB국민은행', short: 'KB' },
-  { id: 'woori', name: '우리은행', short: '우리' },
-  { id: 'shinhan', name: '신한은행', short: '신한' },
-  { id: 'hana', name: '하나은행', short: '하나' },
-  { id: 'ibk', name: '기업은행', short: 'IBK' },
-  { id: 'nh', name: '농협은행', short: 'NH' }
+  { id: 'kb', name: 'KB국민은행', short: 'KB' }, { id: 'woori', name: '우리은행', short: '우리' },
+  { id: 'shinhan', name: '신한은행', short: '신한' }, { id: 'hana', name: '하나은행', short: '하나' },
+  { id: 'ibk', name: '기업은행', short: 'IBK' }, { id: 'nh', name: '농협은행', short: 'NH' }
 ];
-const TYPES = {
-  mort:   { variable: '변동 (신규 COFIX)', mixed: '혼합형 (5년 고정)', periodic: '5년 주기형' },
-  jeonse: { variable: '변동 (신규 COFIX)', mixed: '고정 (2년)' }
+/* 기준금리 3종 × 변동주기 */
+const IDX = {
+  cofixNew:    { name: '신규 COFIX', note: '신규취급액기준 · 은행연합회' },
+  cofixNewBal: { name: '신잔액 COFIX', note: '신잔액기준 · 은행연합회' },
+  bond5:       { name: '금융채 5년', note: '은행채 무보증 AAA · 평가사 평균 · KOFIA' }
 };
-const INDEX = { variable: '신규 COFIX 6개월', mixed: '금융채 5년', periodic: '금융채 5년' };
-const FIELDS = [['rate', '실질적용금리', '%', true], ['min', '최저 금리', '%'], ['max', '최고 금리', '%'], ['base', '기준금리', '%'],
-                ['spread', '가산금리', '%p'], ['prev', '전월 실질적용금리', '%'], ['fee', '중도상환수수료', '%']];
+const GROUPS = [
+  { idx: 'cofixNew', keys: [['cn3', '3개월'], ['cn6', '6개월'], ['cn12', '12개월']] },
+  { idx: 'cofixNewBal', keys: [['cb3', '3개월'], ['cb6', '6개월'], ['cb12', '12개월']] },
+  { idx: 'bond5', keys: [['b5', '5년 고정·주기형']] }
+];
+const TYPE = {}; GROUPS.forEach(g => g.keys.forEach(([k, p]) => TYPE[k] = { idx: g.idx, label: `${IDX[g.idx].name} ${p}`, period: p }));
+const TKEYS = Object.keys(TYPE);
+const PRODS = { mort: '주택담보대출', jeonse: '전세자금대출' };
 
-/* ── 예시 수치 (실제 금리 입력 전 화면용) ── */
+/* 기준금리: 매일 자동 수집(base-rates.json) · 없으면 아래 값 */
+let BASE = { cofixNew: { rate: 3.43, date: '2026-10-15' }, cofixNewBal: { rate: 2.79, date: '2026-10-15' }, bond5: { rate: 4.283, date: '2026-10-23' }, updated: '' };
+
+const FIELDS = [['rate', '실질적용금리', '%'], ['spread', '가산금리', '%p'], ['base', '기준금리', '%'], ['min', '최저 금리', '%'],
+                ['max', '최고 금리', '%'], ['prev', '전월 실질적용금리', '%'], ['fee', '중도상환수수료', '%']];
+
+/* ── 예시 수치: 가산금리·우대만 넣고 실질적용금리는 자동 계산 ── */
 const SAMPLE_PREFS = [['급여이체', 0.3], ['신용카드 실적', 0.2], ['자동이체 3건', 0.1], ['청약통장 보유', 0.1]];
-function sampleSet(prod, type) {
-  const base = type === 'variable' ? 2.74 : prod === 'jeonse' ? 2.57 : 2.91;
-  const off = { mort: { variable: 0, mixed: -0.29, periodic: -0.38 }, jeonse: { variable: -0.25, mixed: -0.33 } }[prod][type];
-  const S = { kb: [2.41, 4.21, 4.27, 1.2], woori: [2.55, 4.28, 4.30, 1.2], shinhan: [2.33, 4.18, 4.25, 1.2], hana: [2.62, 4.25, 4.25, 1.2], ibk: [2.20, 4.12, 4.20, 1.0], nh: [2.48, 4.36, 4.33, 1.1] };
+function sampleSet(prod, t) {
+  const sp = { kb: 1.62, woori: 1.75, shinhan: 1.55, hana: 1.82, ibk: 1.45, nh: 1.70 };
+  const adj = { cn3: -0.05, cn6: 0, cn12: 0.05, cb3: 0.25, cb6: 0.3, cb12: 0.35, b5: -0.45 }[t] + (prod === 'jeonse' ? -0.3 : 0);
   const banks = {};
   BANKS.forEach((b, i) => {
-    const [spread, rate, prev, fee] = S[b.id], r = +(rate + off).toFixed(2);
-    banks[b.id] = { rate: r, prev: +(prev + off).toFixed(2), min: +(r - 0.35).toFixed(2), max: +(r + 0.95).toFixed(2), base, spread: +(spread + off / 2).toFixed(2), fee,
-      prefs: SAMPLE_PREFS.slice(0, 2 + (i % 3)).map(([name, v]) => ({ name, rate: v })) };
+    banks[b.id] = { spread: +(sp[b.id] + adj).toFixed(2), fee: b.id === 'ibk' ? 1.0 : 1.2, prefs: SAMPLE_PREFS.slice(0, 2 + (i % 3)).map(([name, rate]) => ({ name, rate })) };
   });
-  return { sample: true, asof: '', index: INDEX[type], banks };
+  return { sample: true, asof: '', banks };
 }
-const sampleAll = () => { const d = {}; for (const p in TYPES) { d[p] = {}; for (const t in TYPES[p]) d[p][t] = sampleSet(p, t); } return d; };
+const sampleAll = () => { const d = {}; for (const p in PRODS) { d[p] = {}; TKEYS.forEach(t => d[p][t] = sampleSet(p, t)); } return d; };
 
-/* ── 저장소: 사이트의 rates.json (누구나 읽기) · 쓰기는 GitHub 토큰 보유 관리자만 ── */
-const REPO = 'splee74/DSR', FILE = 'rates.json', TKEY = 'bankAdminToken', LKEY = 'bankRates.v2';
+/* ── 금리 계산 ── */
+const prefSum = v => (v.prefs || []).reduce((s, p) => s + (has(p.rate) ? p.rate : 0), 0);
+const baseOf = (v, t) => has(v.base) ? { r: v.base, auto: false } : { r: BASE[TYPE[t].idx].rate, auto: true };
+// 실질적용금리: 직접 입력값 우선, 없으면 기준금리 + 가산금리 − 우대 합계
+function eff(v, t) {
+  if (has(v.rate)) return { r: v.rate, auto: false };
+  if (has(v.spread)) { const b = baseOf(v, t).r; return { r: +(b + v.spread - prefSum(v)).toFixed(2), auto: true }; }
+  return null;
+}
+
+/* ── 저장소: rates.json(누구나 읽기) · 쓰기는 GitHub 토큰 보유 관리자만 ── */
+const REPO = 'splee74/DSR', FILE = 'rates.json', TKEY = 'bankAdminToken', LKEY = 'bankRates.v3';
 const ONLINE = /^https?:$/.test(location.protocol) && !/claude/.test(location.hostname) && location.hostname !== 'localhost';
 const token = () => { try { return localStorage.getItem(TKEY) || ''; } catch (e) { return ''; } };
 let DATA = sampleAll();
 function merge(src) { for (const p in src || {}) for (const t in src[p]) if (DATA[p] && DATA[p][t]) DATA[p][t] = src[p][t]; }
 async function load() {
   if (ONLINE) {
+    try { const r = await fetch('base-rates.json?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) BASE = { ...BASE, ...(await r.json()) }; } catch (e) {}
     try { const r = await fetch(FILE + '?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) merge((await r.json()).data); } catch (e) {}
   } else {
     try { merge(JSON.parse(localStorage.getItem(LKEY))); } catch (e) {}
@@ -363,66 +402,56 @@ async function load() {
 }
 const b64 = s => btoa(unescape(encodeURIComponent(s)));
 async function publish() {
-  const body = JSON.stringify({ updated: new Date().toISOString(), data: DATA }, null, 1);
-  if (!ONLINE) { try { localStorage.setItem(LKEY, JSON.stringify(DATA)); } catch (e) {} return '미리보기 모드: 이 기기에만 저장했습니다.'; }
+  const out = {}; for (const p in DATA) { out[p] = {}; for (const t in DATA[p]) if (!DATA[p][t].sample) out[p][t] = DATA[p][t]; }
+  if (!ONLINE) { try { localStorage.setItem(LKEY, JSON.stringify(out)); } catch (e) {} return '미리보기 모드: 이 기기에만 저장했습니다.'; }
   const h = { Authorization: 'Bearer ' + token(), Accept: 'application/vnd.github+json' };
   const url = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
   let sha;
   const g = await fetch(url, { headers: h, cache: 'no-store' });
   if (g.ok) sha = (await g.json()).sha; else if (g.status !== 404) throw new Error('GitHub 확인 실패 (' + g.status + ')');
+  const body = JSON.stringify({ updated: new Date().toISOString(), data: out }, null, 1);
   const p = await fetch(url, { method: 'PUT', headers: h, body: JSON.stringify({ message: '은행 금리 업데이트', content: b64(body), sha }) });
   if (!p.ok) throw new Error('저장 실패 (' + p.status + '). 관리자 토큰을 확인하세요.');
   return '저장했습니다. 1~2분 뒤 모든 방문자에게 반영됩니다.';
 }
-function isAdmin() { return !ONLINE || !!token(); }
+const isAdmin = () => !ONLINE || !!token();
 
 /* ── 화면 ── */
-const cur = () => ({ prod: document.querySelector('input[name=prod]:checked').value, type: document.querySelector('input[name=type]:checked').value });
-function typeChips() {
-  const prod = document.querySelector('input[name=prod]:checked').value, was = document.querySelector('input[name=type]:checked')?.value;
-  const keys = Object.keys(TYPES[prod]), sel = keys.includes(was) ? was : keys[0];
-  $('#fType').innerHTML = keys.map(k => `<label><input type="radio" name="type" value="${k}" ${k === sel ? 'checked' : ''}><span>${TYPES[prod][k]}</span></label>`).join('');
-}
-const prefSum = v => (v.prefs || []).reduce((s, p) => s + (has(p.rate) ? p.rate : 0), 0);
+let curType = 'cn6';
+const prodNow = () => document.querySelector('input[name=prod]:checked').value;
 const prefChips = v => (v.prefs || []).length ? `<div class="prefs">${v.prefs.map(p => `<span class="pchip">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>`).join('')}</div>` : '–';
 const chgTxt = c => c === null ? '<span class="chg same">–</span>' : Math.abs(c) < 0.005 ? '<span class="chg same">– 0.00</span>' : c < 0 ? `<span class="chg down">▼ ${Math.abs(c).toFixed(2)}</span>` : `<span class="chg up">▲ ${c.toFixed(2)}</span>`;
 const p2 = v => has(v) ? pct(v) : '–';
 const rng = x => has(x.min) || has(x.max) ? `${p2(x.min)} ~ ${p2(x.max)}` : '–';
+const autoTag = '<span class="autotag" title="기준금리 + 가산금리 − 우대금리 합계">자동</span>';
 
-function selectType(t) {
-  const r = document.querySelector(`input[name=type][value="${t}"]`);
-  if (r) { r.checked = true; render(); }
+function renderBase() {
+  $('#baseRates').innerHTML = Object.entries(IDX).map(([k, v]) => `<div class="bt"><small>${v.name}</small><strong>${pct(BASE[k].rate)}</strong><em>${v.note}<br>${BASE[k].date ? BASE[k].date + ' 기준' : ''}</em></div>`).join('') +
+    `<p class="bt-note">기준금리는 매일 아침 자동으로 가져옵니다${BASE.updated ? ` · 최근 확인 ${BASE.updated.slice(0, 10)}` : ''}</p>`;
 }
 function renderMatrix() {
-  const { prod, type } = cur(), keys = Object.keys(TYPES[prod]);
-  const lows = {}, avgs = {}, samples = [];
-  keys.forEach(t => {
-    const set = DATA[prod][t], rs = BANKS.map(b => set.banks[b.id]?.rate).filter(has);
-    lows[t] = rs.length ? Math.min(...rs) : null;
-    avgs[t] = rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : null;
-    if (set.sample) samples.push(TYPES[prod][t]);
-  });
-  const head = `<thead><tr><th>은행</th>${keys.map(t => `<th class="${t === type ? 'sel' : ''}"><button type="button" class="colbtn" data-type="${t}">${TYPES[prod][t].replace(/ \(.*\)/, '')}<small>${(TYPES[prod][t].match(/\((.*)\)/) || [, ''])[1]}${DATA[prod][t].sample ? ' · 예시' : ''}</small></button></th>`).join('')}</tr></thead>`;
-  const body = BANKS.map(b => `<tr><td><span class="dot">${b.short}</span><b>${b.name}</b></td>${keys.map(t => {
-    const v = DATA[prod][t].banks[b.id] || {}, cls = [t === type ? 'sel' : '', has(v.rate) && v.rate === lows[t] ? 'low' : ''].join(' ');
-    return has(v.rate)
-      ? `<td class="${cls}"><button type="button" class="cell" data-type="${t}"><strong>${pct(v.rate)}</strong><span>${has(v.min) || has(v.max) ? `${has(v.min) ? v.min.toFixed(2) : '–'} ~ ${has(v.max) ? v.max.toFixed(2) : '–'}` : (v.prefs || []).length ? `우대 ${v.prefs.length}개` : ''}</span></button></td>`
-      : `<td class="${t === type ? 'sel' : ''}"><button type="button" class="cell none" data-type="${t}">미입력</button></td>`;
+  const prod = prodNow();
+  const cells = {};
+  TKEYS.forEach(t => { const set = DATA[prod][t]; cells[t] = BANKS.map(b => { const v = set.banks[b.id] || {}; return { b, v, e: eff(v, t) }; }); });
+  const low = {}; TKEYS.forEach(t => { const rs = cells[t].map(c => c.e && c.e.r).filter(has); low[t] = rs.length ? Math.min(...rs) : null; });
+  const head = `<thead><tr><th rowspan="2">은행</th>${GROUPS.map(g => `<th colspan="${g.keys.length}" class="grp">${IDX[g.idx].name}<small>${pct(BASE[g.idx].rate)}</small></th>`).join('')}</tr>
+    <tr>${GROUPS.map(g => g.keys.map(([k, p]) => `<th class="${k === curType ? 'sel' : ''}"><button type="button" class="colbtn" data-type="${k}">${p}${DATA[prod][k].sample ? '<small>예시</small>' : ''}</button></th>`).join('')).join('')}</tr></thead>`;
+  const body = BANKS.map((b, i) => `<tr><td><span class="dot">${b.short}</span><b>${b.name}</b></td>${TKEYS.map(t => {
+    const c = cells[t][i], sel = t === curType ? 'sel' : '';
+    if (!c.e) return `<td class="${sel}"><button type="button" class="cell none" data-type="${t}">–</button></td>`;
+    return `<td class="${sel} ${c.e.r === low[t] ? 'low' : ''}"><button type="button" class="cell" data-type="${t}"><strong>${pct(c.e.r)}</strong><span>${has(c.v.spread) ? '+' + c.v.spread.toFixed(2) : ''}${c.e.auto ? ' 자동' : ''}</span></button></td>`;
   }).join('')}</tr>`).join('');
-  const avgRow = `<tr class="avg"><td>6개 은행 평균</td>${keys.map(t => `<td class="${t === type ? 'sel' : ''}"><span class="cell" style="display:block">${avgs[t] === null ? '–' : pct(avgs[t])}</span></td>`).join('')}</tr>`;
-  $('#matrix').innerHTML = head + '<tbody>' + body + avgRow + '</tbody>';
-  $('#mxNote').textContent = samples.length ? `예시 수치: ${samples.join(', ')} (실제 금리 입력 전)` : '';
-  $('#detailH').innerHTML = `<span>${TYPES[prod][type]}</span> 자세히 보기`;
+  $('#matrix').innerHTML = head + '<tbody>' + body + '</tbody>';
+  const samples = TKEYS.filter(t => DATA[prod][t].sample).length;
+  $('#mxNote').textContent = (samples ? `예시 수치 ${samples}개 유형 (실제 금리 입력 전) · ` : '') + '작은 글씨: 가산금리 · "자동"은 기준금리 + 가산금리 − 우대금리 합계로 계산한 값';
+  $('#detailH').innerHTML = `<span>${PRODS[prod]} · ${TYPE[curType].label}</span> 자세히 보기`;
 }
-$('#matrix').addEventListener('click', e => { const b = e.target.closest('[data-type]'); if (b) selectType(b.dataset.type); });
 
 function render() {
-  renderMatrix();
-  const { prod, type } = cur(), set = DATA[prod][type], sort = 'rate';   // 실질적용금리 낮은 순
-  const all = BANKS.map(b => { const v = set.banks[b.id] || {}; return { ...b, ...v, chg: has(v.rate) && has(v.prev) ? v.rate - v.prev : null }; });
-  const list = all.filter(x => has(x.rate)), missing = all.filter(x => !has(x.rate));
-  const key = x => sort === 'min' ? (has(x.min) ? x.min : x.rate) : sort === 'chg' ? (x.chg ?? 99) : x.rate;
-  list.sort((a, b) => key(a) - key(b));
+  renderBase(); renderMatrix();
+  const prod = prodNow(), t = curType, set = DATA[prod][t];
+  const all = BANKS.map(b => { const v = set.banks[b.id] || {}, e = eff(v, t); return { ...b, ...v, e, rate: e ? e.r : null, bs: baseOf(v, t), chg: e && has(v.prev) ? e.r - v.prev : null }; });
+  const list = all.filter(x => has(x.rate)).sort((a, b) => a.rate - b.rate), missing = all.filter(x => !has(x.rate));
 
   $$('.sample').forEach(el => el.hidden = !set.sample);
   $('#asof').innerHTML = set.sample ? '<b>예시 수치</b><br>실제 금리 입력 전' : `기준일 <b>${esc(set.asof || '-')}</b><br>상담사 직접 확인 금리`;
@@ -433,101 +462,108 @@ function render() {
     $('#summary').innerHTML = `<div class="sum" style="grid-column:1/-1"><small>입력된 금리가 없습니다</small><strong>금리가 준비되는 대로 표시됩니다</strong></div>`;
     ['#chart', '#tbl', '#cards', '#pay'].forEach(s => $(s).innerHTML = ''); return;
   }
-  const best = list.reduce((a, b) => (b.rate < a.rate ? b : a));
-  const withMin = list.filter(x => has(x.min)), bestMin = withMin.length ? withMin.reduce((a, b) => (b.min < a.min ? b : a)) : null;
+  const best = list[0], withMin = list.filter(x => has(x.min)), bestMin = withMin.length ? withMin.reduce((a, b) => (b.min < a.min ? b : a)) : null;
   const mean = list.reduce((s, x) => s + x.rate, 0) / list.length, chgs = list.filter(x => x.chg !== null);
   $('#summary').innerHTML = `
     <div class="sum best"><small>실질적용금리 가장 낮은 은행</small><strong>${best.name}</strong><em>${pct(best.rate)} · ${list.length}개 은행 평균보다 ${(mean - best.rate).toFixed(2)}%p 낮음</em></div>
-    <div class="sum"><small>최저 금리 가장 낮은 은행</small><strong>${bestMin ? bestMin.name : '–'}</strong><em>${bestMin ? `최저 ${pct(bestMin.min)} (우대 최대 반영 시)` : '최저 금리 미입력'}</em></div>
-    <div class="sum"><small>${list.length}개 은행 평균</small><strong>${pct(mean)}</strong><em>${TYPES[prod][type]}${chgs.length ? ` · 전월 대비 ${chgTxt(chgs.reduce((s, x) => s + x.chg, 0) / chgs.length)}%p` : ''}</em></div>`;
+    <div class="sum"><small>최저 금리 가장 낮은 은행</small><strong>${bestMin ? bestMin.name : '–'}</strong><em>${bestMin ? `최저 ${pct(bestMin.min)}` : '최저 금리 미입력'}</em></div>
+    <div class="sum"><small>${list.length}개 은행 평균</small><strong>${pct(mean)}</strong><em>기준금리 ${IDX[TYPE[t].idx].name} ${pct(BASE[TYPE[t].idx].rate)}${chgs.length ? ` · 전월 대비 ${chgTxt(chgs.reduce((s, x) => s + x.chg, 0) / chgs.length)}%p` : ''}</em></div>`;
 
   const vals = list.flatMap(x => [x.rate, x.min, x.max].filter(has));
   let lo = Math.floor(Math.min(...vals) * 2) / 2, hi = Math.ceil(Math.max(...vals) * 2) / 2; if (hi - lo < 1) hi = lo + 1;
-  const X = v => ((v - lo) / (hi - lo)) * 100, ticks = []; for (let t = lo; t <= hi + 1e-9; t += 0.5) ticks.push(t);
-  const grid = ticks.map(t => `<span class="grid" style="left:${X(t)}%"></span>`).join('');
+  const X = v => ((v - lo) / (hi - lo)) * 100, ticks = []; for (let k = lo; k <= hi + 1e-9; k += 0.5) ticks.push(k);
+  const grid = ticks.map(k => `<span class="grid" style="left:${X(k)}%"></span>`).join('');
   $('#chart').innerHTML = list.map(x => { const c = x === best ? 'color:var(--ink)' : '';
     return `<span class="bn" style="${c}">${x.name.replace('은행', '')}</span><div class="track">${grid}${has(x.min) && has(x.max) ? `<span class="rng" style="left:${X(x.min)}%;width:${X(x.max) - X(x.min)}%"></span>` : ''}<span class="avg" style="left:${X(x.rate)}%"></span></div><span class="av" style="${c}">${pct(x.rate)}</span>`;
-  }).join('') + `<span></span><div class="axis">${ticks.map(t => `<span style="left:${X(t)}%">${t.toFixed(1)}</span>`).join('')}</div><span></span>`;
+  }).join('') + `<span></span><div class="axis">${ticks.map(k => `<span style="left:${X(k)}%">${k.toFixed(1)}</span>`).join('')}</div><span></span>`;
 
-  $('#tblSub').textContent = `${TYPES[prod][type]} · 지표 ${set.index || INDEX[type]}`;
+  $('#tblSub').textContent = `${PRODS[prod]} · ${TYPE[t].label}`;
   $('#tbl').innerHTML = `<tr><th>은행</th><th>기준금리</th><th>가산금리</th><th style="text-align:left">우대금리 항목</th><th>최저 ~ 최고</th><th>실질적용금리</th><th>전월 대비(%p)</th><th>중도상환수수료</th></tr>` +
     list.map(x => `<tr class="${x === best ? 'best' : ''}"><td><span class="dot">${x.short}</span><b>${x.name}</b>${x === best ? '<span class="badge">최저</span>' : ''}</td>
-      <td>${p2(x.base)}</td><td>${p2(x.spread)}</td><td style="text-align:left">${prefChips(x)}${(x.prefs || []).length ? `<div style="font-size:11.5px;color:var(--muted);margin-top:3px">합계 최대 −${prefSum(x).toFixed(2)}%p</div>` : ''}</td>
-      <td>${rng(x)}</td><td><span class="b">${pct(x.rate)}</span></td><td>${chgTxt(x.chg)}</td><td>${p2(x.fee)}</td></tr>`).join('');
+      <td>${pct(x.bs.r)}${x.bs.auto ? '<br><span class="sub">자동</span>' : ''}</td><td>${p2(x.spread)}</td>
+      <td style="text-align:left">${prefChips(x)}${(x.prefs || []).length ? `<div class="sub">합계 최대 −${prefSum(x).toFixed(2)}%p</div>` : ''}</td>
+      <td>${rng(x)}</td><td><span class="b">${pct(x.rate)}</span>${x.e.auto ? '<br>' + autoTag : ''}</td><td>${chgTxt(x.chg)}</td><td>${p2(x.fee)}</td></tr>`).join('');
   $('#cards').innerHTML = list.map(x => `<div class="bc ${x === best ? 'best' : ''}">
-      <div class="bc-h"><span class="dot">${x.short}</span><b>${x.name}</b>${x === best ? '<span class="badge">최저</span>' : ''}<div class="r"><strong>${pct(x.rate)}</strong>${chgTxt(x.chg)}</div></div>
-      <dl><dt>최저 ~ 최고</dt><dd>${rng(x)}</dd><dt>기준 + 가산</dt><dd>${p2(x.base)} + ${has(x.spread) ? x.spread.toFixed(2) : '–'}</dd>
-        <dt>우대금리 ${(x.prefs || []).length ? `(최대 −${prefSum(x).toFixed(2)}%p)` : ''}</dt><dd>${prefChips(x)}</dd><dt>중도상환수수료</dt><dd>${p2(x.fee)}</dd></dl></div>`).join('');
+      <div class="bc-h"><span class="dot">${x.short}</span><b>${x.name}</b>${x === best ? '<span class="badge">최저</span>' : ''}<div class="r"><strong>${pct(x.rate)}</strong>${x.e.auto ? autoTag : chgTxt(x.chg)}</div></div>
+      <dl><dt>기준 + 가산</dt><dd>${pct(x.bs.r)} + ${has(x.spread) ? x.spread.toFixed(2) : '–'}</dd>
+        <dt>우대금리 ${(x.prefs || []).length ? `(최대 −${prefSum(x).toFixed(2)}%p)` : ''}</dt><dd>${prefChips(x)}</dd>
+        <dt>최저 ~ 최고</dt><dd>${rng(x)}</dd><dt>중도상환수수료</dt><dd>${p2(x.fee)}</dd></dl></div>`).join('');
 
   const L = num($('#amt').value), yrs = +$('#yrs').value, way = $('#way').value;
   $('#amtHint').textContent = L ? korMan(L) : '';
   const pays = list.map(x => { const r = x.rate / 1200, n = yrs * 12; return { x, m: way === 'bullet' ? L * r : (r ? L * r / (1 - Math.pow(1 + r, -n)) : L / n) }; }).sort((a, b) => a.m - b.m);
   $('#pay').innerHTML = pays.map((p, i) => `<div class="${i === 0 ? 'best' : ''}"><small>${p.x.name}</small><strong>${won(p.m)}</strong><em>${i === 0 ? '가장 적음' : `+${won(p.m - pays[0].m)}/월`}</em></div>`).join('');
 }
+$('#matrix').addEventListener('click', e => { const b = e.target.closest('[data-type]'); if (b) { curType = b.dataset.type; render(); } });
 
 /* ── 금리 입력 창 ── */
 function today() { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
 const prefRow = (b, p = {}) => `<div class="prow"><div class="inp"><input class="name" data-pn="${b}" value="${esc(p.name || '')}" placeholder="우대 항목 (예: 급여이체)"></div>
   <div class="inp"><input data-pr="${b}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(p.rate) ? p.rate : ''}" placeholder="0.00"><span class="u">%p</span></div>
   <button type="button" class="del" data-pdel aria-label="삭제">×</button></div>`;
+function edType() { return $('#edType').value; }
 function fillEditor(set, blankOnSample) {
-  const { prod, type } = cur();
-  $('#edTitle').textContent = `${prod === 'mort' ? '주택담보대출' : '전세자금대출'} · ${TYPES[prod][type]}`;
+  const t = edType(), bi = BASE[TYPE[t].idx];
+  $('#edTitle').textContent = `${PRODS[prodNow()]} · ${TYPE[t].label}`;
+  $('#edBaseInfo').innerHTML = `${IDX[TYPE[t].idx].name} <b>${pct(bi.rate)}</b> <span>(${bi.date} 기준 · 자동)</span>`;
   $('#edAsof').value = set.asof || today();
-  $('#edIdx').value = set.index || INDEX[type];
-  $('#edBaseAll').value = '';
   $('#edBody').innerHTML = BANKS.map(b => {
     const v = blankOnSample && set.sample ? {} : (set.banks[b.id] || {});
     return `<fieldset class="ed-bank"><legend><span class="dot">${b.short}</span>${b.name}</legend><div class="ed-grid">${
-      FIELDS.map(([k, lbl, u, req]) => `<div class="field"><label for="ed-${b.id}-${k}">${lbl}${req ? ' <b style="color:var(--ink)">*</b>' : ''}</label>
-        <div class="inp"><input id="ed-${b.id}-${k}" data-b="${b.id}" data-k="${k}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(v[k]) ? v[k] : ''}"><span class="u">${u}</span></div></div>`).join('')}
+      FIELDS.map(([k, lbl, u]) => `<div class="field"><label for="ed-${b.id}-${k}">${lbl}</label>
+        <div class="inp"><input id="ed-${b.id}-${k}" data-b="${b.id}" data-k="${k}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(v[k]) ? v[k] : ''}" placeholder="${k === 'rate' ? '비우면 자동' : k === 'base' ? bi.rate : ''}"><span class="u">${u}</span></div></div>`).join('')}
       <div class="ed-prefs"><div class="lab">우대금리 항목 <span>항목명과 우대 폭을 직접 입력</span></div>
         <div data-plist="${b.id}">${(v.prefs || []).map(p => prefRow(b.id, p)).join('')}</div>
         <button type="button" class="addp" data-padd="${b.id}">+ 우대금리 항목 추가</button></div>
+      <div class="ed-calc" id="calc-${b.id}"></div>
     </div></fieldset>`;
   }).join('');
+  updCalc();
+}
+function readBank(id) {
+  const v = {};
+  $$(`#edBody input[data-b="${id}"]`).forEach(el => { if (el.value.trim() !== '') v[el.dataset.k] = parseFloat(el.value); });
+  v.prefs = $$(`[data-plist="${id}"] .prow`).map(r => ({ name: r.querySelector('[data-pn]').value.trim(), rate: parseFloat(r.querySelector('[data-pr]').value) }))
+    .filter(p => p.name).map(p => has(p.rate) ? p : { name: p.name });
+  return v;
+}
+function updCalc() {
+  const t = edType();
+  BANKS.forEach(b => {
+    const v = readBank(b.id), el = $('#calc-' + b.id), bs = baseOf(v, t);
+    if (has(v.rate)) el.innerHTML = `실질적용금리 <b>${pct(v.rate)}</b> (직접 입력)`;
+    else if (has(v.spread)) el.innerHTML = `자동 계산: 기준 ${bs.r.toFixed(2)} + 가산 ${v.spread.toFixed(2)} − 우대 ${prefSum(v).toFixed(2)} = <b>${pct(bs.r + v.spread - prefSum(v))}</b>`;
+    else el.innerHTML = '<span style="color:var(--muted)">실질적용금리 또는 가산금리를 넣으면 비교에 들어갑니다</span>';
+  });
 }
 function openEditor() {
   if (!isAdmin()) { openAdmin(); return; }
-  const { prod, type } = cur();
-  fillEditor(DATA[prod][type], true);
-  $('#edMsg').textContent = DATA[prod][type].sample ? '아직 실제 금리가 없습니다. 은행별로 입력하세요.' : '';
+  $('#edType').innerHTML = TKEYS.map(k => `<option value="${k}" ${k === curType ? 'selected' : ''}>${TYPE[k].label}</option>`).join('');
+  const set = DATA[prodNow()][curType];
+  fillEditor(set, true);
+  $('#edMsg').textContent = set.sample ? '아직 실제 금리가 없습니다. 은행별로 입력하세요.' : '';
   $('#ed').showModal();
 }
-function readEditor() {
-  const banks = {};
-  BANKS.forEach(b => {
-    const v = {};
-    $$(`#edBody input[data-b="${b.id}"]`).forEach(el => { if (el.value.trim() !== '') v[el.dataset.k] = parseFloat(el.value); });
-    v.prefs = $$(`[data-plist="${b.id}"] .prow`).map(r => ({ name: r.querySelector('[data-pn]').value.trim(), rate: parseFloat(r.querySelector('[data-pr]').value) }))
-      .filter(p => p.name).map(p => has(p.rate) ? p : { name: p.name });
-    banks[b.id] = v;
-  });
-  return banks;
-}
+$('#edType').addEventListener('change', () => { curType = edType(); const set = DATA[prodNow()][curType]; fillEditor(set, true); $('#edMsg').textContent = set.sample ? '아직 실제 금리가 없습니다.' : ''; render(); });
 $('#edBody').addEventListener('click', e => {
   const add = e.target.closest('[data-padd]'); if (add) { const b = add.dataset.padd; $(`[data-plist="${b}"]`).insertAdjacentHTML('beforeend', prefRow(b)); $(`[data-plist="${b}"] .prow:last-child input`).focus(); }
-  const del = e.target.closest('[data-pdel]'); if (del) del.closest('.prow').remove();
+  const del = e.target.closest('[data-pdel]'); if (del) { del.closest('.prow').remove(); updCalc(); }
 });
+$('#edBody').addEventListener('input', updCalc);
 $('#btnEdit').onclick = openEditor;
 $$('[data-edclose]').forEach(b => b.onclick = () => $('#ed').close());
-$('#edBaseApply').onclick = () => { const v = $('#edBaseAll').value; if (v === '') return; $$('#edBody input[data-k=base]').forEach(el => el.value = v); $('#edMsg').textContent = `6개 은행 기준금리를 ${v}%로 채웠습니다.`; };
-$('#edRoll').onclick = () => { $$('#edBody input[data-k=rate]').forEach(el => { if (el.value !== '') { $(`#ed-${el.dataset.b}-prev`).value = el.value; el.value = ''; } }); $('#edMsg').textContent = '실질적용금리를 전월 칸으로 옮겼습니다. 이번 달 금리를 입력하고 저장하세요.'; };
-$('#edSample').onclick = () => { const { prod, type } = cur(); fillEditor(sampleSet(prod, type), false); $('#edMsg').textContent = '예시 값을 채웠습니다. 실제 금리로 고친 뒤 저장하세요.'; };
-$('#edClear').onclick = () => { $$('#edBody input').forEach(el => el.value = ''); $$('#edBody .prow').forEach(r => r.remove()); $('#edMsg').textContent = '모두 비웠습니다.'; };
+$('#edRoll').onclick = () => { const t = edType(); BANKS.forEach(b => { const e = eff(readBank(b.id), t); if (e) { $(`#ed-${b.id}-prev`).value = e.r.toFixed(2); const r = $(`#ed-${b.id}-rate`); if (r.value !== '') r.value = ''; } }); updCalc(); $('#edMsg').textContent = '지금 실질적용금리를 전월 칸으로 옮겼습니다. 이번 달 금리를 입력하고 저장하세요.'; };
+$('#edSample').onclick = () => { fillEditor(sampleSet(prodNow(), edType()), false); $('#edMsg').textContent = '예시 값을 채웠습니다. 실제 금리로 고친 뒤 저장하세요.'; };
+$('#edClear').onclick = () => { $$('#edBody input').forEach(el => el.value = ''); $$('#edBody .prow').forEach(r => r.remove()); updCalc(); $('#edMsg').textContent = '모두 비웠습니다.'; };
 $('#edSave').onclick = async () => {
-  const { prod, type } = cur(), banks = readEditor();
-  if (!Object.values(banks).some(v => has(v.rate))) { $('#edMsg').textContent = '실질적용금리를 한 곳 이상 입력해야 저장됩니다.'; return; }
-  const prevSet = DATA[prod][type];
-  DATA[prod][type] = { sample: false, asof: $('#edAsof').value || today(), index: $('#edIdx').value.trim() || INDEX[type], banks };
-  // 아직 입력 안 한 다른 상품·유형의 예시 값은 사이트에 올리지 않음
+  const prod = prodNow(), t = edType(), banks = {};
+  BANKS.forEach(b => banks[b.id] = readBank(b.id));
+  if (!Object.values(banks).some(v => eff(v, t))) { $('#edMsg').textContent = '실질적용금리 또는 가산금리를 한 곳 이상 입력해야 저장됩니다.'; return; }
+  const prevSet = DATA[prod][t];
+  DATA[prod][t] = { sample: false, asof: $('#edAsof').value || today(), banks };
   const btn = $('#edSave'); btn.disabled = true; btn.textContent = '저장 중…';
-  try {
-    const keep = {}; for (const p in DATA) for (const t in DATA[p]) if (DATA[p][t].sample) { keep[p + t] = DATA[p][t]; DATA[p][t] = { sample: true, asof: '', index: INDEX[t], banks: {} }; }
-    let msg;
-    try { msg = await publish(); } finally { for (const k in keep) { const p = k.startsWith('mort') ? 'mort' : 'jeonse'; DATA[p][k.slice(p.length)] = keep[k]; } }
-    $('#ed').close(); render(); toast(msg);
-  } catch (err) { DATA[prod][type] = prevSet; $('#edMsg').textContent = err.message; }
+  try { const msg = await publish(); curType = t; $('#ed').close(); render(); toast(msg); }
+  catch (err) { DATA[prod][t] = prevSet; $('#edMsg').textContent = err.message; }
   finally { btn.disabled = false; btn.textContent = '저장'; }
 };
 
@@ -557,15 +593,14 @@ function toast(msg) {
   let t = $('#toast'); if (!t) { t = document.createElement('div'); t.id = 'toast'; t.style.cssText = 'position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--card);padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;z-index:50;max-width:calc(100vw - 32px)'; document.body.appendChild(t); }
   t.textContent = msg; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => t.hidden = true, 3500);
 }
-
 function fmt(el) { const raw = el.value.replace(/[^\d]/g, ''); el.value = raw ? Number(raw).toLocaleString('ko-KR') : ''; }
 document.addEventListener('change', e => {
   if (e.target.closest('dialog')) return;
-  if (e.target.name === 'prod') { typeChips(); $('#yrs').value = e.target.value === 'jeonse' ? '2' : '30'; $('#way').value = e.target.value === 'jeonse' ? 'bullet' : 'equal'; }
+  if (e.target.name === 'prod') { $('#yrs').value = e.target.value === 'jeonse' ? '2' : '30'; $('#way').value = e.target.value === 'jeonse' ? 'bullet' : 'equal'; }
   render();
 });
 $('#amt').addEventListener('input', e => { fmt(e.target); render(); });
-typeChips(); render(); load();
+render(); load();
 </script>
 </body>
 </html>
