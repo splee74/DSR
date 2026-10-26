@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>정책자금 자격 체크</title>
+<link rel="icon" type="image/png" href="icon-192.png?v=2">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#03c75a">
+<meta name="description" content="주택도시기금 디딤돌·버팀목·신생아 특례·신혼부부 정책대출 자격과 예상 한도·금리 확인">
+<meta property="og:title" content="정책자금 자격 체크 · DSR·DTI 계산기">
+<meta property="og:description" content="디딤돌·버팀목·신생아 특례·신혼부부 정책대출 자격과 예상 한도·금리를 한 번에 확인">
+<meta property="og:url" content="https://dsr1.co.kr/policy.html">
+<meta property="og:image" content="https://dsr1.co.kr/og-image.png">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: 왼쪽 고객 조건 입력 · 오른쪽 상품별 가능/불가 결과 (휴대폰은 한 줄) */
+:root{
+  --brand:#03c75a;--brand-dark:#02b351;--ink:#008a3e;--weak:#eafaf1;--weak-line:#b8ebcd;
+  --bg:#f5f6f7;--card:#fff;--surface:#fff;--soft:#f5f6f7;--line:#e3e5e8;--line-strong:#d4d5d9;
+  --text:#1e1e23;--sub:#4e5258;--muted:#8b8f96;--faint:#b4b6bc;
+  --ok:#0b9e6a;--okbg:#e8f6f0;--bad:#ea3d34;--badbg:#ffefee;--warn:#d98a00;--warnbg:#fff6e2;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#1ed36f;--brand-dark:#03c75a;--ink:#4fe393;--weak:#10301f;--weak-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--surface:#2b2c31;--soft:#26272b;--line:#323338;--line-strong:#46474e;
+  --text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;--faint:#62646b;
+  --ok:#3ccf91;--okbg:#10301f;--bad:#ff6b63;--badbg:#3a1918;--warn:#f0b23c;--warnbg:#33280e;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#1ed36f;--brand-dark:#03c75a;--ink:#4fe393;--weak:#10301f;--weak-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--surface:#2b2c31;--soft:#26272b;--line:#323338;--line-strong:#46474e;
+  --text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;--faint:#62646b;
+  --ok:#3ccf91;--okbg:#10301f;--bad:#ff6b63;--badbg:#3a1918;--warn:#f0b23c;--warnbg:#33280e;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.55;letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer}
+.top{background:var(--card);border-bottom:1px solid var(--line)}
+.top-in{max-width:1320px;margin:0 auto;padding-block:14px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.back{width:100%;font-size:13.5px;font-weight:700;color:var(--ink);text-decoration:none}
+.credit{max-width:1320px;margin:0 auto 24px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));font-size:12px;color:var(--muted);text-align:right}
+.credit a{color:inherit}
+.logo{width:36px;height:36px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800}
+.top h1{margin:0;font-size:18px;font-weight:800;letter-spacing:-.5px}
+.top span{display:block;font-size:12px;color:var(--muted)}
+.src{margin-left:auto;font-size:12px;color:var(--muted)}
+.src a{color:var(--ink)}
+.layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:20px;max-width:1320px;margin:0 auto;padding-block:20px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+@media (max-width:1000px){.layout{grid-template-columns:minmax(0,1fr);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));gap:16px}.src{margin-left:0;width:100%}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px 22px;margin-bottom:16px}
+.card h2{margin:0 0 14px;padding-bottom:10px;border-bottom:1px solid var(--line);font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+.card h2 .n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:4px;background:var(--brand);color:#fff;font-size:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+@media (max-width:560px){.grid2{grid-template-columns:1fr}}
+.full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.flabel{font-size:13px;font-weight:500;color:var(--sub)}
+.inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:0 12px;min-height:44px}
+.inp:focus-within{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.inp input,.inp select{border:0;outline:0;flex:1;min-width:0;padding:10px 0;font:inherit;font-weight:600;background:transparent;color:var(--text);text-align:right}
+.inp select{text-align:left}
+.inp .u{color:var(--muted);font-size:13px;margin-left:6px;white-space:nowrap}
+@media (max-width:560px){.inp input,.inp select{font-size:16px}}
+.hint{font-size:12px;color:var(--ink);text-align:right;min-height:16px}
+.seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:6px}
+.seg label{position:relative;display:flex}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{width:100%;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:9px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);cursor:pointer;font-weight:600;font-size:14px;color:var(--sub);line-height:1.3;min-height:46px}
+.seg span small{font-weight:400;font-size:11.5px;color:var(--muted)}
+.seg input:checked+span{border-color:var(--brand);background:var(--weak);color:var(--ink);box-shadow:inset 0 0 0 1px var(--brand)}
+.seg input:focus-visible+span{outline:2px solid var(--brand);outline-offset:2px}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.chk input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--surface);margin:0;display:grid;place-items:center;flex:none}
+.chk input:checked{background:var(--brand);border-color:var(--brand)}
+.chk input:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.chk input:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.chks{display:flex;flex-direction:column;gap:10px}
+.note{font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:6px;padding:10px 12px;line-height:1.7}
+.results{position:sticky;top:16px;align-self:start}
+@media (max-width:1000px){.results{position:static}}
+.best{background:var(--weak);border:1px solid var(--weak-line);border-radius:8px;padding:16px 18px;margin-bottom:14px}
+.best small{display:block;color:var(--ink);font-weight:700;font-size:12.5px}
+.best strong{display:block;font-size:20px;font-weight:800;margin:2px 0}
+.best p{margin:0;color:var(--sub);font-size:13.5px}
+.prod{background:var(--card);border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.prod-h{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;list-style:none}
+.prod-h::-webkit-details-marker{display:none}
+.st{flex:none;font-size:12px;font-weight:800;padding:3px 9px;border-radius:4px}
+.ok .st{background:var(--okbg);color:var(--ok)}
+.no .st{background:var(--badbg);color:var(--bad)}
+.prod-h b{font-size:15.5px}
+.prod-h .sum{margin-left:auto;text-align:right;font-size:13px;color:var(--sub);white-space:nowrap}
+.prod-h .sum strong{display:block;font-size:16px;color:var(--text)}
+.no .prod-h b{color:var(--sub)}
+.prod-b{padding:0 16px 16px;border-top:1px solid var(--line)}
+.kv{display:grid;grid-template-columns:auto 1fr;margin:10px 0 0;font-size:13.5px}
+.kv dt,.kv dd{padding:7px 0;border-bottom:1px solid var(--line)}
+.kv dt{color:var(--muted)}.kv dd{margin:0;text-align:right;font-weight:600}
+.why{margin:10px 0 0;padding-left:18px;font-size:13.5px}
+.why li{margin:3px 0}
+.why .x{color:var(--bad)}.why .v{color:var(--ok)}.why .w{color:var(--warn)}
+.prod-b .link{display:inline-block;margin-top:10px;font-size:12.5px;color:var(--ink)}
+.foot{max-width:1320px;margin:0 auto 28px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));font-size:12.5px;color:var(--muted)}
+.foot b{color:var(--text)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="back" href="./">‹ DSR·DTI 계산기</a>
+  <div class="logo">%</div>
+  <div><h1>정책자금 자격 체크</h1><span>주택도시기금 구입·전세자금 대출</span></div>
+  <div class="src">기준: <a href="https://nhuf.molit.go.kr/" target="_blank" rel="noopener">주택도시기금</a> 상품안내 (2026-10-26 확인)</div>
+</div></header>
+
+<main class="layout">
+  <section>
+    <div class="card">
+      <h2><span class="n">1</span>자금 용도</h2>
+      <div class="seg">
+        <label><input type="radio" name="purpose" value="buy" checked><span>주택 구입</span></label>
+        <label><input type="radio" name="purpose" value="rent"><span>전세</span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span>가구 조건</h2>
+      <div class="grid2">
+        <div class="field">
+          <label for="age">대출신청인 만 나이</label>
+          <div class="inp"><input id="age" type="number" inputmode="numeric" min="19" max="99" value="33"><span class="u">세</span></div>
+        </div>
+        <div class="field">
+          <label for="kids">미성년 자녀 수</label>
+          <div class="inp"><input id="kids" type="number" inputmode="numeric" min="0" max="10" value="1"><span class="u">명</span></div>
+        </div>
+        <div class="field full">
+          <span class="flabel">혼인 상태</span>
+          <div class="seg">
+            <label><input type="radio" name="mar" value="single"><span>미혼</span></label>
+            <label><input type="radio" name="mar" value="new" checked><span>신혼<small>혼인 7년 이내</small></span></label>
+            <label><input type="radio" name="mar" value="plan"><span>결혼예정<small>3개월 이내</small></span></label>
+            <label><input type="radio" name="mar" value="married"><span>기혼<small>7년 초과</small></span></label>
+          </div>
+        </div>
+        <div class="field full">
+          <span class="flabel">주택 보유 (세대원 전원)</span>
+          <div class="seg">
+            <label><input type="radio" name="own" value="0" checked><span>무주택</span></label>
+            <label><input type="radio" name="own" value="1"><span>1주택<small>신생아 디딤돌 대환만</small></span></label>
+          </div>
+        </div>
+        <div class="field full chks">
+          <label class="chk"><input type="checkbox" id="head" checked> 세대주 (또는 1개월 내 세대주 예정)</label>
+          <label class="chk"><input type="checkbox" id="baby" checked> 대출접수일 기준 2년 내 출산·입양 (2023.1.1. 이후 출생)</label>
+          <label class="chk" id="supBox"><input type="checkbox" id="support"> 미혼이지만 부양 세대원 있음 (6개월 이상 동일세대)</label>
+          <label class="chk" id="firstBox"><input type="checkbox" id="first"> 생애최초 주택구입 (기금 구입대출 이용 이력 없음)</label>
+          <label class="chk" id="dreamBox"><input type="checkbox" id="dream"> 청년 주택드림 청약통장으로 당첨 (1년 이상 · 1천만원 이상 납입)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">3</span>소득 · 자산</h2>
+      <div class="grid2">
+        <div class="field">
+          <label for="incMe">본인 연소득</label>
+          <div class="inp"><input id="incMe" class="money" inputmode="numeric" value="5,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field" id="incSpBox">
+          <label for="incSp">배우자 연소득</label>
+          <div class="inp"><input id="incSp" class="money" inputmode="numeric" value="3,500"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field">
+          <label for="asset">부부 합산 순자산</label>
+          <div class="inp"><input id="asset" class="money" inputmode="numeric" value="25,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field">
+          <label for="debt">기존 대출 연 원리금</label>
+          <div class="inp"><input id="debt" class="money" inputmode="numeric" value="0"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">4</span><span id="houseTitle">구입할 주택</span></h2>
+      <div class="grid2">
+        <div class="field full">
+          <span class="flabel">지역</span>
+          <div class="seg">
+            <label><input type="radio" name="area" value="metro" checked><span>수도권<small>서울·인천·경기</small></span></label>
+            <label><input type="radio" name="area" value="local"><span>수도권 외</span></label>
+            <label><input type="radio" name="area" value="rural"><span>수도권 외 읍·면<small>도시지역 아님</small></span></label>
+          </div>
+        </div>
+        <div class="field" id="priceBox">
+          <label for="price">주택 평가액 (분양가·KB시세)</label>
+          <div class="inp"><input id="price" class="money" inputmode="numeric" value="55,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field" id="depBox" hidden>
+          <label for="deposit">임차보증금</label>
+          <div class="inp"><input id="deposit" class="money" inputmode="numeric" value="30,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field">
+          <label for="size">전용면적</label>
+          <div class="inp"><input id="size" type="number" inputmode="decimal" step="0.01" value="84.9"><span class="u">㎡</span></div>
+        </div>
+        <div class="field" id="termBox">
+          <label for="term">대출기간</label>
+          <div class="inp"><select id="term"><option value="10">10년</option><option value="15">15년</option><option value="20">20년</option><option value="30" selected>30년</option></select></div>
+        </div>
+        <div class="field full" id="regBox">
+          <label class="chk"><input type="checkbox" id="reg"> 규제지역 소재 주택</label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="results">
+    <div id="best"></div>
+    <div id="list"></div>
+    <div class="note">
+      <b>공통 요건</b> · 신용정보(연체·대위변제·부도 등) 이력 없음 · 성년 세대원 전원 기금대출 미이용, 본인·배우자 다른 주택담보·전세대출 미이용 · 구입자금은 대출 후 1개월 내 전입, 2년 이상 실거주, 대출기간 중 1주택 유지 · 1년 미만 재직자는 전세 한도가 2천만원 이하로 제한될 수 있음
+    </div>
+  </section>
+</main>
+
+<p class="foot"><b>※ 참고용, 실제 심사결과와 다를 수 있음</b> — 우대금리는 자녀 우대만 반영했습니다(청약통장·전자계약 등 추가 우대는 별도). 최종 한도·금리는 주택금융공사(HF)·주택도시보증공사(HUG) 보증 규정과 수탁은행 심사로 정해집니다.</p>
+<footer class="credit">제작 : 이승표 (splee4649@gmail.com) · v31 · <a href="privacy.html">개인정보처리방침</a></footer>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const num = v => { const n = parseFloat(String(v).replace(/,/g, '')); return isFinite(n) ? n : 0; };
+function korMan(v) {
+  if (!isFinite(v)) return '제한없음';
+  v = Math.floor(v);
+  if (v <= 0) return '0원';
+  const eok = Math.floor(v / 10000), man = v % 10000;
+  let s = '';
+  if (eok) s += eok.toLocaleString() + '억';
+  if (man) s += (s ? ' ' : '') + man.toLocaleString() + '만';
+  return s + '원';
+}
+const won = man => Math.round(man * 10000).toLocaleString() + '원';
+const r2 = v => v.toFixed(2) + '%';
+const equalPay = (L, rPct, years) => { const r = rPct / 1200, n = years * 12; return r ? L * r / (1 - Math.pow(1 + r, -n)) : L / n; };
+// 소득 구간: [상한(만원), ...] → 해당 행 번호
+const band = (uppers, v) => uppers.findIndex(u => v <= u);
+const TERMS = [10, 15, 20, 30];
+const DEP4 = [5000, 10000, 15000, Infinity];   // 보증금 구간 (5천 이하 / 1억 이하 / 1.5억 이하 / 초과)
+const DEP3 = [5000, 10000, Infinity];
+const src = p => `https://nhuf.molit.go.kr/FP/FP05/${p}.jsp`;
+
+/* ───────── 상품 기준 (주택도시기금, 2026-10-26 확인) ───────── */
+const BUY = [
+  { name: '신생아 특례 디딤돌', url: src('FP0503/FP05030801'),
+    check(c) {
+      const R = [];
+      if (!c.baby) R.push('2년 내 출산·입양 가구만 가능');
+      if (c.own > 1) R.push('다주택은 불가');
+      const dual = c.me > 0 && c.sp > 0;
+      if (dual ? (c.inc > 20000 || c.me > 13000 || c.sp > 13000) : c.inc > 13000) R.push(`부부합산 소득 ${dual ? '2억원(맞벌이, 각 1.3억 이하)' : '1.3억원'} 초과`);
+      if (c.asset > 51100) R.push('순자산 5.11억원 초과');
+      if (c.price > 90000) R.push('주택 평가액 9억원 초과');
+      if (c.size > c.maxArea) R.push(`전용면적 ${c.maxArea}㎡ 초과`);
+      const rows = [2000, 4000, 6000, 8500, 10000, 13000, 15000, 17000, 20000];
+      const T = [[1.80,1.90,2.00,2.05],[2.15,2.25,2.35,2.40],[2.40,2.50,2.60,2.65],[2.65,2.75,2.85,2.90],[2.90,3.00,3.10,3.20],[3.20,3.30,3.40,3.50],[3.50,3.60,3.70,3.80],[3.85,3.95,4.05,4.15],[4.20,4.30,4.40,4.50]];
+      const i = band(rows, c.inc);
+      return { R, cap: 40000, ltv: c.ltvBase, base: i < 0 ? null : T[i][c.ti], floor: 1.2, notes: ['특례금리 기본 5년, 2년 내 추가 출산 시 1명당 5년 연장(최장 15년)', c.own === 1 ? '1주택: 기존 주택담보대출 대환 용도' : ''] };
+    } },
+  { name: '신혼부부전용 구입자금', url: src('FP0503/FP05030601'),
+    check(c) {
+      const R = [];
+      if (!c.newly) R.push('혼인 7년 이내 또는 3개월 내 결혼예정만 가능');
+      if (c.own) R.push('무주택 세대주만 가능');
+      let add = 0;
+      if (c.inc > 8500) { if (c.me <= 6000) add = 0.3; else R.push('부부합산 소득 8.5천만원 초과 (신청인 소득 6천만원 이하면 가능)'); }
+      if (c.asset > 51100) R.push('순자산 5.11억원 초과');
+      if (c.price > 60000) R.push('주택 평가액 6억원 초과');
+      if (c.size > c.maxArea) R.push(`전용면적 ${c.maxArea}㎡ 초과`);
+      const T = [[2.55,2.65,2.75,2.80],[2.90,3.00,3.10,3.15],[3.25,3.35,3.45,3.50],[3.60,3.70,3.80,3.85]];
+      const i = band([2000, 4000, 7000, 8500], Math.min(c.inc, 8500));
+      return { R, cap: 32000, ltv: c.metroOrReg ? 70 : 80, base: i < 0 ? null : T[i][c.ti] + add, kidPref: true, floor: 1.5, local: false,
+        notes: [add ? '신청인 소득 6천만원 이하 특례 → 최고금리 +0.3%p' : ''] };
+    } },
+  { name: '내집마련 디딤돌', url: src('FP0503/FP05030101'),
+    check(c) {
+      const R = [];
+      if (c.own) R.push('무주택 세대주만 가능');
+      const singleHead = c.mar === 'single' && !c.support;
+      if (singleHead && c.age < 30) R.push('만 30세 미만 단독·미혼 세대주는 불가');
+      const twoKids = c.kids >= 2;
+      let lim = c.newly ? 8500 : (c.first || twoKids) ? 7000 : 6000, add = 0;
+      if (c.inc > lim) { if (c.newly && c.me <= 6000) add = 0.3; else R.push(`부부합산 소득 ${korMan(lim)} 초과`); }
+      if (c.asset > 51100) R.push('순자산 5.11억원 초과');
+      let maxP = (c.newly || twoKids) ? 60000 : 50000, maxA = c.maxArea;
+      if (singleHead && c.age >= 30) { maxP = 30000; maxA = c.area === 'rural' ? 70 : 60; }
+      if (c.price > maxP) R.push(`주택 평가액 ${korMan(maxP)} 초과`);
+      if (c.size > maxA) R.push(`전용면적 ${maxA}㎡ 초과`);
+      const cap = singleHead && c.age >= 30 ? (c.first ? 20000 : 15000) : (c.newly || twoKids) ? 32000 : c.first ? 24000 : 20000;
+      const T = [[2.85,2.95,3.05,3.10],[3.20,3.30,3.40,3.45],[3.55,3.65,3.75,3.80],[3.90,4.00,4.10,4.15]];
+      const i = band([2000, 4000, 7000, 8500], Math.min(c.inc, 8500));
+      // 금리우대(중복 불가): 신혼 0.2 · 생애최초 0.2 · 자녀 0.3/0.5/0.7 중 가장 큰 것
+      const pref = Math.max(c.newly ? 0.2 : 0, c.first ? 0.2 : 0, c.kidRate);
+      return { R, cap, ltv: c.ltvBase, base: i < 0 ? null : T[i][c.ti] + add, pref, floor: 1.5,
+        notes: [singleHead && c.age >= 30 ? '만 30세 이상 미혼 단독세대주: 평가액 3억·전용 60㎡ 이하, 한도 1.5억(생애최초 2억)' : '', add ? '신청인 소득 6천만원 이하 신혼 특례 → +0.3%p' : ''] };
+    } },
+  { name: '청년 주택드림 디딤돌', url: src('FP0503/FP05030901'),
+    check(c) {
+      const R = [];
+      if (!c.dream) R.push('청년 주택드림 청약통장으로 당첨된 분양주택만 가능');
+      if (c.age > 39) R.push('당첨 시 만 39세 이하만 가능');
+      if (c.own) R.push('무주택 세대주만 가능');
+      let add = 0;
+      if (c.newly) { if (c.inc > 10000) { if (c.me <= 7000) add = 0.3; else R.push('신혼 부부합산 소득 1억원 초과'); } }
+      else if (c.me > 7000) R.push('미혼 연소득 7천만원 초과');
+      if (c.asset > 51100) R.push('순자산 5.11억원 초과');
+      if (c.price > 60000) R.push('분양가(평가액) 6억원 초과');
+      if (c.size > c.maxArea) R.push(`전용면적 ${c.maxArea}㎡ 초과`);
+      const T = [[2.40,2.45,2.55,2.70],[2.80,2.85,2.95,3.10],[3.20,3.25,3.35,3.50],[3.55,3.60,3.70,3.85],[3.90,3.95,4.05,4.15]];
+      const inc = c.newly ? Math.min(c.inc, 10000) : c.me;
+      const i = band([2000, 4000, 7000, 8500, 10000], inc);
+      return { R, cap: c.newly ? 40000 : 30000, ltv: c.ltvBase, base: i < 0 ? null : T[i][c.ti] + add, floor: 1.5,
+        notes: ['대출 후 결혼 0.1%p, 첫 출산 0.5%p 우대 가능', '분양가 이내, 매매가격 초과 불가'] };
+    } }
+];
+
+const RENT = [
+  { name: '신생아 특례 버팀목', url: src('FP0502/FP05021401'),
+    check(c) {
+      const R = [];
+      if (!c.baby) R.push('2년 내 출산·입양 가구만 가능');
+      if (c.own) R.push('무주택 세대주만 가능');
+      const dual = c.me > 0 && c.sp > 0;
+      if (dual ? (c.inc > 20000 || c.me > 13000 || c.sp > 13000) : c.inc > 13000) R.push(`부부합산 소득 ${dual ? '2억원(맞벌이)' : '1.3억원'} 초과`);
+      if (c.asset > 34500) R.push('순자산 3.45억원 초과');
+      const maxD = c.area === 'metro' ? 50000 : 40000;
+      if (c.dep > maxD) R.push(`임차보증금 ${korMan(maxD)} 초과`);
+      if (c.size > c.maxArea) R.push(`전용면적 ${c.maxArea}㎡ 초과`);
+      const rows = [2000, 4000, 6000, 7500, 10000, 13000, 15000, 17000, 20000];
+      const T = [[1.30,1.40,1.50,1.60],[1.60,1.70,1.80,1.90],[1.90,2.00,2.10,2.20],[2.20,2.30,2.40,2.50],[2.55,2.65,2.75,2.85],[2.90,3.00,3.10,3.20],[3.25,3.35,3.45,3.55],[3.60,3.70,3.80,3.90],[4.00,4.10,4.20,4.30]];
+      const i = band(rows, c.inc);
+      return { R, cap: 24000, ratio: 80, base: i < 0 ? null : T[i][band(DEP4, c.dep)], floor: 1.0, notes: ['특례금리 기본 4년, 추가 출산 시 1명당 4년 연장(최장 12년)'] };
+    } },
+  { name: '신혼부부전용 전세자금', url: src('FP0502/FP05020401'),
+    check(c) {
+      const R = [];
+      if (!c.newly) R.push('혼인 7년 이내 또는 3개월 내 결혼예정만 가능');
+      if (c.own) R.push('무주택 세대주만 가능');
+      if (c.inc > 7500 && c.me > 5000) R.push('부부합산 소득 7.5천만원 초과 (신청인 소득 5천만원 이하면 가능)');
+      if (c.asset > 34500) R.push('순자산 3.45억원 초과');
+      const maxD = c.area === 'metro' ? 40000 : 30000;
+      if (c.dep > maxD) R.push(`임차보증금 ${korMan(maxD)} 초과`);
+      if (c.size > c.maxArea) R.push(`전용면적 ${c.maxArea}㎡ 초과`);
+      const T = [[1.9,2.0,2.1,2.2],[2.2,2.3,2.4,2.5],[2.6,2.7,2.8,2.9],[3.0,3.1,3.2,3.3]];
+      const i = band([2000, 4000, 6000, 7500], Math.min(c.inc, 7500));
+      return { R, cap: c.area === 'metro' ? 25000 : 16000, ratio: 80, base: i < 0 ? null : T[i][band(DEP4, c.dep)], kidPref: true, floor: 1.0, local: false, notes: [] };
+    } },
+  { name: '청년전용 버팀목전세자금', url: src('FP0502/FP05020301'),
+    check(c) {
+      const R = [];
+      if (c.age < 19 || c.age > 34) R.push('만 19~34세만 가능 (중소·중견기업 취업 등 병역 이행 시 최대 만 39세)');
+      if (c.own) R.push('무주택 세대주(예비 세대주 포함)만 가능');
+      const lim = c.newly ? 7500 : c.kids >= 2 ? 6000 : 5000;
+      if (c.inc > lim) R.push(`부부합산 소득 ${korMan(lim)} 초과`);
+      if (c.asset > 34500) R.push('순자산 3.45억원 초과');
+      if (c.dep > 30000) R.push('임차보증금 3억원 초과');
+      const young = c.age < 25 && c.mar === 'single';
+      const maxA = young ? 60 : 85;
+      if (c.size > maxA) R.push(`전용면적 ${maxA}㎡ 초과`);
+      const T = [2.2, 2.5, 2.9, 3.3];
+      const i = band([2000, 4000, 6000, 7500], c.inc);
+      return { R, cap: young ? 12000 : 15000, ratio: 80, base: i < 0 ? null : T[i], kidPref: true, extra: young ? 0.3 : 0, floor: 1.0,
+        notes: [young ? '만 25세 미만 단독세대주: 전용 60㎡·한도 1.2억, 0.3%p 우대' : '', '중소기업 취업(창업) 청년 0.3%p 우대 가능'] };
+    } },
+  { name: '버팀목전세자금', url: src('FP0502/FP05020101'),
+    check(c) {
+      const R = [];
+      if (c.own) R.push('무주택 세대주만 가능');
+      const twoKids = c.kids >= 2, plus = c.newly || twoKids;
+      const lim = c.newly ? 7500 : twoKids ? 6000 : 5000;
+      if (c.inc > lim) R.push(`부부합산 소득 ${korMan(lim)} 초과`);
+      if (c.asset > 34500) R.push('순자산 3.45억원 초과');
+      const maxD = plus ? (c.area === 'metro' ? 40000 : 30000) : (c.area === 'metro' ? 30000 : 20000);
+      if (c.dep > maxD) R.push(`임차보증금 ${korMan(maxD)} 초과`);
+      if (c.size > c.maxArea) R.push(`전용면적 ${c.maxArea}㎡ 초과`);
+      const T = [[2.5,2.6,2.7],[2.7,2.8,2.9],[3.0,3.1,3.2],[3.3,3.4,3.5]];
+      const i = band([2000, 4000, 6000, 7500], c.inc);
+      return { R, cap: plus ? (c.area === 'metro' ? 25000 : 16000) : (c.area === 'metro' ? 12000 : 8000), ratio: plus ? 80 : 70,
+        base: i < 0 ? null : T[i][band(DEP3, c.dep)], kidPref: true, floor: 1.0, notes: [] };
+    } }
+];
+
+/* ───────── 계산 ───────── */
+function conds() {
+  const mar = $('input[name=mar]:checked').value, purpose = $('input[name=purpose]:checked').value;
+  const me = num($('#incMe').value), sp = mar === 'single' ? 0 : num($('#incSp').value);
+  const area = $('input[name=area]:checked').value, reg = $('#reg').checked;
+  const kids = Math.max(0, Math.floor(num($('#kids').value)));
+  const c = {
+    purpose, mar, me, sp, inc: me + sp, area, reg, kids,
+    age: num($('#age').value), newly: mar === 'new' || mar === 'plan',
+    own: +$('input[name=own]:checked').value, head: $('#head').checked, baby: $('#baby').checked,
+    support: $('#support').checked, first: $('#first').checked, dream: $('#dream').checked,
+    asset: num($('#asset').value), debt: num($('#debt').value),
+    price: num($('#price').value), dep: num($('#deposit').value), size: num($('#size').value),
+    term: +$('#term').value
+  };
+  c.ti = TERMS.indexOf(c.term);
+  c.maxArea = area === 'rural' ? 100 : 85;
+  c.metroOrReg = area === 'metro' || reg;
+  c.ltvBase = c.first && !c.metroOrReg ? 80 : 70;                // 생애최초 80%, 수도권·규제지역 70%
+  c.kidRate = kids >= 3 ? 0.7 : kids === 2 ? 0.5 : kids === 1 ? 0.3 : 0;
+  return c;
+}
+
+function evaluate(p, c) {
+  const res = p.check(c), R = res.R.slice();
+  if (!c.head) R.unshift('세대주(또는 1개월 내 세대주 예정)만 가능');
+  if (res.base === null && !R.length) R.push('소득 구간 초과');
+  const out = { p, ok: !R.length, R, notes: (res.notes || []).filter(Boolean) };
+  if (!out.ok) return out;
+
+  // 금리: 기본 → 지방 0.2%p 인하 → 우대(자녀 등) → 하한
+  let rate = res.base, steps = [`기본 ${r2(res.base)}`];
+  if (res.local !== false && c.area !== 'metro') { rate -= 0.2; steps.push('지방 −0.2%p'); }
+  let pref = res.pref !== undefined ? res.pref : res.kidPref ? c.kidRate : 0;
+  pref += res.extra || 0;
+  const prefCap = c.kids >= 3 ? 0.7 : 0.5;
+  if (pref > prefCap) pref = prefCap;
+  if (pref) { rate -= pref; steps.push(`우대 −${pref.toFixed(1)}%p`); }
+  if (rate < res.floor) { rate = res.floor; steps.push(`하한 ${r2(res.floor)}`); }
+  out.rate = rate; out.steps = steps;
+
+  // 한도
+  const parts = [{ k: '상품 한도', v: res.cap }];
+  if (c.purpose === 'buy') {
+    parts.push({ k: `LTV ${res.ltv}%`, v: c.price * res.ltv / 100 });
+    const unit = equalPay(1, rate, c.term) * 12;
+    parts.push({ k: 'DTI 60%', v: Math.max(0, (c.inc * 0.6 - c.debt) / unit) });
+  } else {
+    parts.push({ k: `보증금의 ${res.ratio}%`, v: c.dep * res.ratio / 100 });
+  }
+  const min = parts.reduce((a, b) => (b.v < a.v ? b : a));
+  out.limit = Math.floor(min.v / 10) * 10; out.parts = parts; out.bind = min.k;
+  out.monthly = c.purpose === 'buy' ? equalPay(out.limit, rate, c.term) : out.limit * rate / 1200;
+  return out;
+}
+
+function render() {
+  const c = conds(), buy = c.purpose === 'buy';
+  // 화면 전환
+  $('#priceBox').hidden = !buy; $('#termBox').hidden = !buy; $('#regBox').hidden = !buy;
+  $('#depBox').hidden = buy; $('#firstBox').hidden = !buy; $('#dreamBox').hidden = !buy;
+  $('#houseTitle').textContent = buy ? '구입할 주택' : '임차할 주택';
+  $('#incSpBox').hidden = c.mar === 'single';
+  $('#supBox').hidden = !(buy && c.mar === 'single');
+  $$('input[name=own]')[1].closest('label').hidden = !buy;
+  if (!buy && c.own) { $$('input[name=own]')[0].checked = true; c.own = 0; }
+
+  const list = (buy ? BUY : RENT).map(p => evaluate(p, c)).sort((a, b) => (b.ok - a.ok) || ((a.rate || 9) - (b.rate || 9)));
+  const okList = list.filter(x => x.ok);
+  const best = okList[0];
+  $('#best').innerHTML = best
+    ? `<div class="best"><small>가능한 상품 ${okList.length}개 · 가장 낮은 금리</small><strong>${best.p.name}</strong>
+       <p>예상 한도 <b>${korMan(best.limit)}</b> · 예상 금리 <b>연 ${r2(best.rate)}</b> · ${buy ? '월 상환' : '월 이자'} 약 <b>${won(best.monthly)}</b></p></div>`
+    : `<div class="best" style="background:var(--badbg);border-color:transparent"><small style="color:var(--bad)">가능한 상품 없음</small><strong>조건에 맞는 정책자금이 없습니다</strong><p>각 상품의 불가 사유를 확인하세요. 은행 재원 일반 대출을 검토해야 합니다.</p></div>`;
+
+  $('#list').innerHTML = list.map((x, i) => `
+    <details class="prod ${x.ok ? 'ok' : 'no'}" ${x.ok && i === 0 ? 'open' : ''}>
+      <summary class="prod-h"><span class="st">${x.ok ? '가능' : '불가'}</span><b>${x.p.name}</b>
+        <span class="sum">${x.ok ? `<strong>${korMan(x.limit)}</strong>연 ${r2(x.rate)}` : `${x.R.length}개 사유`}</span></summary>
+      <div class="prod-b">
+        ${x.ok ? `
+        <dl class="kv">
+          <dt>예상 한도</dt><dd>${korMan(x.limit)} <span style="color:var(--muted);font-weight:400">(${x.bind} 기준)</span></dd>
+          ${x.parts.map(q => `<dt>　· ${q.k}</dt><dd style="font-weight:400">${korMan(q.v)}</dd>`).join('')}
+          <dt>예상 금리</dt><dd>연 ${r2(x.rate)} <span style="color:var(--muted);font-weight:400">(${x.steps.join(' · ')})</span></dd>
+          <dt>${buy ? `월 상환액 (원리금균등 ${c.term}년)` : '월 이자'}</dt><dd>${won(x.monthly)}</dd>
+        </dl>
+        ${x.notes.length ? `<ul class="why">${x.notes.map(n => `<li class="w">${n}</li>`).join('')}</ul>` : ''}`
+        : `<ul class="why">${x.R.map(r => `<li class="x">${r}</li>`).join('')}</ul>`}
+        <a class="link" href="${x.p.url}" target="_blank" rel="noopener">주택도시기금 상품안내 보기 ↗</a>
+      </div>
+    </details>`).join('');
+}
+
+function formatMoney(el) {
+  const raw = el.value.replace(/[^\d]/g, '');
+  el.value = raw ? Number(raw).toLocaleString('ko-KR') : '';
+  const h = el.closest('.field').querySelector('.hint');
+  if (h) h.textContent = raw ? korMan(+raw) : '';
+}
+document.addEventListener('input', e => { if (e.target.classList.contains('money')) formatMoney(e.target); render(); });
+document.addEventListener('change', render);
+$$('.money').forEach(formatMoney);
+render();
+</script>
+</body>
+</html>
