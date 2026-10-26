@@ -156,6 +156,31 @@ dialog::backdrop{background:#0006}
 .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
 .foot{padding-block:4px 28px;font-size:12.5px;color:var(--muted);line-height:1.7}
 .foot b{color:var(--text)}
+/* ── 한눈에 보기 표 ── */
+.mxw{overflow-x:auto}
+.mx{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:0}
+.mx th,.mx td{padding:0;border-bottom:1px solid var(--line);text-align:center}
+.mx thead th{background:var(--soft);font-size:12.5px;color:var(--sub);font-weight:700}
+.mx thead th:first-child,.mx td:first-child{text-align:left;padding:10px 10px;white-space:nowrap}
+.mx .colbtn{width:100%;border:0;background:transparent;font:inherit;color:inherit;padding:10px 6px;cursor:pointer;line-height:1.3}
+.mx .colbtn small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
+.mx .cell{width:100%;border:0;background:transparent;font:inherit;color:var(--text);padding:10px 6px;cursor:pointer;line-height:1.25}
+.mx .cell strong{display:block;font-size:15.5px;font-weight:800}
+.mx .cell span{display:block;font-size:11px;color:var(--muted)}
+.mx .cell.none{color:var(--faint);cursor:pointer}
+.mx .sel{background:var(--weak)}
+.mx thead th.sel{background:var(--brand);color:#fff}
+.mx thead th.sel small{color:#ffffffcc}
+.mx .low strong{color:var(--ink)}
+.mx .low strong::after{content:"최저";margin-left:4px;font-size:10px;font-weight:800;color:#fff;background:var(--brand);border-radius:3px;padding:1px 4px;vertical-align:2px}
+.mx tr.avg td{background:var(--soft);font-weight:700}
+.mx tr.avg td .cell{cursor:default}
+.mx-note{margin:8px 0 0;font-size:12px;color:var(--muted)}
+.mx-note:empty{display:none}
+.detail-h{margin:6px 0 -4px;font-size:16px;font-weight:800}
+.detail-h span{color:var(--ink)}
+@media (max-width:640px){.mx{font-size:13px}.mx .cell strong{font-size:14px}.mx thead th:first-child,.mx td:first-child{padding:10px 6px}.mx .low strong::after{display:block;width:max-content;margin:2px auto 0}}
+
 /* ── 우대금리 · 관리자 ── */
 .prefs{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-start;max-width:300px;white-space:normal}
 .pchip{display:inline-block;font-size:11.5px;font-weight:600;color:var(--ink);background:var(--weak);border:1px solid var(--weak-line);border-radius:4px;padding:1px 7px;white-space:nowrap}
@@ -192,8 +217,8 @@ dialog::backdrop{background:#0006}
         <label><input type="radio" name="prod" value="mort" checked><span>주택담보대출</span></label>
         <label><input type="radio" name="prod" value="jeonse"><span>전세자금대출</span></label>
       </div>
-      <span class="lab">금리 유형</span>
-      <div class="chips" id="fType"></div>
+      <span class="lab" hidden>금리 유형</span>
+      <div class="chips" id="fType" hidden></div>
       <span class="lab">정렬</span>
       <div class="chips">
         <label><input type="radio" name="sort" value="rate" checked><span>실질적용금리 낮은 순</span></label>
@@ -203,6 +228,13 @@ dialog::backdrop{background:#0006}
     </div>
   </section>
 
+  <section class="card">
+    <h2>금리유형별 한눈에 보기 <small>실질적용금리 · 유형 칸을 누르면 아래에 자세히 보여드립니다</small></h2>
+    <div class="mxw"><table class="mx" id="matrix"></table></div>
+    <p class="mx-note" id="mxNote"></p>
+  </section>
+
+  <h3 class="detail-h" id="detailH"></h3>
   <section class="summary" id="summary"></section>
 
   <section class="card">
@@ -363,7 +395,35 @@ const chgTxt = c => c === null ? '<span class="chg same">–</span>' : Math.abs(
 const p2 = v => has(v) ? pct(v) : '–';
 const rng = x => has(x.min) || has(x.max) ? `${p2(x.min)} ~ ${p2(x.max)}` : '–';
 
+function selectType(t) {
+  const r = document.querySelector(`input[name=type][value="${t}"]`);
+  if (r) { r.checked = true; render(); document.getElementById('detailH').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+}
+function renderMatrix() {
+  const { prod, type } = cur(), keys = Object.keys(TYPES[prod]);
+  const lows = {}, avgs = {}, samples = [];
+  keys.forEach(t => {
+    const set = DATA[prod][t], rs = BANKS.map(b => set.banks[b.id]?.rate).filter(has);
+    lows[t] = rs.length ? Math.min(...rs) : null;
+    avgs[t] = rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : null;
+    if (set.sample) samples.push(TYPES[prod][t]);
+  });
+  const head = `<thead><tr><th>은행</th>${keys.map(t => `<th class="${t === type ? 'sel' : ''}"><button type="button" class="colbtn" data-type="${t}">${TYPES[prod][t].replace(/ \(.*\)/, '')}<small>${(TYPES[prod][t].match(/\((.*)\)/) || [, ''])[1]}${DATA[prod][t].sample ? ' · 예시' : ''}</small></button></th>`).join('')}</tr></thead>`;
+  const body = BANKS.map(b => `<tr><td><span class="dot">${b.short}</span><b>${b.name}</b></td>${keys.map(t => {
+    const v = DATA[prod][t].banks[b.id] || {}, cls = [t === type ? 'sel' : '', has(v.rate) && v.rate === lows[t] ? 'low' : ''].join(' ');
+    return has(v.rate)
+      ? `<td class="${cls}"><button type="button" class="cell" data-type="${t}"><strong>${pct(v.rate)}</strong><span>${has(v.min) || has(v.max) ? `${has(v.min) ? v.min.toFixed(2) : '–'} ~ ${has(v.max) ? v.max.toFixed(2) : '–'}` : (v.prefs || []).length ? `우대 ${v.prefs.length}개` : ''}</span></button></td>`
+      : `<td class="${t === type ? 'sel' : ''}"><button type="button" class="cell none" data-type="${t}">미입력</button></td>`;
+  }).join('')}</tr>`).join('');
+  const avgRow = `<tr class="avg"><td>6개 은행 평균</td>${keys.map(t => `<td class="${t === type ? 'sel' : ''}"><span class="cell" style="display:block">${avgs[t] === null ? '–' : pct(avgs[t])}</span></td>`).join('')}</tr>`;
+  $('#matrix').innerHTML = head + '<tbody>' + body + avgRow + '</tbody>';
+  $('#mxNote').textContent = samples.length ? `예시 수치: ${samples.join(', ')} (실제 금리 입력 전)` : '';
+  $('#detailH').innerHTML = `<span>${TYPES[prod][type]}</span> 자세히 보기`;
+}
+$('#matrix').addEventListener('click', e => { const b = e.target.closest('[data-type]'); if (b) selectType(b.dataset.type); });
+
 function render() {
+  renderMatrix();
   const { prod, type } = cur(), set = DATA[prod][type], sort = document.querySelector('input[name=sort]:checked').value;
   const all = BANKS.map(b => { const v = set.banks[b.id] || {}; return { ...b, ...v, chg: has(v.rate) && has(v.prev) ? v.rate - v.prev : null }; });
   const list = all.filter(x => has(x.rate)), missing = all.filter(x => !has(x.rate));
