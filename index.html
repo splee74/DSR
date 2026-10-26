@@ -269,10 +269,9 @@ dialog::backdrop{background:#0006}
 .mbar-in button{margin-left:auto;border:0;background:var(--brand);color:#fff;border-radius:999px;padding:11px 18px;font-weight:600;white-space:nowrap}
 /* 2줄 헤더: 1줄 = 로고 · 버튼, 2줄 = 탭 · 의견·문의 */
 .tabbar{order:3;width:100%;display:flex;align-items:center;gap:12px;border-top:1px solid var(--line)}
-.policy-link{order:1;margin-left:auto;flex:none;font-size:14px;font-weight:700;color:var(--brand-ink);text-decoration:none;border:1px solid var(--brand);border-radius:6px;padding:7px 12px;white-space:nowrap}
-.policy-link:hover{background:var(--brand-weak)}
-.policy-link::after{content:" ›"}
-@media (max-width:560px){.policy-link{font-size:13px;padding:7px 9px}}
+.policy-link{order:1;margin-left:auto;flex:none;align-self:stretch;display:flex;align-items:center;padding:16px 14px 13px;border-bottom:3px solid transparent;color:var(--sub);font-weight:700;font-size:15px;text-decoration:none;white-space:nowrap}
+.policy-link:hover{color:var(--text)}
+@media (max-width:560px){.policy-link{padding:16px 10px 13px}}
 .tabbar .tabs{width:auto;flex:0 1 auto;order:0}
 .actions button.fb-box{border:1px solid var(--brand);background:var(--brand);color:#fff;border-radius:6px;font-weight:700;white-space:nowrap}
 .actions button.fb-box:hover{background:var(--brand-dark)}
@@ -371,7 +370,7 @@ dialog{border-radius:10px}
         <button type="button" data-tab="mort" class="on">주택담보대출</button>
         <button type="button" data-tab="jeonse">전세자금대출</button>
       </nav>
-      <a class="policy-link" href="policy.html">정책자금 자격 체크</a>
+      <a class="policy-link" href="policy.html">정책자금</a>
     </div>
   </div>
 </header>
@@ -622,7 +621,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v32';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v33';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
