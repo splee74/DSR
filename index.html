@@ -231,6 +231,15 @@ dialog::backdrop{background:#0006}
 .dlg-foot{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 22px;display:flex;justify-content:space-between;gap:8px}
 .btn{border:0;background:var(--soft);color:var(--sub);border-radius:999px;padding:10px 18px;font-weight:600}
 .btn.primary{background:var(--brand);color:#fff}
+dialog.notice{width:min(420px,calc(100vw - 32px))}
+.notice-lead{margin:0 0 12px;color:var(--sub);font-size:14px}
+.notice-item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:14px 16px;margin-bottom:8px;border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none}
+.notice-item:hover{border-color:var(--brand)}
+.notice-item b{font-size:15.5px;font-weight:800}
+.notice-item span{grid-column:1;font-size:13px;color:var(--muted)}
+.notice-item i{grid-row:1/3;grid-column:2;font-style:normal;font-size:22px;color:var(--brand)}
+.notice-skip{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--sub);cursor:pointer}
+.notice-skip input{width:18px;height:18px;margin:0;accent-color:var(--brand)}
 
 .credit{max-width:1360px;margin:0 auto;font-size:12px;color:var(--muted);text-align:right;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
 .credit.top-credit{padding-block:6px 4px}
@@ -610,6 +619,20 @@ dialog{border-radius:10px}
   </form>
 </dialog>
 
+<!-- 업데이트 안내 (공지를 바꾸면 NOTICE_ID 도 바꿀 것) -->
+<dialog id="noticeDlg" class="notice" aria-labelledby="noticeTitle">
+  <div class="dlg-head"><h2 id="noticeTitle">업데이트 안내</h2><button type="button" data-nclose aria-label="닫기">×</button></div>
+  <div class="dlg-body">
+    <p class="notice-lead">새로 추가된 기능입니다. 누르면 바로 이동합니다.</p>
+    <a class="notice-item" href="policy.html"><b>정책자금 계산</b><span>디딤돌 · 버팀목 등 주택도시기금 대출 한도·금리 확인</span><i aria-hidden="true">›</i></a>
+    <a class="notice-item" href="bank.html"><b>각 은행별 금리 현황</b><span>6개 은행 주담대 · 전세대출 금리, 우대금리, 기준금리 추이</span><i aria-hidden="true">›</i></a>
+  </div>
+  <div class="dlg-foot">
+    <label class="notice-skip"><input type="checkbox" id="noticeSkip"> 다시 보지 않기</label>
+    <button type="button" class="btn primary" data-nclose>확인</button>
+  </div>
+</dialog>
+
 <dialog id="dlg">
   <div class="dlg-head"><h2>⚙ 규제 설정</h2><button type="button" data-close aria-label="닫기">×</button></div>
   <div class="dlg-body" id="dlgBody"></div>
@@ -624,7 +647,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v37';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v38';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1317,6 +1340,22 @@ buildSegs();
 $$('.money').forEach(formatMoney);
 renderLoans();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {}); // pwa
+
+/* 업데이트 안내: 처음 열 때 한 번 (같은 창에서 다른 페이지 갔다 와도 다시 안 뜸) */
+const NOTICE_ID = 'notice-2026-10-policy-bank';
+(() => {
+  const d = $('#noticeDlg');
+  let seen = false;
+  try { seen = localStorage.getItem(NOTICE_ID) === 'hide' || sessionStorage.getItem(NOTICE_ID) === '1'; } catch (e) {}
+  const close = () => {
+    try { sessionStorage.setItem(NOTICE_ID, '1'); if ($('#noticeSkip').checked) localStorage.setItem(NOTICE_ID, 'hide'); } catch (e) {}
+    if (d.open) d.close();
+  };
+  $$('[data-nclose]').forEach(b => b.addEventListener('click', close));
+  $$('#noticeDlg .notice-item').forEach(a => a.addEventListener('click', close));
+  d.addEventListener('cancel', close);
+  if (!seen) setTimeout(() => { if (!document.querySelector('dialog[open]')) d.showModal(); }, 300);
+})();
 </script>
 </body>
 </html>
