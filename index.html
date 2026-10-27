@@ -289,6 +289,7 @@ dialog::backdrop{background:#0006}
 .tabs{background:transparent;border-radius:0;padding:0;gap:4px;align-self:stretch}
 .tabs button{border-radius:0;padding:16px 14px 13px;border-bottom:3px solid transparent;color:var(--sub);font-weight:700;font-size:15px}
 .tabs button.on{background:transparent;box-shadow:none;color:var(--text);border-bottom-color:var(--brand)}
+@media (max-width:400px){.tabbar .tabs{gap:0}.tabbar .tabs button,.tabbar .policy-link{padding-left:7px;padding-right:7px;font-size:14px}}
 .actions{align-self:center}
 .actions button{border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--sub)}
 .actions button:hover{background:var(--soft)}
@@ -371,6 +372,7 @@ dialog{border-radius:10px}
         <button type="button" data-tab="jeonse">전세자금대출</button>
       </nav>
       <a class="policy-link" href="policy.html">정책자금</a>
+      <a class="policy-link" href="bank.html">은행금리</a>
     </div>
   </div>
 </header>
@@ -621,7 +623,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v34';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v35';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
