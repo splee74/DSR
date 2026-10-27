@@ -287,6 +287,12 @@ dialog::backdrop{background:#0006}
 .admin-link{background:none;border:0;padding:0;font:inherit;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer}
 .mode{font-size:12px;font-weight:700;border-radius:4px;padding:2px 8px;background:var(--soft);color:var(--sub)}
 .mode.admin{background:var(--weak);color:var(--ink)}
+.home-fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:50;display:inline-flex;align-items:center;gap:4px;padding:12px 18px;border-radius:999px;background:var(--brand);color:#fff;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 4px 14px #0003}
+.home-fab span{font-size:20px;line-height:1;margin-top:-2px}
+.home-fab:hover{filter:brightness(.95)}
+.home-fab:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+body{padding-bottom:72px}
+@media print{.home-fab{display:none}}
 </style>
 </head>
 <body>
@@ -353,6 +359,9 @@ dialog::backdrop{background:#0006}
 </main>
 
 <!-- 금리 입력 (관리자만) -->
+<!-- 계산기로 돌아가기 (오른쪽 아래 고정) -->
+<a class="home-fab" href="./" aria-label="DSR 계산기로 돌아가기"><span aria-hidden="true">‹</span> 돌아가기</a>
+
 <dialog id="ed">
   <div class="ed-head"><div><h2>✎ 금리 입력</h2><span id="edTitle"></span></div><button type="button" data-edclose aria-label="닫기">×</button></div>
   <div class="ed-body">
