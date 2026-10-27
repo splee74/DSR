@@ -1,0 +1,417 @@
+{
+ "updated": "2026-10-27T01:19:08.512Z",
+ "data": {
+  "mort": {
+   "variable": {
+    "sample": false,
+    "asof": "2026-10-26",
+    "banks": {
+     "kb": {
+      "rate": 4.88,
+      "fee": 0.55,
+      "idx": "cofixNewBal",
+      "term": 6
+     },
+     "woori": {
+      "rate": 4.82,
+      "fee": 0.73,
+      "idx": "cofixNewBal",
+      "term": 12
+     },
+     "shinhan": {
+      "rate": 4.93,
+      "fee": 0.69,
+      "idx": "bond",
+      "term": 6
+     },
+     "hana": {
+      "fee": 0.78,
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "ibk": {
+      "rate": 4.77,
+      "fee": 0.61,
+      "idx": "cofixNewBal",
+      "term": 3
+     },
+     "nh": {
+      "rate": 4.93,
+      "fee": 0.93,
+      "idx": "cofixNewBal",
+      "term": 6
+     }
+    }
+   },
+   "mixed": {
+    "sample": false,
+    "asof": "2026-10-26",
+    "banks": {
+     "kb": {
+      "fee": 0.75,
+      "stop": true
+     },
+     "woori": {
+      "fee": 0.95,
+      "stop": true
+     },
+     "shinhan": {
+      "fee": 0.7,
+      "stop": true
+     },
+     "hana": {
+      "rate": 5.36,
+      "fee": 0.65
+     },
+     "ibk": {
+      "fee": 0.74,
+      "stop": true
+     },
+     "nh": {
+      "fee": 0.93,
+      "stop": true
+     }
+    }
+   },
+   "periodic": {
+    "sample": false,
+    "asof": "2026-10-26",
+    "banks": {
+     "kb": {
+      "rate": 5.36,
+      "fee": 0.95
+     },
+     "woori": {
+      "rate": 5.73,
+      "fee": 0.95
+     },
+     "shinhan": {
+      "rate": 5.12,
+      "fee": 0.69
+     },
+     "hana": {},
+     "ibk": {
+      "rate": 5.37,
+      "fee": 0.74
+     },
+     "nh": {
+      "rate": 5.3,
+      "fee": 0.93
+     }
+    }
+   }
+  },
+  "jeonse": {
+   "hfVar": {
+    "sample": false,
+    "asof": "2026-10-27",
+    "banks": {
+     "kb": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "woori": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "shinhan": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "hana": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "ibk": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "nh": {
+      "rate": 4.43,
+      "idx": "cofixNew",
+      "term": 6
+     }
+    }
+   },
+   "hfFix": {
+    "sample": false,
+    "asof": "2026-10-27",
+    "banks": {
+     "kb": {},
+     "woori": {},
+     "shinhan": {},
+     "hana": {},
+     "ibk": {},
+     "nh": {
+      "rate": 4.93
+     }
+    }
+   }
+  }
+ },
+ "prefs": {
+  "mort": {
+   "kb": [
+    {
+     "name": "급여 이체 월 50만원",
+     "rate": 0.1
+    },
+    {
+     "name": "신용카드 월 30만원 이상 결제",
+     "rate": 0.1
+    },
+    {
+     "name": "자동 이체 3건",
+     "rate": 0.1
+    },
+    {
+     "name": "스타뱅킹 월 1회 이체",
+     "rate": 0.1
+    },
+    {
+     "name": "적금 월 30만원 1회 이체 유지",
+     "rate": 0.1
+    },
+    {
+     "name": "전자계약",
+     "rate": 0.2
+    },
+    {
+     "name": "본인 장애인 (구입자금만 해당)",
+     "rate": 0.3,
+     "on": false
+    }
+   ],
+   "woori": [
+    {
+     "name": "급여 이체 월 100만원",
+     "rate": 0.2
+    },
+    {
+     "name": "신용카드 3개월 합 100만원 이상 결제",
+     "rate": 0.2
+    },
+    {
+     "name": "적금 5만원 또는 청약 2만원 이상",
+     "rate": 0.1
+    },
+    {
+     "name": "장애인, 국가유공자 가족 (등본상 직계존비속)",
+     "rate": 0.2,
+     "on": false
+    },
+    {
+     "name": "미성년 3자녀",
+     "rate": 0.2,
+     "on": false
+    },
+    {
+     "name": "전자계약",
+     "rate": 0.2
+    },
+    {
+     "name": "비거치분할상환",
+     "rate": 0.1
+    }
+   ],
+   "shinhan": [
+    {
+     "name": "전자계약",
+     "rate": 0.3
+    },
+    {
+     "name": "급여이체 월 50만",
+     "rate": 0.2
+    },
+    {
+     "name": "신용카드 3개월 합 50만원 이상 결제",
+     "rate": 0.2
+    },
+    {
+     "name": "적금 10만원 또는 청약 10만원",
+     "rate": 0.2
+    },
+    {
+     "name": "서울시, 인천시, 강원도의 모범납세자",
+     "rate": 0.2,
+     "on": false
+    },
+    {
+     "name": "대출만기 20년",
+     "rate": 0.05,
+     "on": false
+    },
+    {
+     "name": "대출만기 15년",
+     "rate": 0.1,
+     "on": false
+    },
+    {
+     "name": "대출만기 10년",
+     "rate": 0.15,
+     "on": false
+    }
+   ],
+   "hana": [
+    {
+     "name": "급여 이체 월 50만원",
+     "rate": 0.1
+    },
+    {
+     "name": "신용카드 월 70만원 이상 결제",
+     "rate": 0.3
+    },
+    {
+     "name": "신용카드 월 30만원 이상 결제",
+     "rate": 0.2,
+     "on": false
+    },
+    {
+     "name": "적금 10만원 또는 청약 5만원 이상",
+     "rate": 0.1
+    },
+    {
+     "name": "전자계약",
+     "rate": 0.2
+    }
+   ],
+   "nh": [
+    {
+     "name": "급여 이체 월 150만원",
+     "rate": 0.3
+    },
+    {
+     "name": "신용카드 3개월 합 100만원 이상 결제",
+     "rate": 0.3
+    },
+    {
+     "name": "예금 평잔 200만원 이상",
+     "rate": 0.3
+    },
+    {
+     "name": "적립식예적금 10만원이상",
+     "rate": 0.1
+    },
+    {
+     "name": "전자계약",
+     "rate": 0.1
+    },
+    {
+     "name": "농협 최초 신규",
+     "rate": 0.1
+    },
+    {
+     "name": "공직자 우대",
+     "rate": 0.1,
+     "on": false
+    },
+    {
+     "name": "대출금액 3억원 기준임"
+    }
+   ],
+   "ibk": [
+    {
+     "name": "급여 이체 월 50만원",
+     "rate": 0.2
+    },
+    {
+     "name": "신용카드 월 50만원 이상 결제",
+     "rate": 0.3
+    },
+    {
+     "name": "입출식예금 3개월 평균 100~200만원 이상 유지",
+     "rate": 0.3
+    },
+    {
+     "name": "전자계약",
+     "rate": 0.2
+    },
+    {
+     "name": "적금 또는 청약 10만원",
+     "rate": 0.2
+    },
+    {
+     "name": "우대 항목 고정 0.7% , 변동 0.2% 충족 시 최저 금리"
+    },
+    {
+     "name": "중소기업 재직자 5년이하",
+     "rate": 0.1,
+     "on": false
+    },
+    {
+     "name": "중소기업 재직자 5년~10년이하",
+     "rate": 0.2,
+     "on": false
+    },
+    {
+     "name": "중소기업 재직자 10년~15년이하",
+     "rate": 0.3,
+     "on": false
+    },
+    {
+     "name": "중소기업 재직자 15년초과",
+     "rate": 0.4,
+     "on": false
+    },
+    {
+     "name": "우수기술인력 (기사,기능사자격증 보유)",
+     "rate": 0.1,
+     "on": false
+    }
+   ]
+  },
+  "jeonse": {
+   "nh": [
+    {
+     "name": "급여 이체 월 150만원",
+     "rate": 0.3
+    },
+    {
+     "name": "신용카드 3개월 합 100만원 이상 결제",
+     "rate": 0.3
+    },
+    {
+     "name": "농협 최초 신규",
+     "rate": 0.1
+    },
+    {
+     "name": "자동 이체 3건",
+     "rate": 0.1
+    },
+    {
+     "name": "예금 평잔 100만원 이상",
+     "rate": 0.2
+    },
+    {
+     "name": "전자계약",
+     "rate": 0.2
+    },
+    {
+     "name": "미성년 3자녀",
+     "rate": 0.3,
+     "on": false
+    },
+    {
+     "name": "대출금액 2억원 기준임"
+    }
+   ],
+   "kb": [],
+   "woori": [],
+   "shinhan": [],
+   "hana": [],
+   "ibk": []
+  }
+ },
+ "prefMax": {
+  "mort": {
+   "variable": {
+    "ibk": 0.7
+   },
+   "mixed": {},
+   "periodic": {
+    "ibk": 0.7
+   }
+  },
+  "jeonse": {}
+ }
+}
