@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-28T05:41:56.411Z",
+ "updated": "2026-10-28T05:44:04.582Z",
  "data": {
   "mort": {
    "variable": {
@@ -60,7 +60,7 @@
       "stop": true
      },
      "hana": {
-      "rate": 5.36,
+      "rate": 5.3,
       "fee": 0.65
      },
      "ibk": {
