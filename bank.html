@@ -285,7 +285,7 @@ dialog::backdrop{background:#0006}
 .prow.off .pon span::after{content:" 안 함"}
 .prow.off .inp{opacity:.55}
 .prow.off input.name{text-decoration:line-through}
-.pchip.off{color:var(--muted);background:var(--soft);border-color:var(--line);text-decoration:line-through}
+.pchip.off{color:var(--muted);background:var(--soft);border-color:var(--line)}
 .pchip.off b{text-decoration:none;font-weight:700}
 .prow .inp{min-height:38px}
 .prow input.name{text-align:left}
@@ -621,7 +621,7 @@ const isAdmin = () => !ONLINE || !!token();
 /* ── 화면 ── */
 let curType = 'variable';
 const prodNow = () => document.querySelector('input[name=prod]:checked').value;
-const prefChips = v => (v.prefs || []).length ? `<div class="prefs">${v.prefs.map(p => prefOn(p) ? `<span class="pchip">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>` : `<span class="pchip off" title="미적용">${esc(p.name)} <b>미적용</b></span>`).join('')}</div>` : '–';
+const prefChips = v => (v.prefs || []).length ? `<div class="prefs">${v.prefs.map(p => prefOn(p) ? `<span class="pchip">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>` : `<span class="pchip off">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>`).join('')}</div>` : '–';
 const chg3 = c => Math.abs(c) < 0.0005 ? '<span class="chg same">– 0.000</span>' : c < 0 ? `<span class="chg down">▼ ${Math.abs(c).toFixed(3)}</span>` : `<span class="chg up">▲ ${c.toFixed(3)}</span>`;
 const chgTxt = c => c === null ? '<span class="chg same">–</span>' : Math.abs(c) < 0.005 ? '<span class="chg same">– 0.00</span>' : c < 0 ? `<span class="chg down">▼ ${Math.abs(c).toFixed(2)}</span>` : `<span class="chg up">▲ ${c.toFixed(2)}</span>`;
 const p2 = v => has(v) ? pct(v) : '–';
