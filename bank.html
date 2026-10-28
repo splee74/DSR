@@ -844,7 +844,7 @@ function fillEditor(set, blankOnSample) {
   const t = edType(), fixed = TYPE[t].fixed;
   $('#edTitle').textContent = `${PRODS[prodNow()]} · ${TYPE[t].label}`;
   $('#edBaseInfo').innerHTML = fixed ? `${TYPE[t].baseName} <b>${pct(BASE[TYPE[t].base].rate)}</b> <span>(${BASE[TYPE[t].base].date} 기준 · 자동)</span>` : '<span>은행마다 아래에서 기준금리 종류와 변동주기를 고르세요</span>';
-  $('#edAsof').value = set.asof || today();
+  $('#edAsof').value = set.asof || today(); delete $('#edAsof').dataset.touched;
   const opt = (val, cur, label) => `<option value="${val}" ${String(val) === String(cur) ? 'selected' : ''}>${label}</option>`;
   if (!BANKS.some(b => b.id === edBank)) edBank = BANKS[0].id;
   $('#edBody').innerHTML = BANKS.map(b => {
@@ -881,12 +881,18 @@ function syncPrefs(id) {
 }
 let dirty = false;
 // 지금 보고 있는 유형의 입력값을 메모리에 보관 (유형을 바꾸거나 닫아도 유지, 저장 시 함께 올라감)
+// 기준일: 날짜를 직접 고쳤으면 그 날짜, 아니면 금리가 바뀌었을 때 오늘 날짜 (안 바뀌었으면 원래 날짜)
+function asofFor(cur, banks) {
+  if ($('#edAsof').dataset.touched && $('#edAsof').value) return $('#edAsof').value;
+  const same = cur && !cur.sample && JSON.stringify(cur.banks) === JSON.stringify(banks);
+  return same ? (cur.asof || today()) : today();
+}
 function stash() {
   const prod = prodNow(), t = edType(); if (!t) return;
   const banks = {}; let any = false;
   BANKS.forEach(b => { const { prefs, ...v } = readBank(b.id); banks[b.id] = v; if (Object.keys(v).some(k => k !== 'idx' && k !== 'term')) any = true; });
   const cur = DATA[prod][t];
-  if (any) { DATA[prod][t] = { sample: false, asof: $('#edAsof').value || cur.asof || today(), banks }; dirty = true; }
+  if (any) { DATA[prod][t] = { sample: false, asof: asofFor(cur, banks), banks }; dirty = true; }
 }
 function updCalc() {
   if ($('#edBanks').childElementCount) renderEdBanks();
@@ -945,6 +951,7 @@ $('#baOk').onclick = () => {
   fillEditor(DATA[prodNow()][edType()], true); render();
   $('#edMsg').textContent = ONLINE ? `${name}을(를) 추가했습니다. 금리를 넣고 [저장]을 눌러야 사이트에 반영됩니다.` : `${name}을(를) 추가했습니다.`;
 };
+$('#edAsof').addEventListener('input', e => e.target.dataset.touched = '1');
 $('#edType').addEventListener('focus', () => edPrevType = edType());
 $('#edType').addEventListener('change', () => {
   const now = edType(); if (edPrevType) { $('#edType').value = edPrevType; stash(); $('#edType').value = now; }
@@ -973,7 +980,7 @@ $('#edSave').onclick = async () => {
   if (!Object.values(banks).some(v => eff(v, t) || v.stop)) { $('#edMsg').textContent = '실질적용금리·가산금리를 입력하거나 취급중단을 한 곳 이상 체크해야 저장됩니다.'; return; }
   const prevSet = DATA[prod][t];
   BANKS.forEach(b => { PREFS[prod][b.id] = banks[b.id].prefs; delete banks[b.id].prefs; });
-  DATA[prod][t] = { sample: false, asof: $('#edAsof').value || today(), banks };
+  DATA[prod][t] = { sample: false, asof: asofFor(prevSet, banks), banks };
   const btn = $('#edSave'); btn.disabled = true; btn.textContent = '저장 중…';
   try { const msg = await publish(); dirty = false; curType = t; $('#ed').close(); render(); toast(msg); }
   catch (err) { DATA[prod][t] = prevSet; $('#edMsg').textContent = err.message; }
