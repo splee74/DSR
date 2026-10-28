@@ -1,10 +1,10 @@
 {
- "updated": "2026-10-28T05:51:04.411Z",
+ "updated": "2026-10-28T05:56:19.754Z",
  "data": {
   "mort": {
    "variable": {
     "sample": false,
-    "asof": "2026-10-28",
+    "asof": "2026-10-26",
     "banks": {
      "kb": {
       "rate": 4.88,
@@ -41,12 +41,17 @@
       "fee": 0.93,
       "idx": "cofixNewBal",
       "term": 6
+     },
+     "xmvrp9uh3": {
+      "rate": 5.03,
+      "idx": "cofixNew",
+      "term": 6
      }
     }
    },
    "mixed": {
     "sample": false,
-    "asof": "2026-10-28",
+    "asof": "2026-10-26",
     "banks": {
      "kb": {
       "fee": 0.75,
@@ -76,7 +81,7 @@
    },
    "periodic": {
     "sample": false,
-    "asof": "2026-10-28",
+    "asof": "2026-10-26",
     "banks": {
      "kb": {
       "rate": 5.36,
@@ -97,12 +102,15 @@
       "stop": true
      },
      "ibk": {
-      "rate": 5.31,
+      "rate": 5.37,
       "fee": 0.74
      },
      "nh": {
-      "rate": 5.28,
+      "rate": 5.3,
       "fee": 0.93
+     },
+     "xmvrp9uh3": {
+      "rate": 5.35
      }
     }
    }
@@ -364,7 +372,8 @@
      "rate": 0.1,
      "on": false
     }
-   ]
+   ],
+   "xmvrp9uh3": []
   },
   "jeonse": {
    "nh": [
@@ -422,5 +431,11 @@
   },
   "jeonse": {}
  },
- "banks": []
+ "banks": [
+  {
+   "id": "xmvrp9uh3",
+   "name": "SC제일은행",
+   "short": "SC"
+  }
+ ]
 }
