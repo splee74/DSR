@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-28T05:29:30.942Z",
+ "updated": "2026-10-28T05:38:39.606Z",
  "data": {
   "mort": {
    "variable": {
@@ -82,8 +82,11 @@
       "fee": 0.95
      },
      "woori": {
-      "rate": 5.73,
-      "fee": 0.95
+      "rate": 5.7,
+      "spread": 2.27,
+      "min": 5.4,
+      "max": 6.5,
+      "fee": 0.93
      },
      "shinhan": {
       "rate": 5.12,
