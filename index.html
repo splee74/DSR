@@ -245,6 +245,7 @@ dialog.notice{width:min(420px,calc(100vw - 32px))}
 .notice-rates td.down{color:#2f6fde}
 .notice-rates td.up{color:#e5484d}
 .notice-rates td.same{color:var(--muted);font-weight:600}
+.notice-when{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:700;vertical-align:2px}
 .notice-more{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;color:var(--brand-dark,var(--brand));text-decoration:none}
 .notice-item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:14px 16px;margin-bottom:8px;border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none}
 .notice-item:hover{border-color:var(--brand)}
@@ -637,7 +638,7 @@ dialog{border-radius:10px}
   <div class="dlg-head"><h2 id="noticeTitle">공지사항</h2><button type="button" data-nclose aria-label="닫기">×</button></div>
   <div class="dlg-body">
     <section class="notice-sec">
-      <h3>&lt;우리은행 금리변경&gt;</h3>
+      <h3>&lt;우리은행 금리변경&gt; <span class="notice-when">11월부터 시행</span></h3>
       <div class="notice-rates">
         <table><caption>주담대</caption>
           <tr><th>6개월 변동</th><td class="down">▼ 0.15% 인하</td></tr>
@@ -677,7 +678,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v45';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v46';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
