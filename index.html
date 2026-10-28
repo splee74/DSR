@@ -647,7 +647,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v38';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v39';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -658,7 +658,7 @@ const DEFAULTS = {
   dsr:    { bank1: 40, bank2: 50 },
   dti:    { metro: 60, reg: 40, local: 60 },
   cap:    { on: { metro: true, reg: true, local: false }, t1: 150000, c1: 60000, t2: 250000, c2: 40000, c3: 20000 },
-  deem:   { credit: 5, other: 8, midpay: 25 },
+  deem:   { credit: 5, other: 8, midpay: 25, guar: 10, secur: 8 },
   jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000, capMember: 50000 },
   inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000 },
   debt:   { otherRate: 5.52 }
@@ -673,6 +673,8 @@ const LOAN_TYPES = {
   jeonse:  '전세자금대출',
   other:   '기타담보대출 (비주택·오피스텔 등)',
   deposit: '예적금담보대출',
+  guar:    '보증서담보대출',
+  secur:   '유가증권담보대출',
   midpay:  '중도금·이주비대출',
   direct:  '할부·리스·카드론'
 };
@@ -750,6 +752,8 @@ function loanCalc(l) {
     case 'jeonse':  return { dsr: interest, dti: dtiInt, dtiDesc, desc: '이자만 반영' };
     case 'other':   return { dsr: amt / S.deem.other + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.other}년 + 이자` };
     case 'deposit': return { dsr: interest, dti: dtiInt, dtiDesc, desc: '이자만 반영' };
+    case 'guar':    return { dsr: amt / S.deem.guar + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.guar}년 + 이자` };
+    case 'secur':   return { dsr: amt / S.deem.secur + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.secur}년 + 이자` };
     case 'midpay':  return { dsr: amt / S.deem.midpay + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.midpay}년 + 이자` };
     case 'direct': {
       const mo = Math.max(1, Math.round(num(l.months) || 1));
@@ -1224,7 +1228,7 @@ const SETTINGS = [
   ['DTI 한도 (주담대)', [['dti.metro', '수도권', '%'], ['dti.reg', '규제지역', '%'], ['dti.local', '지방', '%']]],
   ['주담대 금액 상한', [['cap.on.metro', '수도권 적용', 'chk'], ['cap.on.reg', '규제지역 적용', 'chk'], ['cap.on.local', '지방 적용', 'chk'],
     ['cap.t1', '구간1: 주택가격 이하', '만원'], ['cap.c1', '구간1 한도', '만원'], ['cap.t2', '구간2: 주택가격 이하', '만원'], ['cap.c2', '구간2 한도', '만원'], ['cap.c3', '구간2 초과 한도', '만원']]],
-  ['DSR 간주 만기 (기존 대출)', [['deem.credit', '신용대출·마이너스통장', '년'], ['deem.other', '기타담보대출', '년'], ['deem.midpay', '중도금·이주비', '년']]],
+  ['DSR 간주 만기 (기존 대출)', [['deem.credit', '신용대출·마이너스통장', '년'], ['deem.other', '기타담보대출', '년'], ['deem.midpay', '중도금·이주비', '년'], ['deem.guar', '보증서담보대출', '년'], ['deem.secur', '유가증권담보대출', '년']]],
   ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (DSR 적용 대상)', '%'], ['stress.jeonse', '스트레스 가산 (DSR 적용 대상)', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원'], ['jeonse.capMember', '세대원 유주택 최대 한도', '만원']]]
 ];
 function openSettings(src = S) {

@@ -164,6 +164,11 @@ dialog::backdrop{background:#0006}
 .mx th,.mx td{padding:0;border-bottom:1px solid var(--line);text-align:center}
 .mx thead th{background:var(--soft);font-size:12.5px;color:var(--sub);font-weight:700}
 .mx thead th:first-child,.mx td:first-child{text-align:left;padding:10px 10px;white-space:nowrap}
+/* 금리유형별 표: 은행 표시 위(이미지) · 아래(이름) */
+.mx td.bk{text-align:center;padding:8px 6px}
+.mx td.bk .dot{display:grid;margin:0 auto 4px;width:30px;height:30px}
+.mx td.bk b{display:block;font-size:13px;line-height:1.2}
+.mx thead th:first-child{text-align:center}
 .mx .colbtn{width:100%;border:0;background:transparent;font:inherit;color:inherit;padding:10px 6px;cursor:pointer;line-height:1.3}
 .mx .colbtn small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
 .mx .cell{width:100%;border:0;background:transparent;font:inherit;color:var(--text);padding:10px 6px;cursor:pointer;line-height:1.25}
@@ -643,7 +648,7 @@ function renderMatrix() {
     ? `<thead><tr><th rowspan="2">은행</th>${groups.map(g => `<th colspan="${TKEYS.filter(t => TYPE[t].grp === g).length}" class="grp">${g}</th>`).join('')}</tr><tr>${TKEYS.map(colTh).join('')}</tr></thead>`
     : `<thead><tr><th>은행</th>${TKEYS.map(colTh).join('')}</tr></thead>`;
   $('#matrix').classList.toggle('wide', grouped);
-  const body = BANKS.map((b, i) => `<tr><td><span class="dot">${b.short}</span><b>${b.name}</b></td>${TKEYS.map(t => {
+  const body = BANKS.map((b, i) => `<tr><td class="bk"><span class="dot">${b.short}</span><b>${b.name}</b></td>${TKEYS.map(t => {
     const c = cells[t][i], sel = t === curType ? 'sel' : '';
     if (c.v.stop) return `<td class="${sel}"><button type="button" class="cell stop" data-type="${t}"><strong>취급중단</strong></button></td>`;
     if (!c.e) return `<td class="${sel}"><button type="button" class="cell none" data-type="${t}">–</button></td>`;
