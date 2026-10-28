@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-28T05:56:49.464Z",
+ "updated": "2026-10-28T15:24:12.326Z",
  "data": {
   "mort": {
    "variable": {
@@ -81,14 +81,14 @@
    },
    "periodic": {
     "sample": false,
-    "asof": "2026-10-26",
+    "asof": "2026-10-29",
     "banks": {
      "kb": {
       "rate": 5.36,
       "fee": 0.95
      },
      "woori": {
-      "rate": 5.7,
+      "rate": 5.75,
       "fee": 0.93
      },
      "shinhan": {
