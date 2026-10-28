@@ -1,0 +1,40 @@
+name: 기준금리 자동 수집
+
+on:
+  schedule:
+    - cron: '1 6 15-21 * *'  # COFIX: 매월 15~21일 15:01 (한국 시간) — 공시일 하루만 실제 조회
+    - cron: '0 10 * * 1-5'   # 금융채: 평일 19:00 (한국 시간) 하루 한 번
+  workflow_dispatch:          # GitHub 화면에서 바로 실행 (COFIX·금융채 모두)
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 기준금리 가져오기
+        run: node scripts/fetch-base-rates.mjs ${{ github.event.schedule == '1 6 15-21 * *' && 'cofix' || github.event.schedule == '0 10 * * 1-5' && 'bond' || 'all' }}
+      - name: 바뀐 경우에만 저장
+        id: save
+        run: |
+          if git diff --quiet -- base-rates.json; then
+            echo "변경 없음"; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add base-rates.json
+          git commit -m "기준금리 자동 업데이트"
+          git pull --rebase origin main   # 그사이 관리자가 금리를 저장했어도 함께 올라가도록
+          git push
+          echo "pushed=1" >> "$GITHUB_OUTPUT"
+      - name: 사이트(GitHub Pages) 다시 만들기
+        if: steps.save.outputs.pushed == '1'
+        run: |
+          curl -s -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages/builds" || true
