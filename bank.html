@@ -783,19 +783,18 @@ function openHist(key) {
   $('#hChart').innerHTML = drawChart(series);
   const svg = $('#hChart svg');
   if (svg) { svg.addEventListener('pointermove', hover); svg.addEventListener('pointerleave', () => { $('#hTip').hidden = true; $('#hCross').setAttribute('visibility', 'hidden'); }); }
-  // 표: COFIX는 매월, 금융채는 주마다 마지막 영업일
+  // 표: COFIX는 매월, 금융채는 영업일마다
   let dates = [...new Set(series.flatMap(sr => sr.pts.map(p => p.date)))].sort();
-  if (key === 'bond') { const wk = {}; dates.forEach(d => { const t = new Date(tms(d)); t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7)); wk[t.toISOString().slice(0, 10)] = d; }); dates = Object.values(wk).sort(); }
   const rows = dates.slice().reverse();
   const val = (sr, d) => (sr.pts.find(p => p.date === d) || {}).rate;
   const prevOf = (sr, d) => { const i = dates.indexOf(d); return i > 0 ? val(sr, dates[i - 1]) : undefined; };
   const chg = (a, b) => has(a) && has(b) ? (key === 'bond' ? chg3(a - b) : chgTxt(a - b)) : '<span class="chg same">–</span>';
   $('#hTable').innerHTML = rows.length
-    ? `<tr><th>${H.col}</th>${series.map(sr => `<th>${sr.name}</th><th>${key === 'bond' ? '전주' : '전월'} 대비</th>`).join('')}</tr>` +
+    ? `<tr><th>${H.col}</th>${series.map(sr => `<th>${sr.name}</th><th>${key === 'bond' ? '전일' : '전월'} 대비</th>`).join('')}</tr>` +
       rows.map(d => `<tr><td>${d}</td>${series.map(sr => { const v = val(sr, d); return `<td><b>${has(v) ? HF(v) : '–'}</b></td><td>${chg(v, prevOf(sr, d))}</td>`; }).join('')}</tr>`).join('')
     : '<tr><td class="hempty">아직 쌓인 자료가 없습니다.</td></tr>';
   $('#hNote').innerHTML = key === 'bond'
-    ? (series[1].pts.length < 2 ? '금융채 자료는 평일 오후 7시 <b>기준금리 자동 수집</b>으로 하루에 한 번 쌓입니다.' : '그래프는 영업일 기준, 표는 주마다 마지막 영업일 값입니다. KOFIA 공시값 그대로(소수점 셋째 자리) 표시합니다. 금리 계산에는 셋째 자리에서 반올림한 값을 씁니다.')
+    ? (series[1].pts.length < 2 ? '금융채 자료는 평일 오후 7시 <b>기준금리 자동 수집</b>으로 하루에 한 번 쌓입니다.' : '그래프는 영업일 기준, 표는 최근 6개월 영업일마다의 값입니다. KOFIA 공시값 그대로(소수점 셋째 자리) 표시합니다. 금리 계산에는 셋째 자리에서 반올림한 값을 씁니다.')
     : 'COFIX는 매월 15일 전후(공휴일이면 다음 영업일) 오후 3시에 공시됩니다.';
   $('#hist').showModal();
 }
