@@ -233,6 +233,19 @@ dialog::backdrop{background:#0006}
 .btn.primary{background:var(--brand);color:#fff}
 dialog.notice{width:min(420px,calc(100vw - 32px))}
 .notice-lead{margin:0 0 12px;color:var(--sub);font-size:14px}
+.notice-sec{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:18px}
+.notice-sec h3,.notice-h{margin:0 0 10px;font-size:15.5px;font-weight:800}
+.notice-rates{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:380px){.notice-rates{grid-template-columns:1fr}}
+.notice-rates table{width:100%;border-collapse:collapse;font-size:13.5px}
+.notice-rates caption{text-align:left;font-weight:700;font-size:13px;color:var(--sub);padding-bottom:4px}
+.notice-rates th,.notice-rates td{padding:5px 0;border-top:1px solid var(--line);white-space:nowrap}
+.notice-rates th{text-align:left;font-weight:600;background:none;color:var(--text);font-size:13.5px}
+.notice-rates td{text-align:right;font-weight:700}
+.notice-rates td.down{color:#2f6fde}
+.notice-rates td.up{color:#e5484d}
+.notice-rates td.same{color:var(--muted);font-weight:600}
+.notice-more{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;color:var(--brand-dark,var(--brand));text-decoration:none}
 .notice-item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:14px 16px;margin-bottom:8px;border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none}
 .notice-item:hover{border-color:var(--brand)}
 .notice-item b{font-size:15.5px;font-weight:800}
@@ -621,8 +634,25 @@ dialog{border-radius:10px}
 
 <!-- 업데이트 안내 (공지를 바꾸면 NOTICE_ID 도 바꿀 것) -->
 <dialog id="noticeDlg" class="notice" aria-labelledby="noticeTitle">
-  <div class="dlg-head"><h2 id="noticeTitle">업데이트 안내</h2><button type="button" data-nclose aria-label="닫기">×</button></div>
+  <div class="dlg-head"><h2 id="noticeTitle">공지사항</h2><button type="button" data-nclose aria-label="닫기">×</button></div>
   <div class="dlg-body">
+    <section class="notice-sec">
+      <h3>&lt;우리은행 금리변경&gt;</h3>
+      <div class="notice-rates">
+        <table><caption>주담대</caption>
+          <tr><th>6개월 변동</th><td class="down">▼ 0.15% 인하</td></tr>
+          <tr><th>12개월 변동</th><td class="down">▼ 0.24% 인하</td></tr>
+          <tr><th>5년 변동</th><td class="down">▼ 0.24% 인하</td></tr>
+        </table>
+        <table><caption>전세대출</caption>
+          <tr><th>6개월 변동</th><td class="up">▲ 0.03% 인상</td></tr>
+          <tr><th>12개월 변동</th><td class="down">▼ 0.06% 인하</td></tr>
+          <tr><th>2년 고정</th><td class="same">변동 없음</td></tr>
+        </table>
+      </div>
+      <a class="notice-more" href="bank.html">은행별 금리 비교에서 보기 ›</a>
+    </section>
+    <h3 class="notice-h">업데이트 안내</h3>
     <p class="notice-lead">새로 추가된 기능입니다. 누르면 바로 이동합니다.</p>
     <a class="notice-item" href="policy.html"><b>정책자금 계산</b><span>디딤돌 · 버팀목 등 주택도시기금 대출 한도·금리 확인</span><i aria-hidden="true">›</i></a>
     <a class="notice-item" href="bank.html"><b>각 은행별 금리 현황</b><span>6개 은행 주담대 · 전세대출 금리, 우대금리, 기준금리 추이</span><i aria-hidden="true">›</i></a>
@@ -647,7 +677,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v44';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v45';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1346,7 +1376,7 @@ renderLoans();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {}); // pwa
 
 /* 업데이트 안내: 처음 열 때 한 번 (같은 창에서 다른 페이지 갔다 와도 다시 안 뜸) */
-const NOTICE_ID = 'notice-2026-10-policy-bank';
+const NOTICE_ID = 'notice-2026-10-28-woori';
 (() => {
   const d = $('#noticeDlg');
   let seen = false;
