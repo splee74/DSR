@@ -1,10 +1,10 @@
 {
- "updated": "2026-10-28T15:24:12.326Z",
+ "updated": "2026-10-29T02:46:18.275Z",
  "data": {
   "mort": {
    "variable": {
     "sample": false,
-    "asof": "2026-10-28",
+    "asof": "2026-10-29",
     "banks": {
      "kb": {
       "rate": 4.88,
@@ -19,7 +19,7 @@
       "term": 12
      },
      "shinhan": {
-      "rate": 4.98,
+      "rate": 4.95,
       "fee": 0.69,
       "idx": "bond",
       "term": 6
@@ -43,7 +43,7 @@
       "term": 6
      },
      "xmvrp9uh3": {
-      "rate": 5.03,
+      "rate": 5.04,
       "idx": "cofixNew",
       "term": 6
      }
@@ -51,7 +51,7 @@
    },
    "mixed": {
     "sample": false,
-    "asof": "2026-10-28",
+    "asof": "2026-10-29",
     "banks": {
      "kb": {
       "fee": 0.75,
@@ -66,7 +66,7 @@
       "stop": true
      },
      "hana": {
-      "rate": 5.3,
+      "rate": 5.35,
       "fee": 0.65
      },
      "ibk": {
@@ -76,7 +76,8 @@
      "nh": {
       "fee": 0.93,
       "stop": true
-     }
+     },
+     "xmvrp9uh3": {}
     }
    },
    "periodic": {
@@ -88,26 +89,26 @@
       "fee": 0.95
      },
      "woori": {
-      "rate": 5.75,
+      "rate": 5.69,
       "fee": 0.93
      },
      "shinhan": {
-      "rate": 5.12,
+      "rate": 5.08,
       "fee": 0.69
      },
      "hana": {
       "stop": true
      },
      "ibk": {
-      "rate": 5.37,
+      "rate": 5.36,
       "fee": 0.74
      },
      "nh": {
-      "rate": 5.3,
+      "rate": 5.26,
       "fee": 0.93
      },
      "xmvrp9uh3": {
-      "rate": 5.35
+      "rate": 5.34
      }
     }
    }
