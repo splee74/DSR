@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29T14:22:53.955Z",
+ "updated": "2026-10-29T14:45:31.343Z",
  "data": {
   "mort": {
    "variable": {
@@ -139,7 +139,9 @@
       "term": 6
      },
      "hana": {
-      "idx": "cofixNew",
+      "rate": 4.66,
+      "fee": 0.59,
+      "idx": "cofixNewBal",
       "term": 6
      },
      "ibk": {
@@ -147,8 +149,9 @@
       "term": 6
      },
      "nh": {
-      "rate": 4.43,
-      "idx": "cofixNew",
+      "rate": 4.08,
+      "fee": 0.52,
+      "idx": "cofixNewBal",
       "term": 6
      },
      "xmvrp9uh3": {
@@ -173,10 +176,14 @@
       "rate": 4.72,
       "fee": 0.85
      },
-     "hana": {},
+     "hana": {
+      "rate": 4.94,
+      "fee": 0.59
+     },
      "ibk": {},
      "nh": {
-      "rate": 4.93
+      "rate": 4.89,
+      "fee": 0.93
      },
      "xmvrp9uh3": {}
     }
@@ -204,6 +211,8 @@
       "term": 6
      },
      "hana": {
+      "rate": 4.78,
+      "fee": 0.59,
       "idx": "cofixNew",
       "term": 6
      },
@@ -214,7 +223,9 @@
       "term": 3
      },
      "nh": {
-      "idx": "cofixNew",
+      "rate": 4.02,
+      "fee": 0.52,
+      "idx": "cofixNewBal",
       "term": 6
      },
      "xmvrp9uh3": {
@@ -239,9 +250,14 @@
       "rate": 4.71,
       "fee": 0.85
      },
-     "hana": {},
+     "hana": {
+      "fee": 0.59
+     },
      "ibk": {},
-     "nh": {},
+     "nh": {
+      "rate": 4.89,
+      "fee": 0.93
+     },
      "xmvrp9uh3": {}
     }
    },
@@ -268,6 +284,8 @@
       "term": 6
      },
      "hana": {
+      "rate": 4.93,
+      "fee": 0.59,
       "idx": "cofixNew",
       "term": 6
      },
@@ -278,8 +296,10 @@
       "term": 3
      },
      "nh": {
-      "idx": "cofixNew",
-      "term": 6
+      "rate": 4.02,
+      "fee": 0.52,
+      "idx": "cofixNewBal",
+      "term": 3
      },
      "xmvrp9uh3": {
       "idx": "cofixNew",
@@ -303,9 +323,14 @@
       "rate": 4.72,
       "fee": 0.85
      },
-     "hana": {},
+     "hana": {
+      "rate": 5.22,
+      "fee": 0.59
+     },
      "ibk": {},
-     "nh": {},
+     "nh": {
+      "fee": 0.93
+     },
      "xmvrp9uh3": {}
     }
    }
@@ -660,7 +685,29 @@
      "rate": 0.2
     }
    ],
-   "hana": [],
+   "hana": [
+    {
+     "name": "급여 이체 월 50만원",
+     "rate": 0.3
+    },
+    {
+     "name": "신용카드 월 70만원 이상 결제",
+     "rate": 0.3
+    },
+    {
+     "name": "신용카드 월 30만원 이상 결제",
+     "rate": 0.2,
+     "on": false
+    },
+    {
+     "name": "청약 5만원",
+     "rate": 0.1
+    },
+    {
+     "name": "전자 계약",
+     "rate": 0.2
+    }
+   ],
    "ibk": []
   }
  },
