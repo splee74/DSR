@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29T08:30:54.309Z",
+ "updated": "2026-10-29T14:13:49.356Z",
  "data": {
   "mort": {
    "variable": {
@@ -118,11 +118,13 @@
   "jeonse": {
    "hfVar": {
     "sample": false,
-    "asof": "2026-10-27",
+    "asof": "2026-10-29",
     "banks": {
      "kb": {
-      "idx": "cofixNew",
-      "term": 6
+      "rate": 4.55,
+      "fee": 0.54,
+      "idx": "cofixNewBal",
+      "term": 12
      },
      "woori": {
       "idx": "cofixNew",
@@ -144,21 +146,128 @@
       "rate": 4.43,
       "idx": "cofixNew",
       "term": 6
+     },
+     "xmvrp9uh3": {
+      "idx": "cofixNew",
+      "term": 6
      }
     }
    },
    "hfFix": {
     "sample": false,
-    "asof": "2026-10-27",
+    "asof": "2026-10-29",
     "banks": {
-     "kb": {},
+     "kb": {
+      "rate": 5.01
+     },
      "woori": {},
      "shinhan": {},
      "hana": {},
      "ibk": {},
      "nh": {
       "rate": 4.93
+     },
+     "xmvrp9uh3": {}
+    }
+   },
+   "hugVar": {
+    "sample": false,
+    "asof": "2026-10-29",
+    "banks": {
+     "kb": {
+      "rate": 4.66,
+      "idx": "cofixNew",
+      "term": 12
+     },
+     "woori": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "shinhan": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "hana": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "ibk": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "nh": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "xmvrp9uh3": {
+      "idx": "cofixNew",
+      "term": 6
      }
+    }
+   },
+   "hugFix": {
+    "sample": false,
+    "asof": "2026-10-29",
+    "banks": {
+     "kb": {
+      "rate": 5.07
+     },
+     "woori": {},
+     "shinhan": {},
+     "hana": {},
+     "ibk": {},
+     "nh": {},
+     "xmvrp9uh3": {}
+    }
+   },
+   "sgiVar": {
+    "sample": false,
+    "asof": "2026-10-29",
+    "banks": {
+     "kb": {
+      "rate": 4.55,
+      "idx": "cofixNew",
+      "term": 12
+     },
+     "woori": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "shinhan": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "hana": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "ibk": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "nh": {
+      "idx": "cofixNew",
+      "term": 6
+     },
+     "xmvrp9uh3": {
+      "idx": "cofixNew",
+      "term": 6
+     }
+    }
+   },
+   "sgiFix": {
+    "sample": false,
+    "asof": "2026-10-29",
+    "banks": {
+     "kb": {
+      "rate": 5.37
+     },
+     "woori": {},
+     "shinhan": {},
+     "hana": {},
+     "ibk": {},
+     "nh": {},
+     "xmvrp9uh3": {}
     }
    }
   }
@@ -439,7 +548,28 @@
      "name": "대출금액 2억원 기준임"
     }
    ],
-   "kb": [],
+   "kb": [
+    {
+     "name": "급여 이체 월 50만원",
+     "rate": 0.3
+    },
+    {
+     "name": "신용카드 월 30만원 이상 결제",
+     "rate": 0.3
+    },
+    {
+     "name": "자동 이체 3건",
+     "rate": 0.1
+    },
+    {
+     "name": "적금 월 30만원 1회 이체 유지",
+     "rate": 0.1
+    },
+    {
+     "name": "스타뱅킹 월 1회 이체",
+     "rate": 0.1
+    }
+   ],
    "woori": [],
    "shinhan": [],
    "hana": [],
