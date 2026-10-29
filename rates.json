@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29T02:47:15.946Z",
+ "updated": "2026-10-29T03:13:29.471Z",
  "data": {
   "mort": {
    "variable": {
@@ -194,6 +194,10 @@
      "name": "본인 장애인 (구입자금만 해당)",
      "rate": 0.3,
      "on": false
+    },
+    {
+     "name": "MCI,MCG 가입불가",
+     "on": false
     }
    ],
    "woori": [
@@ -225,6 +229,10 @@
     {
      "name": "미성년 3자녀",
      "rate": 0.2,
+     "on": false
+    },
+    {
+     "name": "MCI,MCG 가입불가",
      "on": false
     }
    ],
@@ -264,6 +272,10 @@
      "name": "대출만기 10년",
      "rate": 0.15,
      "on": false
+    },
+    {
+     "name": "MCI,MCG 가입불가",
+     "on": false
     }
    ],
    "hana": [
@@ -287,6 +299,10 @@
     {
      "name": "전자계약",
      "rate": 0.2
+    },
+    {
+     "name": "MCI,MCG 가입불가",
+     "on": false
     }
    ],
    "nh": [
@@ -321,6 +337,10 @@
     },
     {
      "name": "대출금액 3억원 기준임"
+    },
+    {
+     "name": "MCG 가입가능",
+     "on": false
     }
    ],
    "ibk": [
@@ -371,9 +391,18 @@
      "name": "우수기술인력 (기사,기능사자격증 보유)",
      "rate": 0.1,
      "on": false
+    },
+    {
+     "name": "MCI,MCG 가입불가",
+     "on": false
     }
    ],
-   "xmvrp9uh3": []
+   "xmvrp9uh3": [
+    {
+     "name": "MCI 가입 가능",
+     "on": false
+    }
+   ]
   },
   "jeonse": {
    "nh": [
