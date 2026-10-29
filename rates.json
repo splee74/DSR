@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29T14:16:11.615Z",
+ "updated": "2026-10-29T14:19:55.135Z",
  "data": {
   "mort": {
    "variable": {
@@ -132,7 +132,9 @@
       "term": 12
      },
      "shinhan": {
-      "idx": "cofixNew",
+      "rate": 4.75,
+      "fee": 0.43,
+      "idx": "bond",
       "term": 6
      },
      "hana": {
@@ -164,7 +166,10 @@
      "woori": {
       "rate": 5.56
      },
-     "shinhan": {},
+     "shinhan": {
+      "rate": 4.72,
+      "fee": 0.85
+     },
      "hana": {},
      "ibk": {},
      "nh": {
@@ -188,7 +193,9 @@
       "term": 12
      },
      "shinhan": {
-      "idx": "cofixNew",
+      "rate": 4.64,
+      "fee": 0.43,
+      "idx": "bond",
       "term": 6
      },
      "hana": {
@@ -219,7 +226,10 @@
      "woori": {
       "rate": 5.66
      },
-     "shinhan": {},
+     "shinhan": {
+      "rate": 4.71,
+      "fee": 0.85
+     },
      "hana": {},
      "ibk": {},
      "nh": {},
@@ -241,7 +251,9 @@
       "term": 12
      },
      "shinhan": {
-      "idx": "cofixNew",
+      "rate": 4.75,
+      "fee": 0.43,
+      "idx": "bond",
       "term": 6
      },
      "hana": {
@@ -272,7 +284,10 @@
      "woori": {
       "rate": 5.57
      },
-     "shinhan": {},
+     "shinhan": {
+      "rate": 4.72,
+      "fee": 0.85
+     },
      "hana": {},
      "ibk": {},
      "nh": {},
@@ -595,9 +610,41 @@
     {
      "name": "전자계약",
      "rate": 0.2
+    },
+    {
+     "name": "기초생활수급자 추가할인",
+     "rate": 0.2,
+     "on": false
+    },
+    {
+     "name": "국가유공자, 장애인 가족 추가할인",
+     "rate": 0.2,
+     "on": false
+    },
+    {
+     "name": "서울보증 분할상환 선택시 추가할인",
+     "rate": 0.1,
+     "on": false
     }
    ],
-   "shinhan": [],
+   "shinhan": [
+    {
+     "name": "급여 이체 월 50만원",
+     "rate": 0.3
+    },
+    {
+     "name": "신용카드 3개월 합 50만원 이상 결제",
+     "rate": 0.2
+    },
+    {
+     "name": "적금 10만원",
+     "rate": 0.1
+    },
+    {
+     "name": "전자계약",
+     "rate": 0.2
+    }
+   ],
    "hana": [],
    "ibk": []
   }
