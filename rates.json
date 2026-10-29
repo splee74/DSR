@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29T14:49:14.762Z",
+ "updated": "2026-10-29T14:49:51.636Z",
  "data": {
   "mort": {
    "variable": {
@@ -217,7 +217,7 @@
       "term": 6
      },
      "ibk": {
-      "rate": 0.39,
+      "rate": 4.39,
       "fee": 0.57,
       "idx": "cofixNewBal",
       "term": 3
