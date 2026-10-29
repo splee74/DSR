@@ -836,7 +836,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v57';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v58';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1743,6 +1743,28 @@ $('#btnSave').onclick = () => {
   saveSettings(); buildSegs(); $('#dlg').close(); recalc();
 };
 
+/* ---------- 입력 내용 옮기기 (삼성 인터넷 → 크롬) ----------
+   주소의 ?s= 에 입력값을 담아 넘기고, 열리자마자 채운 뒤 주소에서 지움 */
+function snapState() {
+  const v = {}, r = {};
+  $$('main input, main select, main textarea').forEach(el => {
+    if (el.closest('dialog') || el.dataset.i !== undefined) return;
+    if (el.type === 'radio') { if (el.checked) r[el.name] = el.value; }
+    else if (el.id) v[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  return { t: tab, v, r, l: loans };
+}
+const b64u = x => btoa(unescape(encodeURIComponent(x))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64u = x => decodeURIComponent(escape(atob(x.replace(/-/g, '+').replace(/_/g, '/'))));
+function restoreState(st) {
+  const tb = st.t && document.querySelector(`.tabs button[data-tab="${st.t}"]`); if (tb) tb.click();
+  Object.entries(st.r || {}).forEach(([n, val]) => { const el = [...document.querySelectorAll(`input[name="${n}"]`)].find(x => x.value === val); if (el) el.checked = true; });
+  Object.entries(st.v || {}).forEach(([id, val]) => { const el = document.getElementById(id); if (!el) return; if (el.type === 'checkbox') el.checked = !!val; else el.value = val; });
+  $('#spouseOn').onchange({ target: $('#spouseOn') });
+  $$('.money').forEach(formatMoney); $$('.won').forEach(formatWon);
+  loans = Array.isArray(st.l) ? st.l : []; renderLoans();
+}
+
 /* ---------- 초기화 ---------- */
 fillYears($('#mYears'), 40, 30);
 fillYears($('#jYears'), 10, 2);
@@ -1751,6 +1773,10 @@ buildSegs();
 { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('#cdate').value = d.toISOString().slice(0, 10); }
 $$('.money').forEach(formatMoney);
 renderLoans();
+// 다른 브라우저에서 넘어온 입력 내용 되살리기
+let RESTORED = false;
+{ const q = new URLSearchParams(location.search).get('s');
+  if (q) { try { restoreState(JSON.parse(unb64u(q))); RESTORED = true; } catch (e) {} history.replaceState(null, '', location.pathname); } }
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {}); // pwa
 
 /* 업데이트 안내: 처음 열 때 한 번 (같은 창에서 다른 페이지 갔다 와도 다시 안 뜸) */
@@ -1766,7 +1792,7 @@ const NOTICE_ID = 'notice-2026-10-28-woori';
   $$('[data-nclose]').forEach(b => b.addEventListener('click', close));
   $$('#noticeDlg .notice-item').forEach(a => a.addEventListener('click', close));
   d.addEventListener('cancel', close);
-  if (!seen) setTimeout(() => { if (!document.querySelector('dialog[open]')) d.showModal(); }, 300);
+  if (!seen && !RESTORED) setTimeout(() => { if (!document.querySelector('dialog[open]')) d.showModal(); }, 300);
 })();
 
 /* 결과지 PDF 공유: 기기 안에서 PDF를 만들어(서버로 보내지 않음) 공유 창 → 카카오톡 · 공유가 안 되는 기기는 저장 */
@@ -1815,7 +1841,7 @@ const UA = navigator.userAgent;
 const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(UA) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
 const IS_SAMSUNG = /SamsungBrowser/.test(UA);
 // 삼성 인터넷에서 같은 주소를 크롬으로 여는 링크
-const chromeLink = () => `intent://${location.host}${location.pathname}#Intent;scheme=https;package=com.android.chrome;end`;
+const chromeLink = () => `intent://${location.host}${location.pathname}?s=${b64u(JSON.stringify(snapState()))}#Intent;scheme=https;package=com.android.chrome;end`;
 $('#btnPdf').onclick = async () => {
   const d = $('#pdfDlg'), msg = $('#pdfMsg');
   $('#pdfShare').hidden = false; $('#pdfChrome').hidden = true; $('#pdfShare').disabled = $('#pdfSave').disabled = true;
@@ -1829,7 +1855,7 @@ $('#btnPdf').onclick = async () => {
     $('#pdfChrome').hidden = !IS_SAMSUNG; $('#pdfChrome').href = chromeLink();
     $('#pdfSave').classList.toggle('primary', !can && !IS_SAMSUNG);
     const tip = IS_SAMSUNG
-      ? '<b>삼성 인터넷</b>은 PDF 파일을 카카오톡으로 넘기는 것을 막고 있습니다.<br>· <b>[크롬에서 열기]</b>로 연 뒤 다시 PDF 공유를 누르거나<br>· <b>[PDF 저장]</b> 후 알림창(또는 내 파일 → 다운로드)에서 파일을 눌러 <b>공유 → 카카오톡</b>을 고르세요.'
+      ? '<b>삼성 인터넷</b>은 PDF 파일을 카카오톡으로 넘기는 것을 막고 있습니다.<br>· <b>[크롬에서 열기]</b>를 누르면 입력한 내용 그대로 크롬에서 열리고 PDF 창이 바로 뜹니다<br>· <b>[PDF 저장]</b> 후 알림창(또는 내 파일 → 다운로드)에서 파일을 눌러 <b>공유 → 카카오톡</b>을 고르세요.'
       : !IS_MOBILE
       ? '<b>[PDF 저장]</b>을 누른 뒤, 저장된 파일을 <b>카카오톡 PC 대화창에 끌어다 놓으면</b> 전송됩니다.'
       : '';
@@ -1859,6 +1885,8 @@ $('#pdfSave').onclick = () => {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 };
 $$('[data-pclose]').forEach(b => b.onclick = () => $('#pdfDlg').close());
+// 크롬으로 넘어온 경우: 입력 내용을 채운 뒤 PDF 창을 바로 띄움
+if (RESTORED) setTimeout(() => { const n = $('#noticeDlg'); if (n.open) n.close(); $('#btnPdf').click(); }, 500);
 </script>
 </body>
 </html>
