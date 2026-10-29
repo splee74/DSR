@@ -114,7 +114,7 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
 </div></header>
 
 <nav class="jump" aria-label="규정 항목"><div class="wrap">
-  <a href="#area">지역 구분</a><a href="#buy">주택구입자금</a><a href="#equity">주담대(자담)</a><a href="#jeonse">전세자금대출</a><a href="#common">공통 · 경과규정</a><a href="#history">시행 연혁</a><a href="#source">출처</a><a href="#check">계산기 대조</a>
+  <a href="#area">지역 구분</a><a href="#buy">주택구입자금</a><a href="#equity">주담대(자담)</a><a href="#jeonse">전세자금대출</a><a href="#dsr">DSR</a><a href="#common">공통 · 경과규정</a><a href="#history">시행 연혁</a><a href="#source">출처</a><a href="#check">계산기 대조</a>
 </div></nav>
 
 <main class="wrap">
@@ -253,6 +253,76 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
   <p class="note">정책자금 세부 요건은 계산기의 정책자금 페이지와 주택도시기금 누리집을 참고하세요.</p>
 </section>
 
+<section class="card" id="dsr">
+  <h2>DSR <span class="tag">총부채원리금상환비율</span></h2>
+  <p class="lead">연소득 대비 <b>모든 가계대출의 연간 원리금</b> 비율입니다. DTI와 달리 신용대출 등 다른 대출의 <b>원금</b>까지 넣어 계산합니다.</p>
+  <div class="box soft"><b>DSR(%) = 모든 가계대출의 연간 원리금 상환액 ÷ 연소득 × 100</b><br><span class="note" style="margin:0">예) 연소득 6,000만원, 연간 원리금 2,400만원 → DSR 40%</span></div>
+
+  <h3>적용 기준</h3>
+  <ul class="pts">
+    <li>전 금융회사 가계대출 <b>총액이 1억원을 넘는</b> 차주에게 적용됩니다. 마이너스통장은 쓴 금액이 아니라 <b>약정 한도</b>로 셉니다.</li>
+    <li>한도는 <b>은행 40% · 2금융권 50%</b>이며 규제지역도 같습니다.</li>
+    <li>수도권·규제지역 주담대는 만기가 <b>30년 이내</b>입니다(만기를 늘려 DSR을 피하는 것을 막음).</li>
+    <li>DSR을 통과해도 LTV, 주택가격별 한도, 금융회사 심사 기준 때문에 한도가 더 낮아질 수 있습니다.</li>
+  </ul>
+
+  <h3>스트레스 DSR</h3>
+  <p>DSR을 계산할 때만 금리에 <b>스트레스 금리</b>를 더해 한도를 줄입니다. 실제 이자에는 붙지 않습니다.</p>
+  <div class="box soft"><b>최종 스트레스 금리 = 기본 스트레스 금리 × 단계별 적용비율 × 대출유형별 적용비율</b><br><span class="note" style="margin:0">예) 금리 4.0%, 기본 3.0%p, 5년 주기형 40% → DSR 산정 금리 5.2% (실제 금리는 4.0%)</span></div>
+  <div class="tw"><table>
+    <thead><tr><th>단계</th><th>시행일</th><th>적용 대상</th><th>적용비율</th></tr></thead>
+    <tbody>
+      <tr><th>1단계</th><td>2024.2.26</td><td class="l">은행 주담대</td><td>25%</td></tr>
+      <tr><th>2단계</th><td>2024.9.1</td><td class="l">은행 신용대출, 2금융권 주담대 추가</td><td>50%</td></tr>
+      <tr><th>3단계</th><td>2025.7.1</td><td class="l">전 금융권 DSR 적용 가계대출</td><td><b>100%</b></td></tr>
+    </tbody>
+  </table></div>
+  <div class="tw"><table>
+    <thead><tr><th>구분</th><th>기본 스트레스 금리</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><th>원칙</th><td>하한 1.5%p ~ 상한 3.0%p</td><td class="l">과거 5년 최고 금리와 현재 금리 차이로 산정</td></tr>
+      <tr><th>수도권·규제지역 주담대</th><td class="hl">하한 3.0%p</td><td class="l">2025.10.16부터</td></tr>
+      <tr><th>지방 주담대</th><td>3단계 유예 · <b>50%</b> 적용</td><td class="l">2단계 수준 유지, <b>2026.12.31까지</b> 연장</td></tr>
+      <tr><th>신용대출</th><td>총잔액 1억원 초과 시만</td><td class="l">신용대출 1억원 이하는 스트레스 미적용</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">혼합형·주기형은 고정기간(변동주기)이 만기에서 차지하는 비중에 따라 일부만 반영하고, 길수록 낮아집니다(예: 5년 주기형 40%). 요건을 갖춘 장기 고정금리는 적용하지 않을 수 있습니다.</p>
+
+  <h3>DSR 적용 제외</h3>
+  <div class="tw"><table>
+    <thead><tr><th>대출</th><th>신규 대출 시</th><th>다른 대출 심사 때 기존 부채로</th></tr></thead>
+    <tbody>
+      <tr><th>중도금 · 이주비대출</th><td>제외</td><td>포함될 수 있음</td></tr>
+      <tr><th>서민금융상품 (햇살론, 새희망홀씨 등)</th><td>제외</td><td>포함될 수 있음</td></tr>
+      <tr><th>소액 신용대출 (300만원 이하)</th><td>제외</td><td>포함될 수 있음</td></tr>
+      <tr><th>예·적금담보대출 · 보험계약대출</th><td>제외</td><td class="hl">제외</td></tr>
+      <tr><th>전세자금대출</th><td colspan="2">원칙 제외 · <b>1주택자 수도권·규제지역</b>은 이자만 반영 (2025.10.29~, 전세자금대출 탭 참고)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>연간 원리금 계산 방법 (부채 산정)</h3>
+  <div class="tw"><table>
+    <thead><tr><th>대출 종류</th><th>DSR에 넣는 연간 상환액</th></tr></thead>
+    <tbody>
+      <tr><th>주택담보대출</th><td class="l">실제 분할상환액 (일시상환은 인정만기로 나눈 원금)</td></tr>
+      <tr><th>전세자금대출 (적용 대상)</th><td class="l">원금 제외, <b>이자만</b></td></tr>
+      <tr><th>신용대출</th><td class="l">원금 ÷ <b>5년</b> + 이자 (분할상환은 실제 만기, 최장 10년)</td></tr>
+      <tr><th>마이너스통장 등 한도대출</th><td class="l"><b>약정 한도</b> 기준</td></tr>
+      <tr><th>기타 담보대출</th><td class="l">원칙 인정만기 <b>10년</b></td></tr>
+      <tr><th>오피스텔 담보대출</th><td class="l">실제 분할상환액 또는 <b>8년</b> 환산 (2023.4 개편)</td></tr>
+      <tr><th>할부 · 리스 · 학자금</th><td class="l">향후 1년간 실제 원리금</td></tr>
+      <tr><th>대환대출</th><td class="l">새 대출로 갚을 기존 대출은 빼고 계산 (중복 방지)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>소득 산정</h3>
+  <ul class="pts">
+    <li><b>증빙소득</b> 우선: 근로소득원천징수영수증, 소득금액증명원 등</li>
+    <li>증빙이 어려우면 <b>인정소득</b>(국민연금·건강보험료 납부액) 또는 <b>신고소득</b>(신용카드 사용액 등)</li>
+    <li>요건을 갖추면 <b>장래소득</b> 증가분을 반영할 수 있으며, 인정 범위는 금융회사 심사 기준을 따릅니다.</li>
+  </ul>
+</section>
+
 <section class="card" id="common">
   <h2>공통 · 경과규정</h2>
   <h3>그 밖의 대출 규제</h3>
@@ -284,11 +354,13 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
   <h2>시행 연혁</h2>
   <ol class="tl">
     <li><time>2025.6.28</time><span><b>6.27 가계부채 관리 강화 방안</b> · 수도권·규제지역 주담대 6억 상한, 다주택 추가구입 LTV 0%, 생활안정자금 1억, 전입 6개월, 만기 30년, 신용대출 연소득 이내</span></li>
+    <li><time>2025.7.1</time><span>3단계 스트레스 DSR 시행 (전 금융권 · 기본 스트레스 금리 100%), 지방 주담대는 50% 유지</span></li>
     <li><time>2025.7.21</time><span>수도권·규제지역 전세대출 보증비율 90% → 80%</span></li>
     <li><time>2025.7.28</time><span>5대 은행 1억원 초과 전세퇴거자금 대출 재개 (6.27 이전 계약 조건)</span></li>
     <li><time>2025.9.8</time><span><b>9.7 추가 관리방안</b> · 규제지역 LTV 50% → 40%, 임대사업자 주담대 제한, 1주택자 전세대출 2억 통일</span></li>
     <li><time>2025.10.16</time><span><b>10.15 주택시장 안정화 대책</b> · 규제지역 확대(서울 전역·경기 12곳), 가격 구간별 한도 6·4·2억, 스트레스 금리 하한 3.0%</span></li>
     <li><time>2025.10.29</time><span>1주택자 수도권·규제지역 전세대출 DSR(이자분) 적용</span></li>
+    <li><time>2026.7</time><span>지방 주담대 스트레스 DSR 완화(50%) 2026.12.31까지 연장</span></li>
     <li><time>2026.7.1</time><span>화성 동탄구 · 용인 기흥구 · 구리시 규제지역 추가 지정 → LTV 70% → 40%</span></li>
   </ol>
 </section>
@@ -302,6 +374,8 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
     <li><a href="https://www.fsc.go.kr/po020201/85518" target="_blank" rel="noopener">금융위원회 · 주요정책문답 (10.15 대출수요 관리 FAQ)</a><small>생활안정자금 적용 제외, 전세대출 DSR, 경과규정</small></li>
     <li><a href="https://www.fsc.go.kr/po020201/85466" target="_blank" rel="noopener">금융위원회 · 「10.15 주택시장 안정화 대책」 관련 FAQ</a><small>규제지역 서민·실수요자, 생애최초, 보금자리론</small></li>
     <li><a href="https://www.fsc.go.kr/no010101/87222" target="_blank" rel="noopener">금융위원회 · 규제지역 추가 지정 관련 긴급 가계부채 점검회의 (2026.6.30)</a></li>
+    <li><a href="https://www.fsc.go.kr/no010101/84617" target="_blank" rel="noopener">금융위원회 · 3단계 스트레스 DSR 시행방안 (2025.5.20)</a></li>
+    <li><a href="https://xn--989a00af8jnslv3dba.com/wiki/%EC%B4%9D%EB%B6%80%EC%B1%84%EC%9B%90%EB%A6%AC%EA%B8%88%EC%83%81%ED%99%98%EB%B9%84%EC%9C%A8" target="_blank" rel="noopener">부동산계산기.com 부동산위키 · 총부채원리금상환비율</a><small>DSR 적용 기준, 스트레스 DSR 단계, 적용 제외, 부채 산정 방식 (2026.10.28 기준)</small></li>
     <li><a href="https://xn--989a00af8jnslv3dba.com/%EB%8C%80%EC%B6%9C%EA%B0%80%EB%8A%A5%EC%95%A1" target="_blank" rel="noopener">부동산계산기.com · 담보 대출 가능액 / 부동산 위키</a><small>LTV 계산식, 소액임차보증금 최우선변제금액(방공제) 참고</small></li>
     <li><a href="https://www.law.go.kr" target="_blank" rel="noopener">국가법령정보센터 · 은행업감독규정 · 시행세칙 〈별표 6〉</a><small>LTV·DTI·DSR 법적 근거</small></li>
     <li><a href="https://www.molit.go.kr" target="_blank" rel="noopener">국토교통부 · 규제지역 지정 고시</a></li>
@@ -326,6 +400,9 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
       <tr><th>전세퇴거 예외 한도</th><td>DTI 60% 범위 (언론)</td><td>DTI 60% 한도 추가 (DSR과 함께)</td><td><span class="tag">일치</span></td></tr>
       <tr><th>1주택자 전세대출 한도</th><td>수도권·규제 2억</td><td>수도권·규제 2억 · 지방은 보증기관 기준</td><td><span class="tag">일치</span></td></tr>
       <tr><th>1주택자 전세대출 DSR</th><td>수도권·규제지역 · 이자분</td><td>수도권·규제지역만 적용 · 스트레스 1.5%p</td><td><span class="tag chk">스트레스 확인</span></td></tr>
+      <tr><th>예·적금담보대출 (기존 대출)</th><td>DSR 부채에서 제외</td><td>이자만 DSR에 반영</td><td><span class="tag no">다름</span></td></tr>
+      <tr><th>기타 담보대출 인정만기</th><td>원칙 10년 · 오피스텔 8년</td><td>기타담보(비주택·오피스텔) 8년</td><td><span class="tag chk">확인</span></td></tr>
+      <tr><th>DSR 적용 기준</th><td>총대출 1억원 초과 차주</td><td>금액과 상관없이 계산</td><td><span class="tag chk">참고</span></td></tr>
       <tr><th>다주택 전세대출</th><td>불가</td><td>불가</td><td><span class="tag">일치</span></td></tr>
     </tbody>
   </table></div>
