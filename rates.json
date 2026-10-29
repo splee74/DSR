@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29T02:47:06.310Z",
+ "updated": "2026-10-29T02:47:15.946Z",
  "data": {
   "mort": {
    "variable": {
@@ -44,6 +44,7 @@
      },
      "xmvrp9uh3": {
       "rate": 5.04,
+      "fee": 0.4,
       "idx": "cofixNew",
       "term": 6
      }
