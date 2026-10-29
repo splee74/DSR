@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29T14:19:55.135Z",
+ "updated": "2026-10-29T14:22:53.955Z",
  "data": {
   "mort": {
    "variable": {
@@ -128,6 +128,7 @@
      },
      "woori": {
       "rate": 4.29,
+      "fee": 0.35,
       "idx": "cofixNewBal",
       "term": 12
      },
@@ -161,10 +162,12 @@
     "asof": "2026-10-29",
     "banks": {
      "kb": {
-      "rate": 5.01
+      "rate": 5.01,
+      "fee": 0.96
      },
      "woori": {
-      "rate": 5.56
+      "rate": 5.56,
+      "fee": 0.76
      },
      "shinhan": {
       "rate": 4.72,
@@ -184,11 +187,13 @@
     "banks": {
      "kb": {
       "rate": 4.66,
+      "fee": 0.54,
       "idx": "cofixNew",
       "term": 12
      },
      "woori": {
       "rate": 4.28,
+      "fee": 0.35,
       "idx": "cofixNewBal",
       "term": 12
      },
@@ -203,8 +208,10 @@
       "term": 6
      },
      "ibk": {
-      "idx": "cofixNew",
-      "term": 6
+      "rate": 0.39,
+      "fee": 0.57,
+      "idx": "cofixNewBal",
+      "term": 3
      },
      "nh": {
       "idx": "cofixNew",
@@ -221,10 +228,12 @@
     "asof": "2026-10-29",
     "banks": {
      "kb": {
-      "rate": 5.07
+      "rate": 5.07,
+      "fee": 0.96
      },
      "woori": {
-      "rate": 5.66
+      "rate": 5.66,
+      "fee": 0.76
      },
      "shinhan": {
       "rate": 4.71,
@@ -242,11 +251,13 @@
     "banks": {
      "kb": {
       "rate": 4.55,
+      "fee": 0.54,
       "idx": "cofixNew",
       "term": 12
      },
      "woori": {
       "rate": 4.31,
+      "fee": 0.35,
       "idx": "cofixNewBal",
       "term": 12
      },
@@ -261,8 +272,10 @@
       "term": 6
      },
      "ibk": {
-      "idx": "cofixNew",
-      "term": 6
+      "rate": 4.51,
+      "fee": 0.57,
+      "idx": "cofixNewBal",
+      "term": 3
      },
      "nh": {
       "idx": "cofixNew",
@@ -279,10 +292,12 @@
     "asof": "2026-10-29",
     "banks": {
      "kb": {
-      "rate": 5.37
+      "rate": 5.37,
+      "fee": 0.96
      },
      "woori": {
-      "rate": 5.57
+      "rate": 5.57,
+      "fee": 0.76
      },
      "shinhan": {
       "rate": 4.72,
