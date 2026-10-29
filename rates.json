@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29T08:30:39.315Z",
+ "updated": "2026-10-29T08:30:54.309Z",
  "data": {
   "mort": {
    "variable": {
@@ -449,7 +449,7 @@
  "prefMax": {
   "mort": {
    "variable": {
-    "ibk": 0.7
+    "ibk": 0.2
    },
    "mixed": {},
    "periodic": {
