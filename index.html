@@ -236,6 +236,9 @@ dialog.notice{width:min(420px,calc(100vw - 32px))}
 .evict{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--soft)}
 .evict .chk{display:flex;margin:4px 0}
 .warn-note{color:var(--bad)}
+.pdf-msg{margin:0;font-size:14.5px;line-height:1.7;word-break:keep-all}
+.pdf-msg b{word-break:break-all}
+@media (max-width:640px){#btnPrint{display:none}}
 .notice-lead{margin:0 0 12px;color:var(--sub);font-size:14px}
 .notice-sec{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:18px}
 .notice-sec h3,.notice-h{margin:0 0 10px;font-size:15.5px;font-weight:800}
@@ -394,6 +397,7 @@ dialog{border-radius:10px}
       <button type="button" id="btnSettings">⚙ 규제설정</button>
       <button type="button" id="btnReset">초기화</button>
       <button type="button" id="btnPrint">결과지 인쇄</button>
+      <button type="button" id="btnPdf">PDF 공유</button>
       <button type="button" id="btnFeedback" class="fb-box">의견·문의</button>
     </div>
     <div class="tabbar">
@@ -806,6 +810,16 @@ dialog{border-radius:10px}
   </div>
 </dialog>
 
+<!-- 결과지 PDF 공유 -->
+<dialog id="pdfDlg" class="notice" aria-labelledby="pdfTitle">
+  <div class="dlg-head"><h2 id="pdfTitle">결과지 PDF</h2><button type="button" data-pclose aria-label="닫기">×</button></div>
+  <div class="dlg-body"><p class="pdf-msg" id="pdfMsg"></p></div>
+  <div class="dlg-foot">
+    <button type="button" class="btn" id="pdfSave">PDF 저장</button>
+    <button type="button" class="btn primary" id="pdfShare">카톡으로 공유</button>
+  </div>
+</dialog>
+
 <dialog id="dlg">
   <div class="dlg-head"><h2>⚙ 규제 설정</h2><button type="button" data-close aria-label="닫기">×</button></div>
   <div class="dlg-body" id="dlgBody"></div>
@@ -820,7 +834,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v53';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v54';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1752,6 +1766,77 @@ const NOTICE_ID = 'notice-2026-10-28-woori';
   d.addEventListener('cancel', close);
   if (!seen) setTimeout(() => { if (!document.querySelector('dialog[open]')) d.showModal(); }, 300);
 })();
+
+/* 결과지 PDF 공유: 기기 안에서 PDF를 만들어(서버로 보내지 않음) 공유 창 → 카카오톡 · 공유가 안 되는 기기는 저장 */
+const PDF_LIBS = ['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+                  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'];
+const loadScript = src => new Promise((ok, no) => {
+  if ([...document.scripts].some(x => x.src === src)) return ok();
+  const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => no(new Error('load ' + src));
+  document.head.appendChild(el);
+});
+async function makePdf() {
+  for (const u of PDF_LIBS) await loadScript(u);
+  // 화면 모드와 상관없이 밝은 결과지, 휴대폰에서도 A4에 맞는 폭으로
+  let cuts = [];   // 쪽을 나눌 수 있는 위치 (표 줄·항목 사이)
+  const canvas = await window.html2canvas($('#results'), {
+    scale: 2, backgroundColor: '#ffffff', windowWidth: 1100, logging: false,
+    onclone: doc => {
+      doc.documentElement.setAttribute('data-theme', 'light');
+      const r = doc.getElementById('results');
+      Object.assign(r.style, { width: '760px', boxShadow: 'none', borderRadius: '0', border: '0' });
+      const top = r.getBoundingClientRect().top;
+      cuts = [...r.querySelectorAll('tr, .rp-sec, .rp-sec > *, .kpis, .summary, .cond > div, .kv dt, .rp-foot, .small')].map(el => Math.round((el.getBoundingClientRect().top - top) * 2)).sort((a, b) => a - b);
+    }
+  });
+  const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+  const m = 10, iw = 210 - m * 2, ih = 297 - m * 2, pxPerMm = canvas.width / iw, pageH = Math.floor(ih * pxPerMm);
+  for (let y = 0, n = 0, h; y < canvas.height; y += h, n++) {
+    const end = y + pageH, cut = cuts.filter(b => b > y + pageH * 0.5 && b <= end).pop();
+    h = end >= canvas.height ? canvas.height - y : (cut || pageH + y) - y;
+    const c = document.createElement('canvas');
+    c.width = canvas.width; c.height = h;
+    c.getContext('2d').drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+    if (n) pdf.addPage();
+    pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', m, m, iw, h / pxPerMm);
+  }
+  return pdf.output('blob');
+}
+const pdfName = () => {
+  const kind = { mort: '주택구입자금', equity: '주담대자담', jeonse: '전세자금대출' }[tab] || '결과지';
+  const who = ($('#custName').value.trim() || '고객').replace(/[\\/:*?"<>|]/g, '');
+  return `${kind}_결과지_${who}_${$('#cdate').value || ''}.pdf`;
+};
+let pdfFile = null;
+$('#btnPdf').onclick = async () => {
+  const d = $('#pdfDlg'), msg = $('#pdfMsg');
+  $('#pdfShare').hidden = false; $('#pdfShare').disabled = $('#pdfSave').disabled = true;
+  msg.textContent = '결과지를 PDF로 만드는 중입니다…';
+  if (!d.open) d.showModal();
+  try {
+    const blob = await makePdf();
+    pdfFile = new File([blob], pdfName(), { type: 'application/pdf' });
+    const can = !!(navigator.canShare && navigator.canShare({ files: [pdfFile] }));
+    $('#pdfShare').hidden = !can; $('#pdfShare').disabled = false; $('#pdfSave').disabled = false;
+    msg.innerHTML = `<b>${pdfFile.name.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</b> (${Math.max(1, Math.round(blob.size / 1024))}KB)<br>` + (can
+      ? '<b>[카톡으로 공유]</b>를 누른 뒤 <b>카카오톡 → 나와의 채팅</b>(또는 고객 채팅방)을 고르세요.'
+      : '이 기기는 공유 기능을 지원하지 않습니다. <b>[PDF 저장]</b> 후 카카오톡 PC 창에 파일을 끌어다 놓으세요.');
+  } catch (err) {
+    msg.textContent = 'PDF를 만들지 못했습니다. 인터넷 연결을 확인한 뒤 다시 눌러 주세요.';
+  }
+};
+$('#pdfShare').onclick = async () => {
+  if (!pdfFile) return;
+  try { await navigator.share({ files: [pdfFile], title: pdfFile.name }); $('#pdfDlg').close(); }
+  catch (err) { if (err.name !== 'AbortError') $('#pdfMsg').innerHTML = '공유하지 못했습니다. <b>[PDF 저장]</b>으로 내려받아 보내 주세요.'; }
+};
+$('#pdfSave').onclick = () => {
+  if (!pdfFile) return;
+  const a = document.createElement('a'), url = URL.createObjectURL(pdfFile);
+  a.href = url; a.download = pdfFile.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+};
+$$('[data-pclose]').forEach(b => b.onclick = () => $('#pdfDlg').close());
 </script>
 </body>
 </html>
