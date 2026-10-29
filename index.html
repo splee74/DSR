@@ -390,6 +390,27 @@ dialog{border-radius:10px}
   .kpi.main .v{font-size:32px}
 }
 </style>
+<!-- 방문자 분석 (GA4) · 관리자 기기와 미리보기는 세지 않음 · 입력값은 보내지 않고 버튼 누른 횟수만 -->
+<script>
+(() => {
+  let admin = false; try { admin = !!localStorage.getItem('bankAdminToken'); } catch (e) {}
+  if (admin || location.protocol !== 'https:' || /localhost|127\.0\.0\.1/.test(location.hostname)) return;
+  const ID = 'G-3KZE8G3CXC';
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { dataLayer.push(arguments); };
+  gtag('js', new Date()); gtag('config', ID);
+  const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ID;
+  document.head.appendChild(s);
+  // 눌린 버튼 이름만 기록
+  const EV = { btnPdf: 'pdf_open', pdfShare: 'pdf_kakao', pdfSave: 'pdf_save', pdfChrome: 'pdf_chrome', btnRules: 'rules_open', btnFeedback: 'feedback_open' };
+  document.addEventListener('click', e => {
+    const el = e.target.closest('button, a'); if (!el) return;
+    if (EV[el.id]) return gtag('event', EV[el.id]);
+    if (el.matches('.tabs button[data-tab]')) return gtag('event', 'tab_select', { tab: el.dataset.tab });
+    if (el.matches('.jump a')) return gtag('event', 'rules_tab', { tab: el.getAttribute('href').slice(1) });
+  }, true);
+})();
+</script>
 </head>
 <body>
 
@@ -843,7 +864,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v65';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v66';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
