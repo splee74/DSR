@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>대출 규정 안내</title>
+<title>대출 규정</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="icon" type="image/png" href="icon-192.png?v=2">
 <meta name="robots" content="noindex">
@@ -102,6 +102,18 @@ td b{font-weight:800}
 .src{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .src li{font-size:14px}
 .src small{display:block;color:var(--muted);font-size:12.5px}
+/* 소액임차보증금 지역 고르기 */
+.pick{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.pick button{font:inherit;font-size:13.5px;font-weight:700;padding:7px 12px;border:1px solid var(--line-strong);border-radius:999px;background:var(--card);color:var(--sub);cursor:pointer;text-align:left}
+.pick button:hover{border-color:var(--brand);color:var(--ink)}
+.pick button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.pick-lbl{font-size:12.5px;font-weight:700;color:var(--muted);margin:10px 0 0}
+.rent-res{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid var(--weak-line);background:var(--weak);border-radius:8px;padding:14px 16px;margin-top:10px}
+.rent-res span{font-size:14px;color:var(--sub);min-width:0}
+.rent-res b{font-size:26px;font-weight:800;color:var(--ink);letter-spacing:-.5px;white-space:nowrap}
+.rent-res.empty{background:var(--soft);border-color:var(--line)}
+.rent-res.empty span{color:var(--muted)}
+td.amt{font-weight:800;color:var(--ink);white-space:nowrap}
 footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
 </style>
 <!-- 방문자 분석 (GA4) · 관리자 기기와 미리보기는 세지 않음 · 입력값은 보내지 않고 버튼 누른 횟수만 -->
@@ -130,12 +142,12 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
 <header class="top"><div class="wrap">
   <a class="back" href="./">‹ DSR·DTI 계산기</a>
   <div class="logo" aria-hidden="true">§</div>
-  <div><h1>대출 규정 안내</h1><span class="sub">주택구입자금 · 주담대(자담) · 전세자금대출</span></div>
+  <div><h1>대출 규정</h1><span class="sub">주택구입자금 · 주담대(자담) · 전세자금대출</span></div>
   <div class="asof">정리 기준일 <b>2026-10-29</b><br>금융위원회 발표 자료 기준</div>
 </div></header>
 
 <nav class="jump" aria-label="규정 항목"><div class="wrap">
-  <a href="#area">지역 구분</a><a href="#buy">주택구입자금</a><a href="#equity">주담대(자담)</a><a href="#jeonse">전세자금대출</a><a href="#dsr">DSR</a><a href="#common">공통 · 경과규정</a><a href="#history">시행 연혁</a><a href="#source">출처</a><a href="#check">계산기 대조</a>
+  <a href="#area">지역 구분</a><a href="#buy">주택구입자금</a><a href="#equity">주담대(자담)</a><a href="#jeonse">전세자금대출</a><a href="#rent">소액임차보증금</a><a href="#dsr">DSR</a><a href="#common">공통 · 경과규정</a><a href="#history">시행 연혁</a><a href="#source">출처</a><a href="#check">계산기 대조</a>
 </div></nav>
 
 <main class="wrap">
@@ -274,6 +286,34 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
   <p class="note">정책자금 세부 요건은 계산기의 정책자금 페이지와 주택도시기금 누리집을 참고하세요.</p>
 </section>
 
+<section class="card" id="rent">
+  <h2>지역별 소액임차보증금 <span class="tag">방공제</span></h2>
+  <p class="lead">주택담보대출 한도를 정할 때 세입자의 <b>최우선변제금</b>만큼 빼는 금액(방공제)입니다. 담보 주택이 있는 지역 기준이며, 보통 <b>방 1개당</b> 아래 금액을 뺍니다.</p>
+  <div class="tw"><table>
+    <thead><tr><th>구분</th><th>지역</th><th>소액임차보증금</th></tr></thead>
+    <tbody>
+      <tr><th>서울특별시</th><td class="l">전 지역</td><td class="amt">5,500만원</td></tr>
+      <tr><th rowspan="3">인천광역시</th><td class="l">강화군, 옹진군</td><td class="amt">2,500만원</td></tr>
+      <tr><td class="l">서구 대곡동·불로동·마전동·금곡동·오류동·왕길동·당하동·원당동, 인천경제자유구역, 남동 국가산업단지</td><td class="amt">2,800만원</td></tr>
+      <tr><td class="l">그 밖의 지역</td><td class="amt">4,800만원</td></tr>
+      <tr><th rowspan="5">수도권 중<br>과밀억제권역 등</th><td class="l">의정부·구리·하남·고양·수원·성남·안양·부천·광명·과천·의왕·군포·용인·화성·김포시, 세종시</td><td class="amt">4,800만원</td></tr>
+      <tr><td class="l">시흥시 반월특수지역</td><td class="amt">2,500만원</td></tr>
+      <tr><td class="l">시흥시 그 밖의 지역</td><td class="amt">4,800만원</td></tr>
+      <tr><td class="l">남양주시 호평동·평내동·금곡동·일패동·이패동·삼패동·가운동·수석동·지금동·도농동</td><td class="amt">4,800만원</td></tr>
+      <tr><td class="l">남양주시 그 밖의 지역</td><td class="amt">2,500만원</td></tr>
+      <tr><th rowspan="2">광역시<br><small>부산·대구·광주·대전·울산</small></th><td class="l">군지역 (부산 기장군, 대구 군위군·달성군, 울산 울주군)</td><td class="amt">2,500만원</td></tr>
+      <tr><td class="l">그 밖의 지역</td><td class="amt">2,800만원</td></tr>
+      <tr><th>경기 일부</th><td class="l">안산시, 광주시, 파주시, 이천시, 평택시</td><td class="amt">2,800만원</td></tr>
+      <tr><th>그 밖의 지역</th><td class="l">위에 없는 모든 지역</td><td class="amt">2,500만원</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>지역 골라서 보기</h3>
+  <div id="rentPick"></div>
+  <div class="rent-res empty" id="rentRes" aria-live="polite"><span>위에서 지역을 고르세요.</span></div>
+  <p class="note" style="margin-top:10px">주택임대차보호법 시행령 최우선변제금액 기준(2023.2.21~). 방 개수 계산, 모기지신용보험(MCI·MCG) 가입 시 공제 면제 여부는 금융회사마다 다릅니다.</p>
+</section>
+
 <section class="card" id="dsr">
   <h2>DSR <span class="tag">총부채원리금상환비율</span></h2>
   <p class="lead">연소득 대비 <b>모든 가계대출의 연간 원리금</b> 비율입니다. DTI와 달리 신용대출 등 다른 대출의 <b>원금</b>까지 넣어 계산합니다.</p>
@@ -389,6 +429,7 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
 <section class="card" id="source">
   <h2>출처</h2>
   <ul class="src">
+    <li><a href="https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EC%A3%BC%ED%83%9D%EC%9E%84%EB%8C%80%EC%B0%A8%EB%B3%B4%ED%98%B8%EB%B2%95%EC%8B%9C%ED%96%89%EB%A0%B9" target="_blank" rel="noopener">국가법령정보센터 · 주택임대차보호법 시행령 제10조·제11조</a><small>지역별 소액임차보증금(최우선변제금액)</small></li>
     <li><a href="https://www.fsc.go.kr/no010101/84824" target="_blank" rel="noopener">금융위원회 · 가계부채 관리 강화 방안 (2025.6.27)</a><small>보도자료 및 별첨 「주요 FAQ」</small></li>
     <li><a href="https://www.korea.kr/news/policyNewsView.do?newsId=148954140" target="_blank" rel="noopener">정책브리핑 · 가계부채 관리 강화 방안 보강 추가대책 (2025.9.7)</a><small>규제지역 LTV 40%, 1주택자 전세대출 2억, 임대사업자</small></li>
     <li><a href="https://www.fsc.go.kr/no010101/85432" target="_blank" rel="noopener">금융위원회 · 주택시장 안정화 대책 관련 대출수요 관리 강화 방안 (2025.10.15)</a></li>
@@ -447,6 +488,54 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
   links.forEach(a => a.addEventListener('click', e => { e.preventDefault(); history.replaceState(null, '', a.getAttribute('href')); show(true); }));
   window.addEventListener('hashchange', () => show(true));
   show(false);
+})();
+</script>
+<script>
+// 소액임차보증금: 지역을 차례로 골라 금액 보기 (값 = 만원)
+(() => {
+  const T = [
+    ['서울특별시', 5500],
+    ['인천광역시', [['강화군 · 옹진군', 2500], ['서구 대곡·불로·마전·금곡·오류·왕길·당하·원당동', 2800], ['인천경제자유구역', 2800], ['남동 국가산업단지', 2800], ['그 밖의 인천', 4800]]],
+    ['경기도', [
+      ...['의정부시', '구리시', '하남시', '고양시', '수원시', '성남시', '안양시', '부천시', '광명시', '과천시', '의왕시', '군포시', '용인시', '화성시', '김포시'].map(x => [x, 4800]),
+      ['시흥시', [['반월특수지역', 2500], ['그 밖의 시흥시', 4800]]],
+      ['남양주시', [['호평·평내·금곡·일패·이패·삼패·가운·수석·지금·도농동', 4800], ['그 밖의 남양주시', 2500]]],
+      ...['안산시', '광주시', '파주시', '이천시', '평택시'].map(x => [x, 2800]),
+      ...['오산시', '안성시', '양주시', '동두천시', '포천시', '여주시', '양평군', '가평군', '연천군'].map(x => [x, 2500])]],
+    ['세종특별자치시', 4800],
+    ['부산광역시', [['기장군', 2500], ['그 밖의 부산', 2800]]],
+    ['대구광역시', [['군위군 · 달성군', 2500], ['그 밖의 대구', 2800]]],
+    ['광주광역시', 2800],
+    ['대전광역시', 2800],
+    ['울산광역시', [['울주군', 2500], ['그 밖의 울산', 2800]]],
+    ['그 밖의 지역 (도 지역 · 제주 등)', 2500]
+  ];
+  const LBL = ['시 · 도', '시 · 군 · 구', '세부 지역'];
+  const box = document.getElementById('rentPick'), res = document.getElementById('rentRes');
+  const won = v => v.toLocaleString('ko-KR') + '만원';
+  let path = [];
+  function draw() {
+    box.innerHTML = '';
+    let list = T;
+    const names = [];
+    for (let d = 0; ; d++) {
+      const lbl = document.createElement('p'); lbl.className = 'pick-lbl'; lbl.textContent = LBL[d] || '세부 지역';
+      const row = document.createElement('div'); row.className = 'pick';
+      list.forEach(([n], k) => {
+        const b = document.createElement('button'); b.type = 'button'; b.textContent = n;
+        b.classList.toggle('on', path[d] === k); b.setAttribute('aria-pressed', path[d] === k);
+        b.onclick = () => { path = path.slice(0, d); path[d] = k; draw(); };
+        row.appendChild(b);
+      });
+      box.append(lbl, row);
+      const sel = list[path[d]];
+      if (!sel) { res.className = 'rent-res empty'; res.innerHTML = '<span>' + (d ? '세부 지역을 고르세요.' : '위에서 지역을 고르세요.') + '</span>'; return; }
+      names.push(sel[0]);
+      if (typeof sel[1] === 'number') { res.className = 'rent-res'; res.innerHTML = '<span>' + names.join(' › ') + '<br>방 1개당 공제</span><b>' + won(sel[1]) + '</b>'; return; }
+      list = sel[1];
+    }
+  }
+  draw();
 })();
 </script>
 </body>

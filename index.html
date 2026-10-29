@@ -239,7 +239,7 @@ dialog.notice{width:min(420px,calc(100vw - 32px))}
 #pdfChrome{text-decoration:none;display:inline-flex;align-items:center}
 .pdf-msg{margin:0;font-size:14.5px;line-height:1.7;word-break:keep-all}
 .pdf-msg b{word-break:break-all}
-@media (max-width:640px){#btnPrint{display:none}
+@media (max-width:640px){
   /* 휴대폰: 버튼 5개를 3개 · 2개 두 줄로 */
   .actions{grid-auto-flow:row;grid-template-columns:repeat(6,minmax(0,1fr))}
   .actions button{grid-column:span 3}
@@ -402,7 +402,7 @@ dialog{border-radius:10px}
   const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ID;
   document.head.appendChild(s);
   // 눌린 버튼 이름만 기록
-  const EV = { btnPdf: 'pdf_open', pdfShare: 'pdf_kakao', pdfSave: 'pdf_save', pdfChrome: 'pdf_chrome', btnRules: 'rules_open', btnFeedback: 'feedback_open' };
+  const EV = { btnPdf: 'pdf_open', pdfShare: 'pdf_kakao', pdfSave: 'pdf_save', pdfPrint: 'pdf_print', pdfChrome: 'pdf_chrome', btnRules: 'rules_open', btnFeedback: 'feedback_open' };
   document.addEventListener('click', e => {
     const el = e.target.closest('button, a'); if (!el) return;
     if (EV[el.id]) return gtag('event', EV[el.id]);
@@ -425,9 +425,8 @@ dialog{border-radius:10px}
     <div class="actions">
       <button type="button" id="btnSettings" hidden>⚙ 규제설정</button>
       <button type="button" id="btnReset">초기화</button>
-      <button type="button" id="btnRules">규정 안내</button>
-      <button type="button" id="btnPrint">결과지 인쇄</button>
-      <button type="button" id="btnPdf">PDF 공유</button>
+      <button type="button" id="btnRules">규정</button>
+      <button type="button" id="btnPdf">결과 공유</button>
       <button type="button" id="btnFeedback" class="fb-box">의견·문의</button>
     </div>
     <div class="tabbar">
@@ -830,8 +829,8 @@ dialog{border-radius:10px}
     </section>
     <h3 class="notice-h">업데이트 안내</h3>
     <p class="notice-lead">새로 추가된 기능입니다.</p>
-    <div class="notice-item"><b>규정 안내 신설</b><span>주택구입자금 · 주담대(자담) · 전세자금대출 · DSR 규정을 금융위원회 발표 기준으로 정리 (상단 규정 안내 버튼)</span></div>
-    <div class="notice-item"><b>PDF 공유 신설</b><span>결과지를 PDF로 만들어 카카오톡으로 바로 보내기 (상단 PDF 공유 버튼)</span></div>
+    <div class="notice-item"><b>규정 안내 신설</b><span>주택구입자금 · 주담대(자담) · 전세자금대출 · DSR 규정을 금융위원회 발표 기준으로 정리 (상단 규정 버튼)</span></div>
+    <div class="notice-item"><b>결과 공유 신설</b><span>결과지를 PDF로 만들어 카카오톡으로 바로 보내기 (상단 결과 공유 버튼)</span></div>
   </div>
   <div class="dlg-foot">
     <label class="notice-skip"><input type="checkbox" id="noticeSkip"> 다시 보지 않기</label>
@@ -841,12 +840,13 @@ dialog{border-radius:10px}
 
 <!-- 결과지 PDF 공유 -->
 <dialog id="pdfDlg" class="notice" aria-labelledby="pdfTitle">
-  <div class="dlg-head"><h2 id="pdfTitle">결과지 PDF</h2><button type="button" data-pclose aria-label="닫기">×</button></div>
+  <div class="dlg-head"><h2 id="pdfTitle">결과 공유</h2><button type="button" data-pclose aria-label="닫기">×</button></div>
   <div class="dlg-body"><p class="pdf-msg" id="pdfMsg"></p></div>
   <div class="dlg-foot">
     <button type="button" class="btn" id="pdfSave">PDF 저장</button>
     <a class="btn primary" id="pdfChrome" href="#" hidden>크롬에서 열기</a>
     <button type="button" class="btn primary" id="pdfShare">카톡으로 공유</button>
+    <button type="button" class="btn primary" id="pdfPrint" hidden>결과 인쇄</button>
   </div>
 </dialog>
 
@@ -864,7 +864,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v67';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v68';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1729,10 +1729,7 @@ $$('.tabs button').forEach(b => b.onclick = () => {
   $('#panel-equity').hidden = tab !== 'equity';
   recalc();
 });
-$('#btnPrint').onclick = () => window.print();
 $('#mbGo').onclick = () => $('.results').scrollIntoView({ behavior: 'smooth', block: 'start' });
-// 웹 링크(프레임 안)에서는 인쇄 창을 열 수 없으므로 인쇄 버튼을 숨김
-{ let framed = true; try { framed = window.self !== window.top; } catch (e) {} if (framed) $('#btnPrint').hidden = true; }
 // 초기화는 두 번 눌러 확인 (팝업 확인창 없이)
 let resetArm = 0;
 $('#btnReset').onclick = () => {
@@ -1913,20 +1910,20 @@ const IS_SAMSUNG = /SamsungBrowser/.test(UA);
 const chromeLink = () => `intent://${location.host}${location.pathname}?s=${b64u(JSON.stringify(snapState()))}#Intent;scheme=https;package=com.android.chrome;end`;
 $('#btnPdf').onclick = async () => {
   const d = $('#pdfDlg'), msg = $('#pdfMsg');
-  $('#pdfShare').hidden = false; $('#pdfChrome').hidden = true; $('#pdfShare').disabled = $('#pdfSave').disabled = true;
+  $('#pdfShare').hidden = !IS_MOBILE; $('#pdfPrint').hidden = IS_MOBILE; $('#pdfChrome').hidden = true; $('#pdfShare').disabled = $('#pdfSave').disabled = $('#pdfPrint').disabled = true;
   msg.textContent = '결과지를 PDF로 만드는 중입니다…';
   if (!d.open) d.showModal();
   try {
     const blob = await makePdf();
     pdfFile = new File([blob], pdfName(), { type: 'application/pdf' });
     const can = IS_MOBILE && !IS_SAMSUNG && !!(navigator.canShare && navigator.canShare({ files: [pdfFile] }));
-    $('#pdfShare').hidden = !can; $('#pdfShare').disabled = false; $('#pdfSave').disabled = false;
+    $('#pdfShare').hidden = !can; $('#pdfShare').disabled = false; $('#pdfSave').disabled = false; $('#pdfPrint').disabled = false;
     $('#pdfChrome').hidden = !IS_SAMSUNG; $('#pdfChrome').href = chromeLink();
-    $('#pdfSave').classList.toggle('primary', !can && !IS_SAMSUNG);
+    $('#pdfSave').classList.toggle('primary', IS_MOBILE && !can && !IS_SAMSUNG);
     const tip = IS_SAMSUNG
       ? '<b>삼성 인터넷</b>은 PDF 파일을 카카오톡으로 넘기는 것을 막고 있습니다.<br>· <b>[크롬에서 열기]</b>를 누르면 입력한 내용 그대로 크롬에서 열리고 PDF 창이 바로 뜹니다<br>· <b>[PDF 저장]</b> 후 알림창(또는 내 파일 → 다운로드)에서 파일을 눌러 <b>공유 → 카카오톡</b>을 고르세요.'
       : !IS_MOBILE
-      ? '<b>[PDF 저장]</b>을 누른 뒤, 저장된 파일을 <b>카카오톡 PC 대화창에 끌어다 놓으면</b> 전송됩니다.'
+      ? '<b>[결과 인쇄]</b>를 누르면 바로 인쇄할 수 있습니다.<br>카카오톡으로 보내려면 <b>[PDF 저장]</b> 후 저장된 파일을 <b>카카오톡 PC 대화창에 끌어다 놓으세요</b>.'
       : '';
     msg.innerHTML = `<b>${pdfFile.name.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</b> (${Math.max(1, Math.round(blob.size / 1024))}KB)<br>` + (tip || (can
       ? '<b>[카톡으로 공유]</b>를 누른 뒤 <b>카카오톡 → 나와의 채팅</b>(또는 고객 채팅방)을 고르세요.'
@@ -1952,6 +1949,20 @@ $('#pdfSave').onclick = () => {
   const a = document.createElement('a'), url = URL.createObjectURL(pdfFile);
   a.href = url; a.download = pdfFile.name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30000);
+};
+// PC: 만든 PDF(A4 한 장)를 숨은 창에 띄워 바로 인쇄 · 안 되면 새 탭으로 열기
+$('#pdfPrint').onclick = () => {
+  if (!pdfFile) return;
+  const url = URL.createObjectURL(pdfFile);
+  $('#pdfPrintFrame')?.remove();
+  const f = document.createElement('iframe');
+  f.id = 'pdfPrintFrame'; f.src = url;
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0';
+  f.onload = () => setTimeout(() => {
+    try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(url, '_blank'); }
+  }, 300);
+  document.body.appendChild(f);
+  setTimeout(() => URL.revokeObjectURL(url), 120000);
 };
 $$('[data-pclose]').forEach(b => b.onclick = () => $('#pdfDlg').close());
 // 크롬으로 넘어온 경우: 입력 내용을 채운 뒤 PDF 창을 바로 띄움
