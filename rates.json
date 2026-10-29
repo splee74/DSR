@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29T14:13:49.356Z",
+ "updated": "2026-10-29T14:15:59.151Z",
  "data": {
   "mort": {
    "variable": {
@@ -127,8 +127,9 @@
       "term": 12
      },
      "woori": {
-      "idx": "cofixNew",
-      "term": 6
+      "rate": 4.29,
+      "idx": "cofixNewBal",
+      "term": 12
      },
      "shinhan": {
       "idx": "cofixNew",
@@ -160,7 +161,9 @@
      "kb": {
       "rate": 5.01
      },
-     "woori": {},
+     "woori": {
+      "rate": 5.56
+     },
      "shinhan": {},
      "hana": {},
      "ibk": {},
@@ -180,8 +183,9 @@
       "term": 12
      },
      "woori": {
-      "idx": "cofixNew",
-      "term": 6
+      "rate": 4.28,
+      "idx": "cofixNewBal",
+      "term": 12
      },
      "shinhan": {
       "idx": "cofixNew",
@@ -212,7 +216,9 @@
      "kb": {
       "rate": 5.07
      },
-     "woori": {},
+     "woori": {
+      "rate": 5.66
+     },
      "shinhan": {},
      "hana": {},
      "ibk": {},
@@ -230,8 +236,9 @@
       "term": 12
      },
      "woori": {
-      "idx": "cofixNew",
-      "term": 6
+      "rate": 4.31,
+      "idx": "cofixNewBal",
+      "term": 12
      },
      "shinhan": {
       "idx": "cofixNew",
@@ -570,7 +577,24 @@
      "rate": 0.1
     }
    ],
-   "woori": [],
+   "woori": [
+    {
+     "name": "급여 이체 월 100만원",
+     "rate": 0.2
+    },
+    {
+     "name": "신용카드 3개월 합 100만원 이상 결제",
+     "rate": 0.2
+    },
+    {
+     "name": "적금 5만원 또는 청약 2만원 이상",
+     "rate": 0.1
+    },
+    {
+     "name": "전자계약",
+     "rate": 0.2
+    }
+   ],
    "shinhan": [],
    "hana": [],
    "ibk": []
@@ -588,7 +612,11 @@
     "woori": 1.2
    }
   },
-  "jeonse": {}
+  "jeonse": {
+   "sgiVar": {
+    "woori": 0.5
+   }
+  }
  },
  "banks": [
   {
