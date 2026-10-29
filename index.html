@@ -232,6 +232,7 @@ dialog::backdrop{background:#0006}
 .btn{border:0;background:var(--soft);color:var(--sub);border-radius:999px;padding:10px 18px;font-weight:600}
 .btn.primary{background:var(--brand);color:#fff}
 dialog.notice{width:min(420px,calc(100vw - 32px))}
+#segERegion{display:grid;grid-template-columns:1fr 1fr}
 .evict{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--soft)}
 .evict .chk{display:flex;margin:4px 0}
 .warn-note{color:var(--bad)}
@@ -807,7 +808,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v51';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v52';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -823,7 +824,7 @@ const DEFAULTS = {
   inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 9.5, nhisRate: 3.595 },
   debt:   { otherRate: 5.52 },
   // 주담대(자담): 수도권·규제지역 가계일반자금 물건당 상한 · 6.27 이전 조건 LTV · 다주택 LTV 차감
-  equity: { cap: 10000, pre: { metro: 70, reg: 50, local: 70 }, multiCut: 10 }
+  equity: { cap: 10000, preLtv: { metro: 70, spec: 40, reg: 70, local: 70 }, multiCut: 10 }
 };
 const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
 const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
@@ -968,7 +969,7 @@ function buildSegs() {
   $('#firstNote').textContent = `(규제지역 포함 LTV 최대 ${S.ltv.first}%)`;
   $('#seominNote').textContent = `(규제지역 LTV 최대 ${S.ltv.seomin}%)`;
   const er = $('input[name=eRegion]:checked')?.value || 'metro', et = $('input[name=eRtype]:checked')?.value || 'variable';
-  $('#segERegion').innerHTML = segHTML('eRegion', Object.fromEntries(Object.entries(REGIONS).map(([k, v]) => [k, `${v}<small>LTV ${S.ltv[k]}%${k === 'local' ? '' : ' · 최대 ' + korMan(S.equity.cap)}</small>`])), er);
+  $('#segERegion').innerHTML = segHTML('eRegion', Object.fromEntries(Object.entries(EREG).map(([k, v]) => [k, `${v}<small>현행 ${eNowLtv(k)}% · 6.27 이전 ${S.equity.preLtv[k]}%${ESUB[k] ? '<br>' + ESUB[k] : ''}</small>`])), EREG[er] ? er : 'metro');
   $('#segERtype').innerHTML = segHTML('eRtype', Object.fromEntries(Object.entries(RTYPES).map(([k, v]) => [k, `${v}<small>스트레스 +${fx(S.stress[k])}%p</small>`])), et);
   $('#eMultiLbl').textContent = `LTV −${S.equity.multiCut}%p`;
   $('#segRtype').innerHTML = segHTML('mRtype', Object.fromEntries(Object.entries(RTYPES).map(([k, v]) => [k, `${v}<small>스트레스 +${fx(S.stress[k])}%p</small>`])), t);
@@ -1309,6 +1310,10 @@ function renderMort() {
      (주택가격 구간별 금액 상한 15억 6억 / 25억 4억 / 초과 2억은 6.27에 생긴 규제라 미적용)
    · 다주택: LTV를 차감(기본 10%p)해서 진행
    · 소요자금: 후속세입자 있음 = 보증금 차액 / 없음 = 보증금 / 본인 입주 = 보증금 − 실제 보유자금 */
+// 주담대(자담) 지역: 규제지역을 기존 투기지역(강남·서초·송파·용산)과 그 외로 나눔 (6.27 이전 LTV가 다름)
+const EREG = { metro: '수도권', spec: '강남·서초·송파·용산', reg: '그 외 규제지역', local: '지방' };
+const ESUB = { metro: '', spec: '기존 투기지역', reg: '10.15 이후 지정', local: '' };
+const eNowLtv = k => S.ltv[k === 'spec' ? 'reg' : k];
 const ESRC = {
   jeonse: ['지금 전세 거주', '내 전세보증금', '내 전세대출 잔액'],
   sell:   ['다른 집 매도', '매도가격', '그 집 주담대 상환액'],
@@ -1324,7 +1329,7 @@ function equityCalc() {
   const src = $('input[name=eSrc]:checked').value, srcIn = v('#eSrcIn'), srcLoan = v('#eSrcLoan'), other = v('#eOther');
   const own = Math.max(0, srcIn - srcLoan) + other;
   const need = !evict ? Infinity : mode === 'next' ? Math.max(0, dep - next) : mode === 'none' ? dep : Math.max(0, dep - own);
-  const baseLtv = exc ? S.equity.pre[region] : S.ltv[region];
+  const baseLtv = exc ? S.equity.preLtv[region] : eNowLtv(region);
   const ltv = Math.max(0, baseLtv - (house === 'multi' ? S.equity.multiCut : 0));
   const blocked = !exc && capArea && house === 'multi';
   return { region, house, evict, mode, exc, capArea, dep, next, src, srcIn, srcLoan, other, own, need, baseLtv, ltv, blocked,
@@ -1337,7 +1342,7 @@ function syncEquityInputs(e) {
   $('#eSelfBox').hidden = e.mode !== 'self';
   const [, a, b] = ESRC[e.src]; $('#eSrcInLbl').textContent = a; $('#eSrcLoanLbl').textContent = b;
   $('#eExcNote').innerHTML = e.exc
-    ? `<span style="color:var(--ok);font-weight:600">✔ 6.27 이전 조건 충족</span> → 물건당 1억 상한 없이 <b>6.27 이전 LTV ${S.equity.pre[e.region]}%</b> 적용${e.house === 'multi' ? ` (다주택 −${S.equity.multiCut}%p → <b>${e.ltv}%</b>)` : ''}`
+    ? `<span style="color:var(--ok);font-weight:600">✔ 6.27 이전 조건 충족</span> → 물건당 1억 상한 없이 <b>6.27 이전 LTV ${S.equity.preLtv[e.region]}%</b> (${EREG[e.region]}) 적용${e.house === 'multi' ? ` (다주택 −${S.equity.multiCut}%p → <b>${e.ltv}%</b>)` : ''}`
     : '둘 중 하나라도 해당하지 않으면 <b>가계일반자금</b>과 같은 기준(수도권·규제지역 1주택자 · 물건당 최대 1억 · 현행 LTV)으로 계산합니다.';
   $('#eNeedNote').innerHTML = !e.evict ? '' : e.mode === 'next'
     ? `소요자금 = 내보내는 보증금 <b>${korMan(e.dep)}</b> − 후속세입자 보증금 <b>${korMan(e.next)}</b> = <b class="hl">${korMan(e.need)}</b>`
@@ -1345,7 +1350,7 @@ function syncEquityInputs(e) {
     : `보유자금 = ${ESRC[e.src][1]} <b>${korMan(e.srcIn)}</b> − ${ESRC[e.src][2]} <b>${korMan(e.srcLoan)}</b>${e.other ? ` + 기타 <b>${korMan(e.other)}</b>` : ''} = <b>${korMan(e.own)}</b><br>
        소요자금 = 보증금 <b>${korMan(e.dep)}</b> − 보유자금 <b>${korMan(e.own)}</b> = <b class="hl">${korMan(e.need)}</b>${e.need === 0 ? ' <span style="color:var(--bad)">(보유자금으로 충분 → 퇴거자금 한도 0)</span>' : ''}`;
   $('#eRuleNote').innerHTML = `· <b>가계일반자금</b>: 수도권·규제지역은 <b>1주택자만</b>, 물건당 최대 <b>${korMan(S.equity.cap)}</b> (지방은 금액 상한 없음)<br>
-    · <b>전세퇴거자금</b>: 2025.6.27 이전 구입(계약) + 세입자 6.27 이전 입주 → 1억 초과 가능, 6.27 이전 LTV (수도권 ${S.equity.pre.metro}% · 규제지역 ${S.equity.pre.reg}% · 지방 ${S.equity.pre.local}%)<br>
+    · <b>전세퇴거자금</b>: 2025.6.27 이전 구입(계약) + 세입자 6.27 이전 입주 → 1억 초과 가능, 6.27 이전 LTV (수도권 ${S.equity.preLtv.metro}% · 강남·서초·송파·용산 ${S.equity.preLtv.spec}% · 그 외 규제지역 ${S.equity.preLtv.reg}% · 지방 ${S.equity.preLtv.local}%)<br>
     · <b>다주택</b>: LTV <b>−${S.equity.multiCut}%p</b><br>
     · 주택가격 구간별 금액 상한(15억 이하 6억 등)은 구입자금 규제라 적용하지 않습니다<br>
     · 이 주택의 기존 담보대출은 LTV 계산용입니다. DSR에 넣으려면 <b>③ 기존 대출</b>에도 입력하세요`;
@@ -1356,7 +1361,7 @@ function renderEquity() {
   const head = reportHead('상담 결과 보고서', `주담대(자담) 한도 분석 · ${e.evict ? '전세퇴거자금' : '가계일반자금'}`);
   if (e.blocked) {
     MB = { k: '주담대(자담)', v: '불가', st: 'bad', m: '—' };
-    return `${head}<div class="rp-body"><div class="block">⛔<strong>다주택자는 ${REGIONS[e.region]} 가계일반자금 불가</strong>
+    return `${head}<div class="rp-body"><div class="block">⛔<strong>다주택자는 ${EREG[e.region]} 가계일반자금 불가</strong>
       <p>수도권·규제지역의 가계일반자금(생활안정자금)은 1주택자만 가능합니다.<br>
       2025.6.27 이전 구입(계약)·세입자 입주 조건의 <b>전세퇴거자금</b>이면 LTV −${S.equity.multiCut}%p로 진행할 수 있습니다.</p></div></div>${reportFoot()}`;
   }
@@ -1369,10 +1374,10 @@ function renderEquity() {
   const LTV = price ? (L + prior) / price * 100 : NaN;
   const unitS = annualPay(1, sRate, years, method);
   const dsrMax = lim => inc ? Math.max(0, (inc * lim / 100 - ex.dsr) / unitS) : 0;
-  const ltvName = `${REGIONS[e.region]}${e.exc ? ' · 6.27 이전' : ''}${e.house === 'multi' ? ` · 다주택 −${S.equity.multiCut}%p` : ''}`;
+  const ltvName = `${EREG[e.region]}${e.exc ? ' · 6.27 이전' : ''}${e.house === 'multi' ? ` · 다주택 −${S.equity.multiCut}%p` : ''}`;
   const cLtv = { label: `LTV ${e.ltv}% (${ltvName})${prior ? ` − 선순위 ${korMan(prior)}` : ''}`, v: Math.max(0, price * e.ltv / 100 - prior), short: 'LTV' };
   const capOn = !e.exc && e.capArea;
-  const cCap = { label: capOn ? `가계일반자금 물건당 상한 (${REGIONS[e.region]})` : e.exc ? '물건당 상한 (6.27 이전 전세퇴거 · 해당없음)' : '물건당 상한 (지방 해당없음)',
+  const cCap = { label: capOn ? `가계일반자금 물건당 상한 (${EREG[e.region]})` : e.exc ? '물건당 상한 (6.27 이전 전세퇴거 · 해당없음)' : '물건당 상한 (지방 해당없음)',
     v: capOn ? S.equity.cap : Infinity, short: `물건당 ${korMan(S.equity.cap)}`, text: capOn ? korMan(S.equity.cap) : '해당없음' };
   const cNeed = { label: `실제 소요자금 (${{ next: '보증금 차액', none: '보증금 전액', self: '본인 입주' }[e.mode]})`, v: e.need, short: '실제 소요자금' };
   const cD1 = { label: `스트레스 DSR ${S.dsr.bank1}% (1금융권)`, v: dsrMax(S.dsr.bank1), short: `스트레스 DSR ${S.dsr.bank1}%` };
@@ -1406,7 +1411,7 @@ function renderEquity() {
       ['연소득', incomeText()],
       ['자금 용도', e.evict ? `전세퇴거자금 · ${{ next: '후속세입자 있음', none: '후속세입자 없음', self: '본인 입주' }[e.mode]}` : '가계일반자금 (생활안정자금)'],
       ...(e.evict ? [['6.27 이전 조건', e.exc ? '충족 (구입·세입자 입주 모두 6.27 이전)' : '미충족 → 가계일반자금 기준']] : []),
-      ['지역 · 보유', `${REGIONS[e.region]} · ${e.house === 'multi' ? '다주택' : '1주택'}`],
+      ['지역 · 보유', `${EREG[e.region]} · ${e.house === 'multi' ? '다주택' : '1주택'}`],
       ['주택가격 (KB시세)', korMan(price)],
       ...(senior ? [['유지할 선순위 대출', korMan(senior)]] : []),
       ['대출 희망금액', korMan(L)],
@@ -1565,7 +1570,7 @@ const SETTINGS = [
     ['cap.t1', '구간1: 주택가격 이하', '만원'], ['cap.c1', '구간1 한도', '만원'], ['cap.t2', '구간2: 주택가격 이하', '만원'], ['cap.c2', '구간2 한도', '만원'], ['cap.c3', '구간2 초과 한도', '만원']]],
   ['DSR 간주 만기 (기존 대출)', [['deem.credit', '신용대출·마이너스통장', '년'], ['deem.other', '기타담보대출', '년'], ['deem.midpay', '중도금·이주비', '년'], ['deem.guar', '보증서담보대출', '년'], ['deem.secur', '유가증권담보대출', '년']]],
   ['주담대(자담)', [['equity.cap', '가계일반자금 물건당 상한 (수도권·규제지역)', '만원'], ['equity.multiCut', '다주택 LTV 차감', '%p'],
-    ['equity.pre.metro', '6.27 이전 LTV · 수도권', '%'], ['equity.pre.reg', '6.27 이전 LTV · 규제지역', '%'], ['equity.pre.local', '6.27 이전 LTV · 지방', '%']]],
+    ['equity.preLtv.metro', '6.27 이전 LTV · 수도권', '%'], ['equity.preLtv.spec', '6.27 이전 LTV · 강남·서초·송파·용산', '%'], ['equity.preLtv.reg', '6.27 이전 LTV · 그 외 규제지역', '%'], ['equity.preLtv.local', '6.27 이전 LTV · 지방', '%']]],
   ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (DSR 적용 대상)', '%'], ['stress.jeonse', '스트레스 가산 (DSR 적용 대상)', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원'], ['jeonse.capMember', '세대원 유주택 최대 한도', '만원']]]
 ];
 function openSettings(src = S) {
