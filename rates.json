@@ -4,7 +4,7 @@
   "mort": {
    "variable": {
     "sample": false,
-    "asof": "2026-10-26",
+    "asof": "2026-10-28",
     "banks": {
      "kb": {
       "rate": 4.88,
@@ -51,7 +51,7 @@
    },
    "mixed": {
     "sample": false,
-    "asof": "2026-10-26",
+    "asof": "2026-10-28",
     "banks": {
      "kb": {
       "fee": 0.75,

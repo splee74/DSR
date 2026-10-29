@@ -627,18 +627,35 @@ async function load() {
   render();
 }
 const b64 = s => btoa(unescape(encodeURIComponent(s)));
+// 이 화면에서 실제로 고친 것 — 저장할 때 이것만 사이트의 최신 내용 위에 얹음 (예전에 열어 둔 화면이 새 내용을 덮어쓰지 않도록)
+const TOUCH = { types: new Set(), prefs: new Set(), pmax: new Set(), banks: false };
+const sameSet = (cur, banks, asof) => cur && !cur.sample && JSON.stringify(cur.banks) === JSON.stringify(banks) && cur.asof === asof;
+const unb64 = s => decodeURIComponent(escape(atob(s.replace(/\s/g, ''))));
 async function publish() {
   const out = realData();
   saveLocal(out);
   if (!ONLINE) return '미리보기 모드: 이 기기에만 저장했습니다.';
   const h = { Authorization: 'Bearer ' + token(), Accept: 'application/vnd.github+json' };
   const url = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
-  let sha;
+  let sha, remote = {};
   const g = await fetch(url, { headers: h, cache: 'no-store' });
-  if (g.ok) sha = (await g.json()).sha; else if (g.status !== 404) throw new Error('GitHub 확인 실패 (' + g.status + ')');
-  const body = JSON.stringify({ updated: new Date().toISOString(), data: out, prefs: PREFS, prefMax: PMAX, banks: XBANKS }, null, 1);
+  if (g.ok) { const gj = await g.json(); sha = gj.sha; try { remote = JSON.parse(unb64(gj.content || '')); } catch (e) { remote = {}; } }
+  else if (g.status !== 404) throw new Error('GitHub 확인 실패 (' + g.status + ')');
+  // 사이트 최신 내용 + 이 화면에서 고친 부분
+  const data = JSON.parse(JSON.stringify(remote.data || {}));
+  TOUCH.types.forEach(k => { const [p, t] = k.split('.'); data[p] = data[p] || {}; data[p][t] = out[p] && out[p][t]; if (!data[p][t]) delete data[p][t]; });
+  const prefs = { mort: {}, jeonse: {}, ...JSON.parse(JSON.stringify(remote.prefs || {})) };
+  TOUCH.prefs.forEach(k => { const [p, id] = k.split('.'); prefs[p][id] = PREFS[p][id]; });
+  const prefMax = normPmax(remote.prefMax);
+  TOUCH.pmax.forEach(k => { const [p, t, id] = k.split('.'); const x = pmaxOf(p, t, id); prefMax[p][t] = prefMax[p][t] || {}; if (has(x)) prefMax[p][t][id] = x; else delete prefMax[p][t][id]; });
+  const banks = TOUCH.banks ? XBANKS : (remote.banks || []);
+  const body = JSON.stringify({ updated: new Date().toISOString(), data, prefs, prefMax, banks }, null, 1);
   const p = await fetch(url, { method: 'PUT', headers: h, body: JSON.stringify({ message: '은행 금리 업데이트', content: b64(body), sha }) });
-  if (!p.ok) throw new Error('저장 실패 (' + p.status + '). 관리자 토큰을 확인하세요.');
+  if (!p.ok) throw new Error(p.status === 409 ? '그사이 다른 곳에서 저장되었습니다. [저장]을 한 번 더 눌러 주세요.' : '저장 실패 (' + p.status + '). 관리자 토큰을 확인하세요.');
+  // 저장한 최신 내용으로 이 화면도 맞춤
+  for (const p2 in data) for (const t in data[p2]) if (DATA[p2] && DATA[p2][t]) DATA[p2][t] = data[p2][t];
+  PREFS = prefs; PMAX = prefMax; setBanks(banks);
+  TOUCH.types.clear(); TOUCH.prefs.clear(); TOUCH.pmax.clear(); TOUCH.banks = false;
   return '저장했습니다. 1~2분 뒤 모든 방문자에게 반영됩니다.';
 }
 const isAdmin = () => !ONLINE || !!token();
@@ -877,6 +894,7 @@ function readBank(id) {
 function syncPrefs(id) {
   const prod = prodNow();
   PREFS[prod][id] = readBank(id).prefs;
+  TOUCH.prefs.add(prod + '.' + id);
   if (!ONLINE) saveLocal(realData()); else dirty = true;
 }
 let dirty = false;
@@ -892,7 +910,7 @@ function stash() {
   const banks = {}; let any = false;
   BANKS.forEach(b => { const { prefs, ...v } = readBank(b.id); banks[b.id] = v; if (Object.keys(v).some(k => k !== 'idx' && k !== 'term')) any = true; });
   const cur = DATA[prod][t];
-  if (any) { DATA[prod][t] = { sample: false, asof: asofFor(cur, banks), banks }; dirty = true; }
+  if (any) { const asof = asofFor(cur, banks); if (!sameSet(cur, banks, asof)) TOUCH.types.add(prod + '.' + t); DATA[prod][t] = { sample: false, asof, banks }; dirty = true; }
 }
 function updCalc() {
   if ($('#edBanks').childElementCount) renderEdBanks();
@@ -944,7 +962,7 @@ $('#baOk').onclick = () => {
   if (BANKS.some(b => b.name === name)) { $('#baMsg').textContent = '이미 있는 은행입니다.'; return; }
   stash();
   const id = 'x' + Date.now().toString(36);
-  setBanks([...XBANKS, { id, name, short }]);
+  setBanks([...XBANKS, { id, name, short }]); TOUCH.banks = true;
   edBank = id;
   if (!ONLINE) saveLocal(realData()); else dirty = true;
   $('#bankAdd').close(); delete $('#baShort').dataset.touched;
@@ -958,11 +976,11 @@ $('#edType').addEventListener('change', () => {
   edPrevType = now; curType = now; const set = DATA[prodNow()][curType]; fillEditor(set, true); $('#edMsg').textContent = set.sample ? '아직 실제 금리가 없습니다.' : ''; render(); });
 $('#edBody').addEventListener('click', e => {
   const bd = e.target.closest('[data-bdel]');
-  if (bd) { const x = XBANKS.find(b => b.id === bd.dataset.bdel); if (x && confirm(`${x.name}을(를) 은행 목록에서 삭제할까요?`)) { stash(); setBanks(XBANKS.filter(b => b.id !== x.id)); if (!ONLINE) saveLocal(realData()); else dirty = true; fillEditor(DATA[prodNow()][edType()], true); render(); $('#edMsg').textContent = ONLINE ? '삭제했습니다. [저장]을 눌러야 사이트에 반영됩니다.' : '삭제했습니다.'; } return; }
+  if (bd) { const x = XBANKS.find(b => b.id === bd.dataset.bdel); if (x && confirm(`${x.name}을(를) 은행 목록에서 삭제할까요?`)) { stash(); setBanks(XBANKS.filter(b => b.id !== x.id)); TOUCH.banks = true; if (!ONLINE) saveLocal(realData()); else dirty = true; fillEditor(DATA[prodNow()][edType()], true); render(); $('#edMsg').textContent = ONLINE ? '삭제했습니다. [저장]을 눌러야 사이트에 반영됩니다.' : '삭제했습니다.'; } return; }
   const add = e.target.closest('[data-padd]'); if (add) { const b = add.dataset.padd; $(`[data-plist="${b}"]`).insertAdjacentHTML('beforeend', prefRow(b)); $(`[data-plist="${b}"] .prow:last-child input`).focus(); }
   const del = e.target.closest('[data-pdel]'); if (del) { const id = del.closest('[data-plist]').dataset.plist; del.closest('.prow').remove(); syncPrefs(id); updCalc(); }
 });
-$('#edBody').addEventListener('input', e => { if (e.target.dataset.pmax) { const id = e.target.dataset.pmax, x = parseFloat(e.target.value), m = PMAX[prodNow()], t = edType(); m[t] = m[t] || {}; if (has(x)) m[t][id] = x; else delete m[t][id]; if (!ONLINE) saveLocal(realData()); else dirty = true; return; } const pl = e.target.closest('[data-plist]'); if (pl) syncPrefs(pl.dataset.plist); updCalc(); });
+$('#edBody').addEventListener('input', e => { if (e.target.dataset.pmax) { const id = e.target.dataset.pmax, x = parseFloat(e.target.value), m = PMAX[prodNow()], t = edType(); m[t] = m[t] || {}; if (has(x)) m[t][id] = x; else delete m[t][id]; TOUCH.pmax.add(prodNow() + '.' + t + '.' + id); if (!ONLINE) saveLocal(realData()); else dirty = true; return; } const pl = e.target.closest('[data-plist]'); if (pl) syncPrefs(pl.dataset.plist); updCalc(); });
 $('#edBody').addEventListener('change', e => { if (e.target.dataset.stop) { e.target.closest('.ed-bank').classList.toggle('stopped', e.target.checked); updCalc(); return; } if (e.target.dataset.pon) { e.target.closest('.prow').classList.toggle('off', !e.target.checked); syncPrefs(e.target.dataset.pon); updCalc(); return; } if (e.target.dataset.sel) { const b = e.target.dataset.sel, base = $(`#ed-${b}-base`); base.placeholder = '비우면 자동'; updCalc(); } });
 $('#btnEdit').onclick = openEditor;
 $$('[data-edclose]').forEach(b => b.onclick = () => { stash(); $('#ed').close(); render(); if (dirty && ONLINE) toast('입력한 내용은 화면에 보관했습니다. 모두에게 보이려면 [저장]을 누르세요.'); });
@@ -980,10 +998,12 @@ $('#edSave').onclick = async () => {
   if (!Object.values(banks).some(v => eff(v, t) || v.stop)) { $('#edMsg').textContent = '실질적용금리·가산금리를 입력하거나 취급중단을 한 곳 이상 체크해야 저장됩니다.'; return; }
   const prevSet = DATA[prod][t];
   BANKS.forEach(b => { PREFS[prod][b.id] = banks[b.id].prefs; delete banks[b.id].prefs; });
-  DATA[prod][t] = { sample: false, asof: asofFor(prevSet, banks), banks };
+  const asof = asofFor(prevSet, banks), key = prod + '.' + t, wasTouched = TOUCH.types.has(key);
+  if (!sameSet(prevSet, banks, asof)) TOUCH.types.add(key);
+  DATA[prod][t] = { sample: false, asof, banks };
   const btn = $('#edSave'); btn.disabled = true; btn.textContent = '저장 중…';
   try { const msg = await publish(); dirty = false; curType = t; $('#ed').close(); render(); toast(msg); }
-  catch (err) { DATA[prod][t] = prevSet; $('#edMsg').textContent = err.message; }
+  catch (err) { DATA[prod][t] = prevSet; if (!wasTouched) TOUCH.types.delete(key); $('#edMsg').textContent = err.message; }
   finally { btn.disabled = false; btn.textContent = '저장'; }
 };
 
