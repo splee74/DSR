@@ -232,6 +232,9 @@ dialog::backdrop{background:#0006}
 .btn{border:0;background:var(--soft);color:var(--sub);border-radius:999px;padding:10px 18px;font-weight:600}
 .btn.primary{background:var(--brand);color:#fff}
 dialog.notice{width:min(420px,calc(100vw - 32px))}
+.evict{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--soft)}
+.evict .chk{display:flex;margin:4px 0}
+.warn-note{color:var(--bad)}
 .notice-lead{margin:0 0 12px;color:var(--sub);font-size:14px}
 .notice-sec{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:18px}
 .notice-sec h3,.notice-h{margin:0 0 10px;font-size:15.5px;font-weight:800}
@@ -314,6 +317,8 @@ dialog.notice{width:min(420px,calc(100vw - 32px))}
 .tabs button.on{background:transparent;box-shadow:none;color:var(--text);border-bottom-color:var(--brand)}
 /* 휴대폰: 탭 4개가 화면 폭에 맞게 줄어듦. 글꼴을 크게 쓴 기기에서도 페이지가 넓어지지 않도록 탭 줄 안에서만 밀어 보기 */
 @media (max-width:560px){.tabbar{gap:0;overflow-x:auto;scrollbar-width:none}.tabbar::-webkit-scrollbar{display:none}.tabbar .tabs{flex:1 0 auto;gap:0}.tabbar .tabs button,.tabbar .policy-link{flex:1 0 auto;justify-content:center;padding-left:clamp(3px,1.4vw,6px);padding-right:clamp(3px,1.4vw,6px);font-size:clamp(12px,3.5vw,15px);white-space:nowrap}}
+/* 탭이 5개라 휴대폰에서는 대출 탭 3개 윗줄 · 정책자금·은행금리비교 아랫줄 */
+@media (max-width:560px){.tabbar{flex-wrap:wrap;overflow:visible}.tabbar .tabs{flex:1 1 100%}.tabbar .tabs button{flex:1 1 0}.tabbar .policy-link{flex:1 1 0;border-top:1px solid var(--line);padding-top:10px;padding-bottom:9px;font-size:13.5px}}
 .actions{align-self:center}
 .actions button{border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--sub)}
 .actions button:hover{background:var(--soft)}
@@ -382,7 +387,7 @@ dialog{border-radius:10px}
   <div class="top-in">
     <div class="brand">
       <div class="logo">%</div>
-      <div><h1>DSR · DTI 계산기</h1><span>주택담보대출 · 전세자금대출 상담</span></div>
+      <div><h1>DSR · DTI 계산기</h1><span>주택구입자금 · 주담대(자담) · 전세자금대출 상담</span></div>
     </div>
     <div class="actions">
       <button type="button" id="btnSettings">⚙ 규제설정</button>
@@ -392,7 +397,8 @@ dialog{border-radius:10px}
     </div>
     <div class="tabbar">
       <nav class="tabs">
-        <button type="button" data-tab="mort" class="on">주택담보대출</button>
+        <button type="button" data-tab="mort" class="on">주택구입자금</button>
+        <button type="button" data-tab="equity">주담대(자담)</button>
         <button type="button" data-tab="jeonse">전세자금대출</button>
       </nav>
       <a class="policy-link" href="policy.html">정책자금</a>
@@ -497,7 +503,7 @@ dialog{border-radius:10px}
 
     <!-- ② 신규 대출: 주담대 -->
     <div class="card" id="panel-mort">
-      <h2><span class="num">2</span>신규 주택담보대출</h2>
+      <h2><span class="num">2</span>신규 주택구입자금 대출</h2>
       <div class="grid2">
         <div class="field full">
           <span class="flabel">지역 (LTV)</span>
@@ -536,6 +542,119 @@ dialog{border-radius:10px}
           </div>
         </div>
         <div class="field full"><div class="note" id="methodNote"></div></div>
+      </div>
+    </div>
+
+    <!-- ② 신규 대출: 주담대(자담) · 생활안정자금 -->
+    <div class="card" id="panel-equity" hidden>
+      <h2><span class="num">2</span>주담대(자담) · 구입 외 자금</h2>
+      <div class="grid2">
+        <div class="field full">
+          <span class="flabel">지역 (LTV)</span>
+          <div class="seg" id="segERegion"></div>
+        </div>
+        <div class="field full">
+          <span class="flabel">주택 보유</span>
+          <div class="seg seg-even">
+            <label><input type="radio" name="eHouse" value="one" checked><span>1주택<small>본인·배우자</small></span></label>
+            <label><input type="radio" name="eHouse" value="multi"><span>다주택<small id="eMultiLbl">LTV −10%p</small></span></label>
+          </div>
+        </div>
+        <div class="field full">
+          <span class="flabel">자금 용도</span>
+          <div class="seg seg-even">
+            <label><input type="radio" name="ePurpose" value="general" checked><span>가계일반자금<small>생활안정자금</small></span></label>
+            <label><input type="radio" name="ePurpose" value="evict"><span>전세퇴거자금<small>세입자 보증금 반환</small></span></label>
+          </div>
+        </div>
+        <div class="field full" id="eEvictBox" hidden>
+          <div class="evict">
+            <span class="flabel">2025.6.27 이전 조건 (둘 다 해당하면 1억 초과 · 6.27 이전 LTV)</span>
+            <label class="chk"><input type="checkbox" id="ePreBuy"> 2025.6.27 이전에 주택 구입(계약)</label>
+            <label class="chk"><input type="checkbox" id="ePreTenant"> 내보내는 세입자가 2025.6.27 이전에 입주</label>
+            <div class="note" id="eExcNote"></div>
+            <span class="flabel" style="margin-top:12px">퇴거 방식</span>
+            <div class="seg seg-even">
+              <label><input type="radio" name="eEvict" value="next" checked><span>후속세입자 있음<small>보증금 차액</small></span></label>
+              <label><input type="radio" name="eEvict" value="none"><span>후속세입자 없음<small>보증금 전액</small></span></label>
+              <label><input type="radio" name="eEvict" value="self"><span>본인 입주<small>실제 소요자금</small></span></label>
+            </div>
+            <div class="grid2" style="margin-top:10px">
+              <div class="field">
+          <label for="eDeposit">내보내는 세입자 보증금</label>
+          <div class="inp"><input id="eDeposit" class="money" inputmode="numeric" placeholder="0" value="50,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+              <div class="field" id="eNextBox">
+          <label for="eNextDep">후속세입자 보증금</label>
+          <div class="inp"><input id="eNextDep" class="money" inputmode="numeric" placeholder="0" value=""><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+            </div>
+            <div id="eSelfBox" hidden>
+              <span class="flabel" style="margin-top:6px">입주 전 내 자금 마련 방법</span>
+              <div class="seg seg-even">
+                <label><input type="radio" name="eSrc" value="jeonse" checked><span>전세 거주<small>보증금−전세대출</small></span></label>
+                <label><input type="radio" name="eSrc" value="sell"><span>집 매도<small>매도가−대출</small></span></label>
+                <label><input type="radio" name="eSrc" value="lease"><span>집 전세 놓기<small>보증금−대출</small></span></label>
+              </div>
+              <div class="grid2" style="margin-top:10px">
+                <div class="field">
+          <label for="eSrcIn"><span id="eSrcInLbl">내 전세보증금</span></label>
+          <div class="inp"><input id="eSrcIn" class="money" inputmode="numeric" placeholder="0" value="40,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+                <div class="field">
+          <label for="eSrcLoan"><span id="eSrcLoanLbl">내 전세대출 잔액</span></label>
+          <div class="inp"><input id="eSrcLoan" class="money" inputmode="numeric" placeholder="0" value="30,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+                <div class="field">
+          <label for="eOther">기타 보유자금 (예금 등)</label>
+          <div class="inp"><input id="eOther" class="money" inputmode="numeric" placeholder="0" value=""><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+              </div>
+              <div class="note warn-note">※ 본인 입주 조건: <b>전입 필수</b> · <b>2년 거주 요건</b></div>
+            </div>
+            <div class="note" id="eNeedNote"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="ePrice">주택가격 (KB시세)</label>
+          <div class="inp"><input id="ePrice" class="money" inputmode="numeric" placeholder="0" value="120,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field">
+          <label for="eSenior">이 주택 기존 담보대출 (유지할 선순위)</label>
+          <div class="inp"><input id="eSenior" class="money" inputmode="numeric" placeholder="0" value=""><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field">
+          <label for="eAmt">대출 희망금액</label>
+          <div class="inp"><input id="eAmt" class="money" inputmode="numeric" placeholder="0" value="10,000"><span class="u">만원</span></div>
+          <div class="hint"></div>
+        </div>
+        <div class="field">
+          <label for="eRate">금리 (실제 적용금리)</label>
+          <div class="inp"><input id="eRate" type="number" step="0.01" min="0" inputmode="decimal" value="4.00"><span class="u">%</span></div>
+        </div>
+        <div class="field">
+          <label for="eYears">대출기간</label>
+          <div class="inp"><select id="eYears"></select></div>
+        </div>
+        <div class="field full">
+          <span class="flabel">금리유형 (스트레스 DSR 가산금리)</span>
+          <div class="seg" id="segERtype"></div>
+        </div>
+        <div class="field full">
+          <span class="flabel">상환방식</span>
+          <div class="seg">
+            <label><input type="radio" name="eMethod" value="equal" checked><span>원리금균등</span></label>
+            <label><input type="radio" name="eMethod" value="principal"><span>원금균등</span></label>
+          </div>
+        </div>
+        <div class="field full"><div class="note" id="eRuleNote"></div></div>
       </div>
     </div>
 
@@ -688,7 +807,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v50';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v51';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -702,7 +821,9 @@ const DEFAULTS = {
   deem:   { credit: 5, other: 8, midpay: 25, guar: 10, secur: 8 },
   jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000, capMember: 50000 },
   inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 9.5, nhisRate: 3.595 },
-  debt:   { otherRate: 5.52 }
+  debt:   { otherRate: 5.52 },
+  // 주담대(자담): 수도권·규제지역 가계일반자금 물건당 상한 · 6.27 이전 조건 LTV · 다주택 LTV 차감
+  equity: { cap: 10000, pre: { metro: 70, reg: 50, local: 70 }, multiCut: 10 }
 };
 const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
 const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
@@ -846,6 +967,10 @@ function buildSegs() {
   $('#otherRateNote').innerHTML = `기타부채 추정금리 <b>${num(S.debt.otherRate).toFixed(2)}%</b> 자동 적용 <span style="color:var(--muted)">(⚙ 규제설정에서 변경)</span><br>DTI 계산 시 주택담보대출을 제외한 <b>기존 기타부채 이자</b>에 적용합니다. 신규 전세자금대출은 실제 금리로 계산합니다.`;
   $('#firstNote').textContent = `(규제지역 포함 LTV 최대 ${S.ltv.first}%)`;
   $('#seominNote').textContent = `(규제지역 LTV 최대 ${S.ltv.seomin}%)`;
+  const er = $('input[name=eRegion]:checked')?.value || 'metro', et = $('input[name=eRtype]:checked')?.value || 'variable';
+  $('#segERegion').innerHTML = segHTML('eRegion', Object.fromEntries(Object.entries(REGIONS).map(([k, v]) => [k, `${v}<small>LTV ${S.ltv[k]}%${k === 'local' ? '' : ' · 최대 ' + korMan(S.equity.cap)}</small>`])), er);
+  $('#segERtype').innerHTML = segHTML('eRtype', Object.fromEntries(Object.entries(RTYPES).map(([k, v]) => [k, `${v}<small>스트레스 +${fx(S.stress[k])}%p</small>`])), et);
+  $('#eMultiLbl').textContent = `LTV −${S.equity.multiCut}%p`;
   $('#segRtype').innerHTML = segHTML('mRtype', Object.fromEntries(Object.entries(RTYPES).map(([k, v]) => [k, `${v}<small>스트레스 +${fx(S.stress[k])}%p</small>`])), t);
   $('#jStressLbl').textContent = `DSR 적용 · 최대 ${korMan(S.jeonse.capOne)}`;
   $('#jMemberLbl').textContent = `DSR 적용 · 최대 ${korMan(S.jeonse.capMember)}`;
@@ -1128,7 +1253,7 @@ function renderMort() {
 
   const sch = schedule(L, rate, years, method, 6);
 
-  return `${reportHead('상담 결과 보고서', '주택담보대출 한도 분석')}
+  return `${reportHead('상담 결과 보고서', '주택구입자금 한도 분석')}
   <div class="rp-body">
     <p class="summary">${summary}${ready ? futNote : ''}</p>
     <div class="kpis">
@@ -1173,6 +1298,148 @@ function renderMort() {
     ${sec(4, '월 상환 예정표', `<div class="tw"><table>
       <tr><th>회차</th><th>원금</th><th>이자</th><th>합계</th><th>대출잔액</th></tr>
       ${sch.map(s => `<tr><td>${s.m}개월</td><td>${won(s.prin)}</td><td>${won(s.int)}</td><td><b>${won(s.total)}</b></td><td>${won(s.bal)}</td></tr>`).join('')}
+    </table></div>`, `실제 금리 ${rate.toFixed(2)}% · ${mName}`)}
+  </div>
+  ${reportFoot()}`;
+}
+
+/* ---------- 주담대(자담) 보고서 ----------
+   · 가계일반자금(생활안정자금): 수도권·규제지역은 1주택자만, 물건당 최대 1억 (현행 LTV)
+   · 전세퇴거자금: 2025.6.27 이전 구입(계약) + 세입자 6.27 이전 입주면 1억 초과 가능 · 6.27 이전 LTV
+     (주택가격 구간별 금액 상한 15억 6억 / 25억 4억 / 초과 2억은 6.27에 생긴 규제라 미적용)
+   · 다주택: LTV를 차감(기본 10%p)해서 진행
+   · 소요자금: 후속세입자 있음 = 보증금 차액 / 없음 = 보증금 / 본인 입주 = 보증금 − 실제 보유자금 */
+const ESRC = {
+  jeonse: ['지금 전세 거주', '내 전세보증금', '내 전세대출 잔액'],
+  sell:   ['다른 집 매도', '매도가격', '그 집 주담대 상환액'],
+  lease:  ['다른 집 전세 놓기', '받는 전세보증금', '갚아야 할 대출']
+};
+function equityCalc() {
+  const v = n => num($(n).value);
+  const region = $('input[name=eRegion]:checked').value, house = $('input[name=eHouse]:checked').value;
+  const evict = $('input[name=ePurpose]:checked').value === 'evict', mode = $('input[name=eEvict]:checked').value;
+  const exc = evict && $('#ePreBuy').checked && $('#ePreTenant').checked;
+  const capArea = region !== 'local';
+  const dep = v('#eDeposit'), next = mode === 'next' ? v('#eNextDep') : 0;
+  const src = $('input[name=eSrc]:checked').value, srcIn = v('#eSrcIn'), srcLoan = v('#eSrcLoan'), other = v('#eOther');
+  const own = Math.max(0, srcIn - srcLoan) + other;
+  const need = !evict ? Infinity : mode === 'next' ? Math.max(0, dep - next) : mode === 'none' ? dep : Math.max(0, dep - own);
+  const baseLtv = exc ? S.equity.pre[region] : S.ltv[region];
+  const ltv = Math.max(0, baseLtv - (house === 'multi' ? S.equity.multiCut : 0));
+  const blocked = !exc && capArea && house === 'multi';
+  return { region, house, evict, mode, exc, capArea, dep, next, src, srcIn, srcLoan, other, own, need, baseLtv, ltv, blocked,
+    price: v('#ePrice'), senior: v('#eSenior'), L: v('#eAmt'), rate: num($('#eRate').value), years: +$('#eYears').value,
+    rtype: $('input[name=eRtype]:checked').value, method: $('input[name=eMethod]:checked').value };
+}
+function syncEquityInputs(e) {
+  $('#eEvictBox').hidden = !e.evict;
+  $('#eNextBox').hidden = e.mode !== 'next';
+  $('#eSelfBox').hidden = e.mode !== 'self';
+  const [, a, b] = ESRC[e.src]; $('#eSrcInLbl').textContent = a; $('#eSrcLoanLbl').textContent = b;
+  $('#eExcNote').innerHTML = e.exc
+    ? `<span style="color:var(--ok);font-weight:600">✔ 6.27 이전 조건 충족</span> → 물건당 1억 상한 없이 <b>6.27 이전 LTV ${S.equity.pre[e.region]}%</b> 적용${e.house === 'multi' ? ` (다주택 −${S.equity.multiCut}%p → <b>${e.ltv}%</b>)` : ''}`
+    : '둘 중 하나라도 해당하지 않으면 <b>가계일반자금</b>과 같은 기준(수도권·규제지역 1주택자 · 물건당 최대 1억 · 현행 LTV)으로 계산합니다.';
+  $('#eNeedNote').innerHTML = !e.evict ? '' : e.mode === 'next'
+    ? `소요자금 = 내보내는 보증금 <b>${korMan(e.dep)}</b> − 후속세입자 보증금 <b>${korMan(e.next)}</b> = <b class="hl">${korMan(e.need)}</b>`
+    : e.mode === 'none' ? `소요자금 = 내보내는 세입자 보증금 <b class="hl">${korMan(e.need)}</b>`
+    : `보유자금 = ${ESRC[e.src][1]} <b>${korMan(e.srcIn)}</b> − ${ESRC[e.src][2]} <b>${korMan(e.srcLoan)}</b>${e.other ? ` + 기타 <b>${korMan(e.other)}</b>` : ''} = <b>${korMan(e.own)}</b><br>
+       소요자금 = 보증금 <b>${korMan(e.dep)}</b> − 보유자금 <b>${korMan(e.own)}</b> = <b class="hl">${korMan(e.need)}</b>${e.need === 0 ? ' <span style="color:var(--bad)">(보유자금으로 충분 → 퇴거자금 한도 0)</span>' : ''}`;
+  $('#eRuleNote').innerHTML = `· <b>가계일반자금</b>: 수도권·규제지역은 <b>1주택자만</b>, 물건당 최대 <b>${korMan(S.equity.cap)}</b> (지방은 금액 상한 없음)<br>
+    · <b>전세퇴거자금</b>: 2025.6.27 이전 구입(계약) + 세입자 6.27 이전 입주 → 1억 초과 가능, 6.27 이전 LTV (수도권 ${S.equity.pre.metro}% · 규제지역 ${S.equity.pre.reg}% · 지방 ${S.equity.pre.local}%)<br>
+    · <b>다주택</b>: LTV <b>−${S.equity.multiCut}%p</b><br>
+    · 주택가격 구간별 금액 상한(15억 이하 6억 등)은 구입자금 규제라 적용하지 않습니다<br>
+    · 이 주택의 기존 담보대출은 LTV 계산용입니다. DSR에 넣으려면 <b>③ 기존 대출</b>에도 입력하세요`;
+}
+function renderEquity() {
+  const e = equityCalc(), inc = income(), ex = existingSum();
+  syncEquityInputs(e);
+  const head = reportHead('상담 결과 보고서', `주담대(자담) 한도 분석 · ${e.evict ? '전세퇴거자금' : '가계일반자금'}`);
+  if (e.blocked) {
+    MB = { k: '주담대(자담)', v: '불가', st: 'bad', m: '—' };
+    return `${head}<div class="rp-body"><div class="block">⛔<strong>다주택자는 ${REGIONS[e.region]} 가계일반자금 불가</strong>
+      <p>수도권·규제지역의 가계일반자금(생활안정자금)은 1주택자만 가능합니다.<br>
+      2025.6.27 이전 구입(계약)·세입자 입주 조건의 <b>전세퇴거자금</b>이면 LTV −${S.equity.multiCut}%p로 진행할 수 있습니다.</p></div></div>${reportFoot()}`;
+  }
+  const { price, senior, L, rate, years, rtype, method } = e;
+  const mName = method === 'equal' ? '원리금균등' : '원금균등';
+  const add = S.stress[rtype], sRate = rate + add;
+  const newS = annualPay(L, sRate, years, method), newA = annualPay(L, rate, years, method);
+  const SDSR = inc ? (newS + ex.dsr) / inc * 100 : NaN;
+  const prior = senior + e.next;                                   // LTV 계산 시 먼저 빼는 금액 (유지 대출 + 후속세입자 보증금)
+  const LTV = price ? (L + prior) / price * 100 : NaN;
+  const unitS = annualPay(1, sRate, years, method);
+  const dsrMax = lim => inc ? Math.max(0, (inc * lim / 100 - ex.dsr) / unitS) : 0;
+  const ltvName = `${REGIONS[e.region]}${e.exc ? ' · 6.27 이전' : ''}${e.house === 'multi' ? ` · 다주택 −${S.equity.multiCut}%p` : ''}`;
+  const cLtv = { label: `LTV ${e.ltv}% (${ltvName})${prior ? ` − 선순위 ${korMan(prior)}` : ''}`, v: Math.max(0, price * e.ltv / 100 - prior), short: 'LTV' };
+  const capOn = !e.exc && e.capArea;
+  const cCap = { label: capOn ? `가계일반자금 물건당 상한 (${REGIONS[e.region]})` : e.exc ? '물건당 상한 (6.27 이전 전세퇴거 · 해당없음)' : '물건당 상한 (지방 해당없음)',
+    v: capOn ? S.equity.cap : Infinity, short: `물건당 ${korMan(S.equity.cap)}`, text: capOn ? korMan(S.equity.cap) : '해당없음' };
+  const cNeed = { label: `실제 소요자금 (${{ next: '보증금 차액', none: '보증금 전액', self: '본인 입주' }[e.mode]})`, v: e.need, short: '실제 소요자금' };
+  const cD1 = { label: `스트레스 DSR ${S.dsr.bank1}% (1금융권)`, v: dsrMax(S.dsr.bank1), short: `스트레스 DSR ${S.dsr.bank1}%` };
+  const cD2 = { label: `스트레스 DSR ${S.dsr.bank2}% (2금융권)`, v: dsrMax(S.dsr.bank2), short: `스트레스 DSR ${S.dsr.bank2}%` };
+  const base = e.evict ? [cLtv, cCap, cNeed] : [cLtv, cCap];
+  const f1 = pickMin([...base, cD1]), f2 = pickMin([...base, cD2]);
+  [...base, cD1].forEach(c => c.bind = c === f1);
+  const ready = inc && price;
+  MB = { k: '스트레스 DSR', v: pct(SDSR), st: dsrStatus(SDSR)[0], m: ready ? korMan(f1.v) : '—' };
+  const phrase = SDSR <= S.dsr.bank1 ? `1·2금융권 기준(${S.dsr.bank1}%·${S.dsr.bank2}%) <b>이내</b>입니다`
+    : SDSR <= S.dsr.bank2 ? `1금융권 기준(${S.dsr.bank1}%)은 <b>초과</b>하나 2금융권 기준(${S.dsr.bank2}%) 이내입니다` : `1·2금융권 기준을 <b>모두 초과</b>합니다`;
+  const summary = !ready ? '연소득과 주택가격을 입력하면 분석 결과가 표시됩니다.'
+    : `희망 대출금액 <b>${korMan(L)}</b> 기준 스트레스 DSR은 <span class="hl">${pct(SDSR)}</span>로 ${phrase}.
+       1금융권 기준 최대 <span class="hl">${korMan(f1.v)}</span>, 2금융권 기준 최대 <b>${korMan(f2.v)}</b>까지 가능하며, 한도를 결정하는 요인은 <b>${f1.short}</b>입니다.`;
+  const sch = schedule(L, rate, years, method, 6);
+  const needRows = !e.evict ? [] : e.mode === 'next' ? [['내보내는 세입자 보증금', korMan(e.dep)], ['후속세입자 보증금', korMan(e.next)], ['소요자금 (차액)', `<b>${korMan(e.need)}</b>`]]
+    : e.mode === 'none' ? [['내보내는 세입자 보증금', korMan(e.dep)], ['소요자금 (보증금 전액)', `<b>${korMan(e.need)}</b>`]]
+    : [['내보내는 세입자 보증금', korMan(e.dep)], [`보유자금 (${ESRC[e.src][0]})`, `${ESRC[e.src][1]} ${korMan(e.srcIn)} − ${ESRC[e.src][2]} ${korMan(e.srcLoan)}${e.other ? ` + 기타 ${korMan(e.other)}` : ''} = <b>${korMan(e.own)}</b>`],
+       ['소요자금 (보증금 − 보유자금)', `<b>${korMan(e.need)}</b>`], ['입주 조건', '전입 필수 · 2년 거주 요건']];
+  let n = 0;
+  return `${head}
+  <div class="rp-body">
+    <p class="summary">${summary}</p>
+    <div class="kpis">
+      ${kpi('스트레스 DSR', SDSR, dsrStatus(SDSR), 70, dsrMarks(), true)}
+      ${kpi(`LTV${prior ? ' (선순위 포함)' : ''}`, LTV, limitStatus(LTV, e.ltv), 100, [{ v: e.ltv, label: e.ltv + '%' }])}
+    </div>
+    <p class="small">1금융권은 DSR ${S.dsr.bank1}%, 2금융권은 DSR ${S.dsr.bank2}% 기준이 적용됩니다.</p>
+
+    ${sec(++n, '상담 조건', cond([
+      ['연소득', incomeText()],
+      ['자금 용도', e.evict ? `전세퇴거자금 · ${{ next: '후속세입자 있음', none: '후속세입자 없음', self: '본인 입주' }[e.mode]}` : '가계일반자금 (생활안정자금)'],
+      ...(e.evict ? [['6.27 이전 조건', e.exc ? '충족 (구입·세입자 입주 모두 6.27 이전)' : '미충족 → 가계일반자금 기준']] : []),
+      ['지역 · 보유', `${REGIONS[e.region]} · ${e.house === 'multi' ? '다주택' : '1주택'}`],
+      ['주택가격 (KB시세)', korMan(price)],
+      ...(senior ? [['유지할 선순위 대출', korMan(senior)]] : []),
+      ['대출 희망금액', korMan(L)],
+      ['금리 (실제)', `${rate.toFixed(2)}% · ${RTYPES[rtype]}`],
+      ['대출기간 · 상환', `${years}년 · ${mName}`],
+      ['기존 대출', exText(ex)]
+    ]))}
+
+    ${e.evict ? sec(++n, '실제 소요자금', cond(needRows)) : ''}
+
+    ${sec(++n, '최대 가능 대출금액', `
+      <div class="amount">
+        <div><small>1금융권 기준</small><strong>${ready ? korMan(f1.v) : '—'}</strong><em>제한 요인 · ${f1.short}</em></div>
+        <div class="b2"><small>2금융권 기준</small><strong>${ready ? korMan(f2.v) : '—'}</strong><em>제한 요인 · ${f2.short}</em></div>
+      </div>
+      ${maxTable([...base, cD1, cD2])}
+      ${ready && L > f1.v ? `<div class="alert">희망 대출금액 ${korMan(L)}이 1금융권 최대 가능금액을 초과합니다.</div>` : ''}`)}
+
+    ${sec(++n, '스트레스 DSR 산정', `
+      <div class="formula">
+        <span><b>실제 금리</b>${rate.toFixed(2)}%</span><i>+</i>
+        <span><b>스트레스 (${RTYPES[rtype]})</b>${fx(add)}%p</span><i>=</i>
+        <span class="res"><b>DSR 산정금리</b>${sRate.toFixed(2)}%</span>
+      </div>
+      <dl class="kv">
+        <dt>DSR 산정 연 원리금 (신규)</dt><dd>${korMan(newS)}</dd>
+        <dt>실제 연 원리금 (신규)</dt><dd>${korMan(newA)}</dd>
+        <dt>기존 대출 연 원리금</dt><dd>${korMan(ex.dsr)}</dd>
+      </dl>`)}
+
+    ${sec(++n, '월 상환 예정표', `<div class="tw"><table>
+      <tr><th>회차</th><th>원금</th><th>이자</th><th>합계</th><th>대출잔액</th></tr>
+      ${sch.map(x => `<tr><td>${x.m}개월</td><td>${won(x.prin)}</td><td>${won(x.int)}</td><td><b>${won(x.total)}</b></td><td>${won(x.bal)}</td></tr>`).join('')}
     </table></div>`, `실제 금리 ${rate.toFixed(2)}% · ${mName}`)}
   </div>
   ${reportFoot()}`;
@@ -1281,7 +1548,7 @@ function recalc() {
   syncRecogIncome();
   renderFuture(futureCalc());
   renderIncomeSum();
-  $('#results').innerHTML = tab === 'mort' ? renderMort() : renderJeonse();
+  $('#results').innerHTML = tab === 'mort' ? renderMort() : tab === 'equity' ? renderEquity() : renderJeonse();
   $('#mbK').textContent = MB.k; $('#mbV').textContent = MB.v; $('#mbV').className = MB.st; $('#mbM').textContent = MB.m;
 }
 
@@ -1297,6 +1564,8 @@ const SETTINGS = [
   ['주담대 금액 상한', [['cap.on.metro', '수도권 적용', 'chk'], ['cap.on.reg', '규제지역 적용', 'chk'], ['cap.on.local', '지방 적용', 'chk'],
     ['cap.t1', '구간1: 주택가격 이하', '만원'], ['cap.c1', '구간1 한도', '만원'], ['cap.t2', '구간2: 주택가격 이하', '만원'], ['cap.c2', '구간2 한도', '만원'], ['cap.c3', '구간2 초과 한도', '만원']]],
   ['DSR 간주 만기 (기존 대출)', [['deem.credit', '신용대출·마이너스통장', '년'], ['deem.other', '기타담보대출', '년'], ['deem.midpay', '중도금·이주비', '년'], ['deem.guar', '보증서담보대출', '년'], ['deem.secur', '유가증권담보대출', '년']]],
+  ['주담대(자담)', [['equity.cap', '가계일반자금 물건당 상한 (수도권·규제지역)', '만원'], ['equity.multiCut', '다주택 LTV 차감', '%p'],
+    ['equity.pre.metro', '6.27 이전 LTV · 수도권', '%'], ['equity.pre.reg', '6.27 이전 LTV · 규제지역', '%'], ['equity.pre.local', '6.27 이전 LTV · 지방', '%']]],
   ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (DSR 적용 대상)', '%'], ['stress.jeonse', '스트레스 가산 (DSR 적용 대상)', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원'], ['jeonse.capMember', '세대원 유주택 최대 한도', '만원']]]
 ];
 function openSettings(src = S) {
@@ -1341,6 +1610,7 @@ $$('.tabs button').forEach(b => b.onclick = () => {
   $$('.tabs button').forEach(x => x.classList.toggle('on', x === b));
   $('#panel-mort').hidden = tab !== 'mort';
   $('#panel-jeonse').hidden = tab !== 'jeonse';
+  $('#panel-equity').hidden = tab !== 'equity';
   recalc();
 });
 $('#btnPrint').onclick = () => window.print();
@@ -1358,6 +1628,9 @@ $('#btnReset').onclick = () => {
   }
   clearTimeout(resetArm); resetArm = 0; b.textContent = '초기화';
   ['#npsPay', '#nhisPay'].forEach(s => { $(s).value = ''; formatWon($(s)); });
+  ['#ePrice', '#eSenior', '#eAmt', '#eDeposit', '#eNextDep', '#eSrcIn', '#eSrcLoan', '#eOther'].forEach(s => { $(s).value = ''; formatMoney($(s)); });
+  $('#eRate').value = ''; $('#eYears').value = 30; $('#ePreBuy').checked = false; $('#ePreTenant').checked = false;
+  ['eHouse=one', 'ePurpose=general', 'eEvict=next', 'eSrc=jeonse', 'eMethod=equal'].forEach(x => { const [n, v] = x.split('='); $(`input[name=${n}][value=${v}]`).checked = true; });
   ['#income', '#spouse', '#cardUse', '#mPrice', '#mAmt', '#jDeposit', '#jAmt'].forEach(s => { $(s).value = ''; formatMoney($(s)); });
   ['#mRate', '#jRate'].forEach(s => $(s).value = '');
   $('#spouseOn').checked = false; $('#spouseOn').onchange({ target: $('#spouseOn') });
@@ -1409,6 +1682,7 @@ $('#btnSave').onclick = () => {
 /* ---------- 초기화 ---------- */
 fillYears($('#mYears'), 40, 30);
 fillYears($('#jYears'), 10, 2);
+fillYears($('#eYears'), 40, 30);
 buildSegs();
 { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('#cdate').value = d.toISOString().slice(0, 10); }
 $$('.money').forEach(formatMoney);
