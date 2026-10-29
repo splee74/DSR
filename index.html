@@ -474,7 +474,7 @@ dialog{border-radius:10px}
             <label><input type="radio" name="incType" value="인정소득"><span>인정소득<small>건보료·국민연금</small></span></label>
             <label><input type="radio" name="incType" value="신고소득"><span>신고소득<small>카드사용액 등</small></span></label>
           </div>
-          <div class="small" style="margin:0">※ 신고소득: 본인소득 없거나, 부부합산 소득24백만 이하</div>
+          <div class="small" style="margin:0">※ 신고소득: 본인 소득이 없거나, 부부합산 소득 2,400만원 이하</div>
         </div>
         <div class="field full" id="recogBox" hidden>
           <span class="flabel">3개월 평균 월 납부액 <small style="font-weight:400;color:var(--muted)">(본인 부담분)</small></span>
@@ -712,8 +712,8 @@ dialog{border-radius:10px}
           <span class="flabel">주택 보유</span>
           <div class="seg seg-even">
             <label><input type="radio" name="jHouse" value="none" checked><span>무주택<small>DSR 미적용</small></span></label>
-            <label><input type="radio" name="jHouse" value="one"><span>1주택<br>(본인,배우자)<small id="jStressLbl">DSR 적용</small></span></label>
-            <label><input type="radio" name="jHouse" value="member"><span>본인,배우자 무주택<br>세대원 유주택<small id="jMemberLbl">DSR 적용</small></span></label>
+            <label><input type="radio" name="jHouse" value="one"><span>1주택<br>(본인·배우자)<small id="jStressLbl">DSR 적용</small></span></label>
+            <label><input type="radio" name="jHouse" value="member"><span>본인·배우자 무주택<br>세대원 유주택<small id="jMemberLbl">DSR 적용</small></span></label>
             <label><input type="radio" name="jHouse" value="multi"><span class="x">다주택<small>전세대출 불가</small></span></label>
           </div>
         </div>
@@ -813,7 +813,7 @@ dialog{border-radius:10px}
   <div class="dlg-head"><h2 id="noticeTitle">공지사항</h2><button type="button" data-nclose aria-label="닫기">×</button></div>
   <div class="dlg-body">
     <section class="notice-sec">
-      <h3>&lt;우리은행 금리변경&gt; <span class="notice-when">11월부터 시행</span></h3>
+      <h3>&lt;우리은행 금리 변경&gt; <span class="notice-when">11월부터 시행</span></h3>
       <div class="notice-rates">
         <table><caption>주담대</caption>
           <tr><th>6개월 변동</th><td class="down">▼ 0.15% 인하</td></tr>
@@ -829,7 +829,7 @@ dialog{border-radius:10px}
     </section>
     <h3 class="notice-h">업데이트 안내</h3>
     <p class="notice-lead">새로 추가된 기능입니다.</p>
-    <div class="notice-item"><b>규정 안내 신설</b><span>주택구입자금 · 주담대(자담) · 전세자금대출 · DSR 규정을 금융위원회 발표 기준으로 정리 (상단 규정 버튼)</span></div>
+    <div class="notice-item"><b>규정 신설</b><span>주택구입자금 · 주담대(자담) · 전세자금대출 · DSR 규정을 금융위원회 발표 기준으로 정리 (상단 규정 버튼)</span></div>
     <div class="notice-item"><b>결과 공유 신설</b><span>결과지를 PDF로 만들어 카카오톡으로 바로 보내기 (상단 결과 공유 버튼)</span></div>
   </div>
   <div class="dlg-foot">
@@ -864,7 +864,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v68';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v69';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -886,7 +886,7 @@ const DEFAULTS = {
 };
 const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
 const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
-const HOUSES  = { none: '무주택', one: '1주택 (본인,배우자)', member: '본인,배우자 무주택 · 세대원 유주택', multi: '다주택' };
+const HOUSES  = { none: '무주택', one: '1주택 (본인·배우자)', member: '본인·배우자 무주택 · 세대원 유주택', multi: '다주택' };
 const LOAN_TYPES = {
   mort:    '주택담보대출',
   credit:  '신용대출',
@@ -941,7 +941,7 @@ function setPath(o, p, v) { const ks = p.split('.'), last = ks.pop(); ks.reduce(
 /* ---------- 포맷 ---------- */
 const num = v => { const n = parseFloat(String(v).replace(/,/g, '')); return isFinite(n) ? n : 0; };
 function korMan(v) {                       // 만원 → "3억 2,000만원"
-  if (!isFinite(v)) return '제한없음';
+  if (!isFinite(v)) return '제한 없음';
   v = Math.floor(v);
   if (v <= 0) return '0원';
   const eok = Math.floor(v / 10000), man = v % 10000;
@@ -1321,14 +1321,14 @@ function renderMort() {
   // 최대 가능 금액 (연 원리금은 대출금액에 비례 → 1원당 연 원리금으로 역산)
   const unitS = annualPay(1, sRate, years, method);
   const dsrMax = lim => inc ? Math.max(0, (inc * lim / 100 - ex.dsr) / unitS) : 0;
-  let cap = Infinity, capLabel = `금액 상한 (${REGIONS[region]} 해당없음)`;
+  let cap = Infinity, capLabel = `금액 상한 (${REGIONS[region]} 해당 없음)`;
   if (S.cap.on[region]) {
     if (price <= S.cap.t1) { cap = S.cap.c1; capLabel = `금액 상한 (주택가격 ${korMan(S.cap.t1)} 이하)`; }
     else if (price <= S.cap.t2) { cap = S.cap.c2; capLabel = `금액 상한 (주택가격 ${korMan(S.cap.t2)} 이하)`; }
     else { cap = S.cap.c3; capLabel = `금액 상한 (주택가격 ${korMan(S.cap.t2)} 초과)`; }
   }
   const cLtv = { label: `LTV ${ltvLim}% (${ltvName})`, v: price * ltvLim / 100, short: 'LTV' };
-  const cCap = { label: capLabel, v: cap, short: '금액 상한', text: isFinite(cap) ? korMan(cap) : '해당없음' };
+  const cCap = { label: capLabel, v: cap, short: '금액 상한', text: isFinite(cap) ? korMan(cap) : '해당 없음' };
   const cD1  = { label: `스트레스 DSR ${S.dsr.bank1}% (1금융권)`, v: dsrMax(S.dsr.bank1), short: `스트레스 DSR ${S.dsr.bank1}%` };
   const cD2  = { label: `스트레스 DSR ${S.dsr.bank2}% (2금융권)`, v: dsrMax(S.dsr.bank2), short: `스트레스 DSR ${S.dsr.bank2}%` };
   const f1 = pickMin([cLtv, cCap, cD1]), f2 = pickMin([cLtv, cCap, cD2]);
@@ -1473,8 +1473,8 @@ function renderEquity() {
   const ltvName = `${EREG[e.region]}${e.exc ? ' · 6.27 이전' : ''}${e.house === 'multi' ? ` · 다주택 −${S.equity.multiCut}%p` : ''}`;
   const cLtv = { label: `LTV ${e.ltv}% (${ltvName})${prior ? ` − 선순위 ${korMan(prior)}` : ''}`, v: Math.max(0, price * e.ltv / 100 - prior), short: 'LTV' };
   const capOn = !e.exc && e.capArea;
-  const cCap = { label: capOn ? `가계일반자금 물건당 상한 (${EREG[e.region]})` : e.exc ? '물건당 상한 (6.27 이전 전세퇴거 · 해당없음)' : '물건당 상한 (지방 해당없음)',
-    v: capOn ? S.equity.cap : Infinity, short: `물건당 ${korMan(S.equity.cap)}`, text: capOn ? korMan(S.equity.cap) : '해당없음' };
+  const cCap = { label: capOn ? `가계일반자금 물건당 상한 (${EREG[e.region]})` : e.exc ? '물건당 상한 (6.27 이전 전세퇴거 · 해당 없음)' : '물건당 상한 (지방 해당 없음)',
+    v: capOn ? S.equity.cap : Infinity, short: `물건당 ${korMan(S.equity.cap)}`, text: capOn ? korMan(S.equity.cap) : '해당 없음' };
   const cNeed = { label: `실제 소요자금 (${{ next: '보증금 차액', none: '보증금 전액', self: '본인 입주' }[e.mode]})`, v: e.need, short: '실제 소요자금' };
   const cD1 = { label: `스트레스 DSR ${S.dsr.bank1}% (1금융권)`, v: dsrMax(S.dsr.bank1), short: `스트레스 DSR ${S.dsr.bank1}%` };
   const cD2 = { label: `스트레스 DSR ${S.dsr.bank2}% (2금융권)`, v: dsrMax(S.dsr.bank2), short: `스트레스 DSR ${S.dsr.bank2}%` };
@@ -1578,7 +1578,7 @@ function renderJeonse() {
   const cDti = { label: `DTI ${dtiLim}%`, v: byLim(dtiLim, ex.dti, dRate), short: `DTI ${dtiLim}%` };
   const cDsr = dsrOn
     ? { label: `스트레스 DSR ${dsrLim}%`, v: byLim(dsrLim, ex.dsr, sRate), short: `스트레스 DSR ${dsrLim}%` }
-    : { label: oneLocal ? 'DSR (지방 1주택자 미적용)' : 'DSR (무주택자 미적용)', v: Infinity, text: '해당없음' };
+    : { label: oneLocal ? 'DSR (지방 1주택자 미적용)' : 'DSR (무주택자 미적용)', v: Infinity, text: '해당 없음' };
   const items = [cDep, cDsr, cDti];
   if (dsrOn) items.splice(1, 0, { label: `${who} 최대 한도`, v: capV, short: `${who} 한도 ${korMan(capV)}` });
   if (oneLocal) items.splice(1, 0, { label: '1주택자 한도 (지방 · 보증기관별 한도 확인)', v: Infinity, text: '보증기관 기준' });
