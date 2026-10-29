@@ -864,7 +864,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v66';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v67';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1864,31 +1864,39 @@ const loadScript = src => new Promise((ok, no) => {
   const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => no(new Error('load ' + src));
   document.head.appendChild(el);
 });
+// PDF 결과지는 A4 한 장: 여백·글자를 줄이고 보조 설명은 빼고, 그래도 길면 한 장에 맞게 축소
+const PDF_CSS = `
+#results .rp-head{padding:14px 22px 12px}#results .rp-head h2{font-size:20px}#results .rp-meta{font-size:12px;line-height:1.5}
+#results .rp-body{padding:0 22px 4px}
+#results .summary{margin-top:12px;font-size:13.5px;line-height:1.6}
+#results .kpis{margin-top:12px}#results .kpi{padding:8px 12px 6px}#results .kpi .v{font-size:22px;margin:0 0 2px}#results .kpi.main .v{font-size:30px}
+#results .gauge,#results .legend,#results .small:not([style*="--bad"]),#results .note{display:none}
+#results .rp-sec{margin-top:14px}#results .rp-sec h3{margin:0 0 6px;padding-bottom:5px;font-size:14.5px}
+#results .cond div{padding:5px 0;font-size:13px}
+#results .amount{margin-bottom:8px;gap:8px}#results .amount div{padding:8px 14px}#results .amount strong{font-size:21px}
+#results table{font-size:12.5px}#results td,#results th{padding:5px 4px}
+#results .formula{margin-bottom:6px;font-size:13px}#results .formula span{padding:4px 10px}
+#results .kv{font-size:13px}#results .kv dt,#results .kv dd{padding:5px 0}
+#results .alert{margin-top:8px;padding:6px 12px;font-size:12.5px}
+#results .rp-foot{margin-top:14px;padding:8px 22px 10px;font-size:11.5px}#results .rp-foot b{font-size:12.5px}`;
 async function makePdf() {
   for (const u of PDF_LIBS) await loadScript(u);
   // 화면 모드와 상관없이 밝은 결과지, 휴대폰에서도 A4에 맞는 폭으로
-  let cuts = [];   // 쪽을 나눌 수 있는 위치 (표 줄·항목 사이)
   const canvas = await window.html2canvas($('#results'), {
     scale: 2, backgroundColor: '#ffffff', windowWidth: 1100, logging: false,
     onclone: doc => {
       doc.documentElement.setAttribute('data-theme', 'light');
+      const st = doc.createElement('style'); st.textContent = PDF_CSS; doc.head.appendChild(st);
       const r = doc.getElementById('results');
       Object.assign(r.style, { width: '760px', boxShadow: 'none', borderRadius: '0', border: '0' });
-      const top = r.getBoundingClientRect().top;
-      cuts = [...r.querySelectorAll('tr, .rp-sec, .rp-sec > *, .kpis, .summary, .cond > div, .kv dt, .rp-foot, .small')].map(el => Math.round((el.getBoundingClientRect().top - top) * 2)).sort((a, b) => a - b);
+      // 월 상환 예정표는 3개월까지만
+      r.querySelectorAll('.rp-sec').forEach(x => { if (/월 상환 예정표/.test(x.querySelector('h3')?.textContent || '')) x.querySelectorAll('tr').forEach((tr, i) => { if (i > 3) tr.remove(); }); });
     }
   });
   const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
-  const m = 10, iw = 210 - m * 2, ih = 297 - m * 2, pxPerMm = canvas.width / iw, pageH = Math.floor(ih * pxPerMm);
-  for (let y = 0, n = 0, h; y < canvas.height; y += h, n++) {
-    const end = y + pageH, cut = cuts.filter(b => b > y + pageH * 0.5 && b <= end).pop();
-    h = end >= canvas.height ? canvas.height - y : (cut || pageH + y) - y;
-    const c = document.createElement('canvas');
-    c.width = canvas.width; c.height = h;
-    c.getContext('2d').drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
-    if (n) pdf.addPage();
-    pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', m, m, iw, h / pxPerMm);
-  }
+  const m = 10, iw = 210 - m * 2, ih = 297 - m * 2;
+  const h = canvas.height * iw / canvas.width, k = Math.min(1, ih / h);   // 길면 한 장에 맞게 축소
+  pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', m + iw * (1 - k) / 2, m, iw * k, h * k);
   return pdf.output('blob');
 }
 const pdfName = () => {
