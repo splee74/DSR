@@ -337,6 +337,9 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
 <script>
 // 위 메뉴에서 고른 항목만 보여줌 (주소 #area 등으로 바로 열기 가능)
 (() => {
+  // 계산기 대조는 관리자 기기(은행금리 관리자 토큰이 있는 기기)에서만
+  let admin = false; try { admin = !!localStorage.getItem('bankAdminToken'); } catch (e) {}
+  if (!admin) { document.querySelector('#check')?.remove(); document.querySelector('.jump a[href="#check"]')?.remove(); }
   const secs = [...document.querySelectorAll('main > section.card')], links = [...document.querySelectorAll('.jump a')];
   const ids = secs.map(x => x.id);
   function show(scroll) {

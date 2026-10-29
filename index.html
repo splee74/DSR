@@ -242,8 +242,9 @@ dialog.notice{width:min(420px,calc(100vw - 32px))}
 @media (max-width:640px){#btnPrint{display:none}
   /* 휴대폰: 버튼 5개를 3개 · 2개 두 줄로 */
   .actions{grid-auto-flow:row;grid-template-columns:repeat(6,minmax(0,1fr))}
-  .actions button{grid-column:span 2}
-  .actions #btnPdf,.actions #btnFeedback{grid-column:span 3}}
+  .actions button{grid-column:span 3}
+  .actions.admin button{grid-column:span 2}
+  .actions.admin #btnPdf,.actions.admin #btnFeedback{grid-column:span 3}}
 .notice-lead{margin:0 0 12px;color:var(--sub);font-size:14px}
 .notice-sec{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:18px}
 .notice-sec h3,.notice-h{margin:0 0 10px;font-size:15.5px;font-weight:800}
@@ -326,8 +327,10 @@ dialog.notice{width:min(420px,calc(100vw - 32px))}
 .tabs button.on{background:transparent;box-shadow:none;color:var(--text);border-bottom-color:var(--brand)}
 /* 휴대폰: 탭 4개가 화면 폭에 맞게 줄어듦. 글꼴을 크게 쓴 기기에서도 페이지가 넓어지지 않도록 탭 줄 안에서만 밀어 보기 */
 @media (max-width:560px){.tabbar{gap:0;overflow-x:auto;scrollbar-width:none}.tabbar::-webkit-scrollbar{display:none}.tabbar .tabs{flex:1 0 auto;gap:0}.tabbar .tabs button,.tabbar .policy-link{flex:1 0 auto;justify-content:center;padding-left:clamp(3px,1.4vw,6px);padding-right:clamp(3px,1.4vw,6px);font-size:clamp(12px,3.5vw,15px);white-space:nowrap}}
+.tabbar .policy-link.hot{align-self:center;margin-left:6px;padding:8px 14px;border:0;border-radius:6px;background:var(--brand);color:#fff}
+.tabbar .policy-link.hot:hover{background:var(--brand-dark);color:#fff}
 /* 탭이 5개라 휴대폰에서는 대출 탭 3개 윗줄 · 정책자금·은행금리비교 아랫줄 */
-@media (max-width:560px){.tabbar{flex-wrap:wrap;overflow:visible}.tabbar .tabs{flex:1 1 100%}.tabbar .tabs button{flex:1 1 0}.tabbar .policy-link{flex:1 1 0;border-top:1px solid var(--line);padding-top:10px;padding-bottom:9px;font-size:13.5px}}
+@media (max-width:560px){.tabbar{flex-wrap:wrap;overflow:visible}.tabbar .tabs{flex:1 1 100%}.tabbar .tabs button{flex:1 1 0}.tabbar .policy-link{flex:1 1 0;border-top:1px solid var(--line);padding-top:10px;padding-bottom:9px;font-size:13.5px}.tabbar .policy-link.hot{align-self:stretch;margin:6px 0 6px 6px;padding-top:8px;padding-bottom:8px;border-top:0}}
 .actions{align-self:center}
 .actions button{border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--sub)}
 .actions button:hover{background:var(--soft)}
@@ -399,7 +402,7 @@ dialog{border-radius:10px}
       <div><h1>DSR · DTI 계산기</h1><span>주택구입자금 · 주담대(자담) · 전세자금대출 상담</span></div>
     </div>
     <div class="actions">
-      <button type="button" id="btnSettings">⚙ 규제설정</button>
+      <button type="button" id="btnSettings" hidden>⚙ 규제설정</button>
       <button type="button" id="btnReset">초기화</button>
       <button type="button" id="btnRules">규정 안내</button>
       <button type="button" id="btnPrint">결과지 인쇄</button>
@@ -413,7 +416,7 @@ dialog{border-radius:10px}
         <button type="button" data-tab="jeonse">전세자금대출</button>
       </nav>
       <a class="policy-link" href="policy.html">정책자금</a>
-      <a class="policy-link" href="bank.html">은행금리비교</a>
+      <a class="policy-link hot" href="bank.html">은행금리비교</a>
     </div>
   </div>
 </header>
@@ -841,7 +844,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v59';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v60';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -886,8 +889,31 @@ function merge(a, b) {
   return a;
 }
 let S = clone(DEFAULTS);
-try { const v = JSON.parse(localStorage.getItem('dsrcalc.settings')); if (v) S = merge(clone(DEFAULTS), v); } catch (e) {}
-function saveSettings() { try { localStorage.setItem('dsrcalc.settings', JSON.stringify(S)); } catch (e) {} }
+// 규제 설정은 관리자가 저장한 settings.json(사이트)을 모두가 함께 씀 · 관리자 기기 = 은행금리 관리자 토큰이 있는 기기
+const ADMIN_KEY = 'bankAdminToken', SET_FILE = 'settings.json', REPO = 'splee74/DSR';
+const adminToken = () => { try { return localStorage.getItem(ADMIN_KEY) || ''; } catch (e) { return ''; } };
+// 예전 기기별 설정(dsrcalc.settings)은 지우지 않음: 사이트에 아직 settings.json 이 없을 때 관리자 기기에서만 출발값으로 씀
+const oldLocal = () => { try { return JSON.parse(localStorage.getItem('dsrcalc.settings')); } catch (e) { return null; } };
+if (adminToken() && oldLocal()) S = merge(clone(DEFAULTS), oldLocal());
+async function loadSettings() {
+  if (!/^https?:$/.test(location.protocol)) return false;
+  try {
+    const r = await fetch(SET_FILE + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return false;   // 아직 settings.json 이 없으면 기본값(관리자 기기는 예전 설정)
+    S = merge(clone(DEFAULTS), await r.json());
+    return true;
+  } catch (e) { return false; }
+}
+const b64s = x => btoa(unescape(encodeURIComponent(x)));
+async function saveSettings() {
+  const h = { Authorization: 'Bearer ' + adminToken(), Accept: 'application/vnd.github+json' };
+  const url = `https://api.github.com/repos/${REPO}/contents/${SET_FILE}`;
+  let sha;
+  const g = await fetch(url, { headers: h, cache: 'no-store' });
+  if (g.ok) sha = (await g.json()).sha; else if (g.status !== 404) throw new Error('GitHub 확인 실패 (' + g.status + ')');
+  const p = await fetch(url, { method: 'PUT', headers: h, body: JSON.stringify({ message: '규제 설정 변경', content: b64s(JSON.stringify(S, null, 1) + '\n'), sha }) });
+  if (!p.ok) throw new Error(p.status === 409 ? '그사이 다른 곳에서 저장되었습니다. 다시 저장해 주세요.' : '저장 실패 (' + p.status + '). 관리자 토큰을 확인하세요.');
+}
 const getPath = (o, p) => p.split('.').reduce((a, k) => a[k], o);
 function setPath(o, p, v) { const ks = p.split('.'), last = ks.pop(); ks.reduce((a, k) => a[k], o)[last] = v; }
 
@@ -1641,7 +1667,7 @@ function openSettings(src = S) {
     items.map(([p, lbl, u]) => u === 'chk'
       ? `<label class="chk"><input type="checkbox" data-p="${p}" ${getPath(src, p) ? 'checked' : ''}> ${lbl}</label>`
       : `<div class="field"><label>${lbl}</label><div class="inp"><input type="number" step="any" data-p="${p}" value="${getPath(src, p)}"><span class="u">${u}</span></div></div>`).join('')
-  }</div></div>`).join('') + '<p class="note">설정값은 이 PC의 브라우저에 저장됩니다. 규제가 바뀌면 여기서 수정하세요.</p>';
+  }</div></div>`).join('') + '<p class="note">관리자 전용 · <b>저장하면 1~2분 뒤 모든 사용자의 계산기에 적용</b>됩니다. 규제가 바뀌면 여기서 수정하세요.</p><p class="note" id="setMsg" style="color:var(--bad)"></p>';
   if (!$('#dlg').open) $('#dlg').showModal();
 }
 
@@ -1710,7 +1736,11 @@ $('#btnReset').onclick = () => {
   $('input[name=jHouse][value=none]').checked = true;
   loans = []; renderLoans();
 };
-$('#btnSettings').onclick = () => openSettings();
+$('#btnSettings').onclick = () => { if (adminToken()) openSettings(); };
+$('#btnSettings').hidden = !adminToken();
+$('.actions').classList.toggle('admin', !!adminToken());
+// 사이트의 규제 설정을 받아 다시 계산
+loadSettings().then(ok => { if (ok) { buildSegs(); recalc(); } });
 $('#btnRules').onclick = () => { location.href = 'rules.html'; };
 
 /* ---------- 의견·문의 (Netlify Forms로 전송) ---------- */
@@ -1744,9 +1774,13 @@ $('#fbForm').addEventListener('submit', async e => {
 });
 $$('#dlg [data-close]').forEach(b => b.onclick = () => $('#dlg').close());
 $('#btnDefaults').onclick = () => openSettings(DEFAULTS);
-$('#btnSave').onclick = () => {
+$('#btnSave').onclick = async () => {
+  const prev = clone(S), btn = $('#btnSave');
   $$('#dlgBody [data-p]').forEach(el => setPath(S, el.dataset.p, el.type === 'checkbox' ? el.checked : num(el.value)));
-  saveSettings(); buildSegs(); $('#dlg').close(); recalc();
+  btn.disabled = true; btn.textContent = '저장 중…';
+  try { await saveSettings(); buildSegs(); $('#dlg').close(); recalc(); }
+  catch (err) { S = prev; $('#setMsg').textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = '저장'; }
 };
 
 /* ---------- 입력 내용 옮기기 (삼성 인터넷 → 크롬) ----------
