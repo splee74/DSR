@@ -239,7 +239,11 @@ dialog.notice{width:min(420px,calc(100vw - 32px))}
 #pdfChrome{text-decoration:none;display:inline-flex;align-items:center}
 .pdf-msg{margin:0;font-size:14.5px;line-height:1.7;word-break:keep-all}
 .pdf-msg b{word-break:break-all}
-@media (max-width:640px){#btnPrint{display:none}}
+@media (max-width:640px){#btnPrint{display:none}
+  /* 휴대폰: 버튼 5개를 3개 · 2개 두 줄로 */
+  .actions{grid-auto-flow:row;grid-template-columns:repeat(6,minmax(0,1fr))}
+  .actions button{grid-column:span 2}
+  .actions #btnPdf,.actions #btnFeedback{grid-column:span 3}}
 .notice-lead{margin:0 0 12px;color:var(--sub);font-size:14px}
 .notice-sec{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:18px}
 .notice-sec h3,.notice-h{margin:0 0 10px;font-size:15.5px;font-weight:800}
@@ -397,6 +401,7 @@ dialog{border-radius:10px}
     <div class="actions">
       <button type="button" id="btnSettings">⚙ 규제설정</button>
       <button type="button" id="btnReset">초기화</button>
+      <button type="button" id="btnRules">규정 안내</button>
       <button type="button" id="btnPrint">결과지 인쇄</button>
       <button type="button" id="btnPdf">PDF 공유</button>
       <button type="button" id="btnFeedback" class="fb-box">의견·문의</button>
@@ -836,7 +841,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v58';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v59';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1706,6 +1711,7 @@ $('#btnReset').onclick = () => {
   loans = []; renderLoans();
 };
 $('#btnSettings').onclick = () => openSettings();
+$('#btnRules').onclick = () => { location.href = 'rules.html'; };
 
 /* ---------- 의견·문의 (Netlify Forms로 전송) ---------- */
 const FEEDBACK_ENDPOINT = 'https://rad-klepon-472426.netlify.app/';
