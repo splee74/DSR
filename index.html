@@ -236,6 +236,7 @@ dialog.notice{width:min(420px,calc(100vw - 32px))}
 .evict{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--soft)}
 .evict .chk{display:flex;margin:4px 0}
 .warn-note{color:var(--bad)}
+#pdfChrome{text-decoration:none;display:inline-flex;align-items:center}
 .pdf-msg{margin:0;font-size:14.5px;line-height:1.7;word-break:keep-all}
 .pdf-msg b{word-break:break-all}
 @media (max-width:640px){#btnPrint{display:none}}
@@ -816,6 +817,7 @@ dialog{border-radius:10px}
   <div class="dlg-body"><p class="pdf-msg" id="pdfMsg"></p></div>
   <div class="dlg-foot">
     <button type="button" class="btn" id="pdfSave">PDF 저장</button>
+    <a class="btn primary" id="pdfChrome" href="#" hidden>크롬에서 열기</a>
     <button type="button" class="btn primary" id="pdfShare">카톡으로 공유</button>
   </div>
 </dialog>
@@ -834,7 +836,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v56';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v57';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1808,19 +1810,32 @@ const pdfName = () => {
   return `${kind}_결과지_${who}_${$('#cdate').value || ''}.pdf`;
 };
 let pdfFile = null;
+// 기기 구분: 삼성 인터넷은 PDF 파일 공유를 막음 · PC 카카오톡은 공유 목록에 없음
+const UA = navigator.userAgent;
+const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(UA) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
+const IS_SAMSUNG = /SamsungBrowser/.test(UA);
+// 삼성 인터넷에서 같은 주소를 크롬으로 여는 링크
+const chromeLink = () => `intent://${location.host}${location.pathname}#Intent;scheme=https;package=com.android.chrome;end`;
 $('#btnPdf').onclick = async () => {
   const d = $('#pdfDlg'), msg = $('#pdfMsg');
-  $('#pdfShare').hidden = false; $('#pdfShare').disabled = $('#pdfSave').disabled = true;
+  $('#pdfShare').hidden = false; $('#pdfChrome').hidden = true; $('#pdfShare').disabled = $('#pdfSave').disabled = true;
   msg.textContent = '결과지를 PDF로 만드는 중입니다…';
   if (!d.open) d.showModal();
   try {
     const blob = await makePdf();
     pdfFile = new File([blob], pdfName(), { type: 'application/pdf' });
-    const can = !!(navigator.canShare && navigator.canShare({ files: [pdfFile] }));
+    const can = IS_MOBILE && !IS_SAMSUNG && !!(navigator.canShare && navigator.canShare({ files: [pdfFile] }));
     $('#pdfShare').hidden = !can; $('#pdfShare').disabled = false; $('#pdfSave').disabled = false;
-    msg.innerHTML = `<b>${pdfFile.name.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</b> (${Math.max(1, Math.round(blob.size / 1024))}KB)<br>` + (can
+    $('#pdfChrome').hidden = !IS_SAMSUNG; $('#pdfChrome').href = chromeLink();
+    $('#pdfSave').classList.toggle('primary', !can && !IS_SAMSUNG);
+    const tip = IS_SAMSUNG
+      ? '<b>삼성 인터넷</b>은 PDF 파일을 카카오톡으로 넘기는 것을 막고 있습니다.<br>· <b>[크롬에서 열기]</b>로 연 뒤 다시 PDF 공유를 누르거나<br>· <b>[PDF 저장]</b> 후 알림창(또는 내 파일 → 다운로드)에서 파일을 눌러 <b>공유 → 카카오톡</b>을 고르세요.'
+      : !IS_MOBILE
+      ? '<b>[PDF 저장]</b>을 누른 뒤, 저장된 파일을 <b>카카오톡 PC 대화창에 끌어다 놓으면</b> 전송됩니다.'
+      : '';
+    msg.innerHTML = `<b>${pdfFile.name.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</b> (${Math.max(1, Math.round(blob.size / 1024))}KB)<br>` + (tip || (can
       ? '<b>[카톡으로 공유]</b>를 누른 뒤 <b>카카오톡 → 나와의 채팅</b>(또는 고객 채팅방)을 고르세요.'
-      : '이 기기는 공유 기능을 지원하지 않습니다. <b>[PDF 저장]</b> 후 카카오톡 PC 창에 파일을 끌어다 놓으세요.');
+      : '이 브라우저는 파일 공유를 지원하지 않습니다. <b>[PDF 저장]</b> 후 파일을 카카오톡으로 보내 주세요.'));
   } catch (err) {
     msg.textContent = 'PDF를 만들지 못했습니다. 인터넷 연결을 확인한 뒤 다시 눌러 주세요.';
   }
