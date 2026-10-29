@@ -844,7 +844,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v62';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v63';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -857,7 +857,7 @@ const DEFAULTS = {
   dsr:    { bank1: 40, bank2: 50 },
   dti:    { metro: 60, reg: 40, local: 60 },
   cap:    { on: { metro: true, reg: true, local: false }, t1: 150000, c1: 60000, t2: 250000, c2: 40000, c3: 20000 },
-  deem:   { credit: 5, other: 8, midpay: 25, guar: 10, secur: 8 },
+  deem:   { credit: 5, nonhouse: 10, office: 8, midpay: 25, guar: 10, secur: 8 },
   jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000, capMember: 50000 },
   inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 9.5, nhisRate: 3.595 },
   debt:   { otherRate: 5.52 },
@@ -872,7 +872,8 @@ const LOAN_TYPES = {
   credit:  '신용대출',
   minus:   '마이너스통장',
   jeonse:  '전세자금대출',
-  other:   '기타담보대출 (비주택·오피스텔 등)',
+  other:   '기타담보대출 (비주택)',
+  office:  '오피스텔담보대출',
   deposit: '예적금담보대출',
   guar:    '보증서담보대출',
   secur:   '유가증권담보대출',
@@ -974,7 +975,8 @@ function loanCalc(l) {
     case 'credit': case 'minus':
       return { dsr: amt / S.deem.credit + interest, dti: dtiInt, dtiDesc, desc: `${l.type === 'minus' ? '한도' : '원금'}÷${S.deem.credit}년 + 이자` };
     case 'jeonse':  return { dsr: interest, dti: dtiInt, dtiDesc, desc: '이자만 반영' };
-    case 'other':   return { dsr: amt / S.deem.other + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.other}년 + 이자` };
+    case 'other':   return { dsr: amt / S.deem.nonhouse + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.nonhouse}년 + 이자` };
+    case 'office':  return { dsr: amt / S.deem.office + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.office}년 + 이자` };
     case 'deposit': return { dsr: interest, dti: dtiInt, dtiDesc, desc: '이자만 반영' };
     case 'guar':    return { dsr: amt / S.deem.guar + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.guar}년 + 이자` };
     case 'secur':   return { dsr: amt / S.deem.secur + interest, dti: dtiInt, dtiDesc, desc: `원금÷${S.deem.secur}년 + 이자` };
@@ -1657,7 +1659,7 @@ const SETTINGS = [
   ['DTI 한도 (주담대)', [['dti.metro', '수도권', '%'], ['dti.reg', '규제지역', '%'], ['dti.local', '지방', '%']]],
   ['주담대 금액 상한', [['cap.on.metro', '수도권 적용', 'chk'], ['cap.on.reg', '규제지역 적용', 'chk'], ['cap.on.local', '지방 적용', 'chk'],
     ['cap.t1', '구간1: 주택가격 이하', '만원'], ['cap.c1', '구간1 한도', '만원'], ['cap.t2', '구간2: 주택가격 이하', '만원'], ['cap.c2', '구간2 한도', '만원'], ['cap.c3', '구간2 초과 한도', '만원']]],
-  ['DSR 간주 만기 (기존 대출)', [['deem.credit', '신용대출·마이너스통장', '년'], ['deem.other', '기타담보대출', '년'], ['deem.midpay', '중도금·이주비', '년'], ['deem.guar', '보증서담보대출', '년'], ['deem.secur', '유가증권담보대출', '년']]],
+  ['DSR 간주 만기 (기존 대출)', [['deem.credit', '신용대출·마이너스통장', '년'], ['deem.nonhouse', '기타담보대출 (비주택)', '년'], ['deem.office', '오피스텔담보대출', '년'], ['deem.midpay', '중도금·이주비', '년'], ['deem.guar', '보증서담보대출', '년'], ['deem.secur', '유가증권담보대출', '년']]],
   ['주담대(자담)', [['equity.cap', '가계일반자금 물건당 상한 (수도권·규제지역)', '만원'], ['equity.excDti', '6.27 이전 전세퇴거 예외 DTI 한도', '%'], ['equity.multiCut', '다주택 LTV 차감', '%p'],
     ['equity.preLtv.metro', '6.27 이전 LTV · 수도권', '%'], ['equity.preLtv.spec', '6.27 이전 LTV · 강남·서초·송파·용산', '%'], ['equity.preLtv.reg', '6.27 이전 LTV · 그 외 규제지역', '%'], ['equity.preLtv.local', '6.27 이전 LTV · 지방', '%']]],
   ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (DSR 적용 대상)', '%'], ['stress.jeonse', '스트레스 가산 (DSR 적용 대상)', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원'], ['jeonse.capMember', '세대원 유주택 최대 한도', '만원']]]
