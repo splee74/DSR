@@ -92,7 +92,7 @@ async function bonds(day) {
 
 const next = { ...prev }, errors = [], history = { ...(prev.history || {}) };
 const FILL = process.argv[3];
-if (MODE === 'fill' && !/^d{4}-dd-dd$/.test(FILL || '')) { console.error('사용법: node fetch-base-rates.mjs fill 2026-10-30'); process.exit(1); }
+if (MODE === 'fill' && !/^\d{4}-\d\d-\d\d$/.test(FILL || '')) { console.error('사용법: node fetch-base-rates.mjs fill 2026-10-30'); process.exit(1); }
 const jobs = { cofix: [cofix], bond: [() => bonds()], all: [cofix, () => bonds()], fill: [() => bonds(FILL)] }[MODE];
 if (!jobs) { console.error('사용법: node fetch-base-rates.mjs cofix | bond | all | fill 날짜'); process.exit(1); }
 for (const job of jobs) {
