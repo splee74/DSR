@@ -3,8 +3,11 @@ name: 기준금리 자동 수집
 on:
   schedule:
     - cron: '1 6 15-21 * *'  # COFIX: 매월 15~21일 15:01 (한국 시간) — 공시일 하루만 실제 조회
-    - cron: '0 10 * * 1-5'   # 금융채: 평일 19:00 (한국 시간) 하루 한 번
+    - cron: '30 9 * * 1-5'   # 금융채: 평일 18:30 시작 → 19:00까지 기다렸다가 조회 (GitHub 예약 실행이 늦게 시작되는 것 대비)
+    - cron: '30 11 * * 1-5'  # 금융채 예비: 평일 20:30 — 오늘 값이 이미 있으면 조회하지 않음
   workflow_dispatch:          # GitHub 화면에서 바로 실행 (COFIX·금융채 모두)
+
+concurrency: base-rates       # 두 번 겹쳐 돌지 않게
 
 permissions:
   contents: write
@@ -13,13 +16,14 @@ permissions:
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
       - name: 기준금리 가져오기
-        run: node scripts/fetch-base-rates.mjs ${{ github.event.schedule == '1 6 15-21 * *' && 'cofix' || github.event.schedule == '0 10 * * 1-5' && 'bond' || 'all' }}
+        run: node scripts/fetch-base-rates.mjs ${{ github.event.schedule == '1 6 15-21 * *' && 'cofix' || github.event.schedule && 'bond' || 'all' }}
       - name: 바뀐 경우에만 저장
         id: save
         run: |
