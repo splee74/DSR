@@ -4,7 +4,7 @@
 //                 금융채 I(은행채) · 무보증 · AAA · 평가사 평균
 // GitHub Actions에서 실행:  node fetch-base-rates.mjs cofix | bond | all(직접 실행)
 //  · cofix : 매월 15~21일 15:01 실행되지만, 실제 조회는 "15일 이후 첫 영업일" 하루만
-//  · bond  : 평일 18:30에 시작해 19:00까지 기다린 뒤 오늘 값만 한 번 조회 (20:30 예비 실행은 오늘 값이 있으면 건너뜀)
+//  · bond  : 평일 19:00, 오늘 값만 한 번 조회
 // 실패한 값은 이전 값을 유지.
 import fs from 'node:fs';
 import { readSheet } from './xlsx-lite.mjs';
@@ -77,10 +77,6 @@ async function bondDay(day) {
 async function bonds() {
   // 평일 19:00에 오늘 값만 한 번 조회 (과거 자료는 KOFIA 엑셀로 넣어 둠). 공휴일이면 자료가 없어 건너뜀
   const todayDate = ymd(kstNow());
-  if (MODE === 'bond' && prev.bond5?.date === todayDate) { console.log(`금융채: 오늘(${todayDate}) 값이 이미 있음 — 조회 안 함`); return {}; }
-  // 19:00 전에 시작했으면 19:00까지 기다림 (KOFIA 공시 후 조회)
-  const k = kstNow(), wait = Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate(), 19) - k.getTime();
-  if (MODE === 'bond' && wait > 0) { console.log(`금융채: 19:00까지 ${Math.ceil(wait / 60000)}분 기다림`); await new Promise(r => setTimeout(r, wait)); }
   const today = await bondDay(todayDate);
   if (!today) throw new Error(todayDate + ' 금융채 자료 없음 (공휴일 등) — 이전 값 유지');
   const out = {};
