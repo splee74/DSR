@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30T15:48:19.693Z",
+ "updated": "2026-10-30T15:49:07.441Z",
  "data": {
   "mort": {
    "variable": {
@@ -13,7 +13,7 @@
       "term": 6
      },
      "woori": {
-      "rate": 4.58,
+      "rate": 4.69,
       "fee": 0.73,
       "idx": "cofixNewBal",
       "term": 12
@@ -90,7 +90,7 @@
       "fee": 0.95
      },
      "woori": {
-      "rate": 5.4,
+      "rate": 5.69,
       "fee": 0.93
      },
      "shinhan": {
