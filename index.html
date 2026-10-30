@@ -813,6 +813,10 @@ dialog{border-radius:10px}
   <div class="dlg-head"><h2 id="noticeTitle">공지사항</h2><button type="button" data-nclose aria-label="닫기">×</button></div>
   <div class="dlg-body">
     <section class="notice-sec">
+      <h3>&lt;하나은행 MCI · MCG 가입&gt; <span class="notice-when">11월 2일부터</span></h3>
+      <p class="notice-lead" style="margin:0;word-break:keep-all">하나은행 주택담보대출 <b>MCI, MCG 가입 가능</b></p>
+    </section>
+    <section class="notice-sec">
       <h3>&lt;우리은행 금리 변경&gt; <span class="notice-when">11월부터 시행</span></h3>
       <div class="notice-rates">
         <table><caption>주담대</caption>
@@ -864,7 +868,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v69';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v70';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1839,7 +1843,7 @@ let RESTORED = false;
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {}); // pwa
 
 /* 업데이트 안내: 처음 열 때 한 번 (같은 창에서 다른 페이지 갔다 와도 다시 안 뜸) */
-const NOTICE_ID = 'notice-2026-10-29-rules-pdf';
+const NOTICE_ID = 'notice-2026-10-30-hana-mci';
 (() => {
   const d = $('#noticeDlg');
   let seen = false;
