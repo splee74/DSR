@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29T14:49:51.636Z",
+ "updated": "2026-10-30T01:12:53.782Z",
  "data": {
   "mort": {
    "variable": {
@@ -52,7 +52,7 @@
    },
    "mixed": {
     "sample": false,
-    "asof": "2026-10-29",
+    "asof": "2026-10-30",
     "banks": {
      "kb": {
       "fee": 0.75,
@@ -67,7 +67,7 @@
       "stop": true
      },
      "hana": {
-      "rate": 5.35,
+      "rate": 5.31,
       "fee": 0.65
      },
      "ibk": {
@@ -83,7 +83,7 @@
    },
    "periodic": {
     "sample": false,
-    "asof": "2026-10-29",
+    "asof": "2026-10-30",
     "banks": {
      "kb": {
       "rate": 5.36,
@@ -101,15 +101,15 @@
       "stop": true
      },
      "ibk": {
-      "rate": 5.36,
+      "rate": 5.32,
       "fee": 0.74
      },
      "nh": {
-      "rate": 5.26,
+      "rate": 5.25,
       "fee": 0.93
      },
      "xmvrp9uh3": {
-      "rate": 5.34,
+      "rate": 5.33,
       "fee": 0.4
      }
     }
