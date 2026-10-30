@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30T01:12:53.782Z",
+ "updated": "2026-10-30T10:13:21.883Z",
  "data": {
   "mort": {
    "variable": {
@@ -474,8 +474,7 @@
      "rate": 0.2
     },
     {
-     "name": "MCI,MCG 가입불가",
-     "on": false
+     "name": "MCI,MCG 가입 가능"
     }
    ],
    "nh": [
