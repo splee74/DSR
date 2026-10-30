@@ -1,10 +1,10 @@
 {
- "updated": "2026-10-30T10:13:21.883Z",
+ "updated": "2026-10-30T15:48:19.693Z",
  "data": {
   "mort": {
    "variable": {
     "sample": false,
-    "asof": "2026-10-29",
+    "asof": "2026-10-31",
     "banks": {
      "kb": {
       "rate": 4.88,
@@ -13,7 +13,7 @@
       "term": 6
      },
      "woori": {
-      "rate": 4.82,
+      "rate": 4.58,
       "fee": 0.73,
       "idx": "cofixNewBal",
       "term": 12
@@ -83,14 +83,14 @@
    },
    "periodic": {
     "sample": false,
-    "asof": "2026-10-30",
+    "asof": "2026-10-31",
     "banks": {
      "kb": {
       "rate": 5.36,
       "fee": 0.95
      },
      "woori": {
-      "rate": 5.69,
+      "rate": 5.4,
       "fee": 0.93
      },
      "shinhan": {
