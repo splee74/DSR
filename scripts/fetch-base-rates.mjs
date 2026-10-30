@@ -5,6 +5,7 @@
 // GitHub Actions에서 실행:  node fetch-base-rates.mjs cofix | bond | all(직접 실행)
 //  · cofix : 매월 15~21일 15:01 실행되지만, 실제 조회는 "15일 이후 첫 영업일" 하루만
 //  · bond  : 평일 19:00, 오늘 값만 한 번 조회
+//  · fill 2026-10-30 : 빠진 날 하루만 다시 조회 (.github/bond-fill-date 파일을 바꿔 올리면 자동 실행)
 // 실패한 값은 이전 값을 유지.
 import fs from 'node:fs';
 import { readSheet } from './xlsx-lite.mjs';
@@ -74,13 +75,15 @@ async function bondDay(day) {
   if (v.bond5 === undefined) throw new Error('금융채 5년 값 이상');
   return v;
 }
-async function bonds() {
+async function bonds(day) {
   // 평일 19:00에 오늘 값만 한 번 조회 (과거 자료는 KOFIA 엑셀로 넣어 둠). 공휴일이면 자료가 없어 건너뜀
-  const todayDate = ymd(kstNow());
+  // day 를 주면(빠진 날 채우기) 그날 값을 이력에 넣고, 현재 값보다 최신일 때만 현재 값도 바꿈
+  const todayDate = day || ymd(kstNow());
   const today = await bondDay(todayDate);
   if (!today) throw new Error(todayDate + ' 금융채 자료 없음 (공휴일 등) — 이전 값 유지');
   const out = {};
-  for (const k in today) if (today[k] !== undefined) out[k] = { rate: today[k], date: todayDate };
+  if (!day || !prev.bond5 || prev.bond5.date <= todayDate)
+    for (const k in today) if (today[k] !== undefined) out[k] = { rate: today[k], date: todayDate };
   const hist = { bond24: [...((prev.history || {}).bond24 || [])], bond5: [...((prev.history || {}).bond5 || [])] };
   ['bond24', 'bond5'].forEach(k => { if (today[k] !== undefined && !hist[k].some(p => p.date === todayDate)) hist[k].push({ date: todayDate, rate: today[k] }); });
   out.hist = hist;
@@ -88,8 +91,10 @@ async function bonds() {
 }
 
 const next = { ...prev }, errors = [], history = { ...(prev.history || {}) };
-const jobs = { cofix: [cofix], bond: [bonds], all: [cofix, bonds] }[MODE];
-if (!jobs) { console.error('사용법: node fetch-base-rates.mjs cofix | bond | all'); process.exit(1); }
+const FILL = process.argv[3];
+if (MODE === 'fill' && !/^d{4}-dd-dd$/.test(FILL || '')) { console.error('사용법: node fetch-base-rates.mjs fill 2026-10-30'); process.exit(1); }
+const jobs = { cofix: [cofix], bond: [() => bonds()], all: [cofix, () => bonds()], fill: [() => bonds(FILL)] }[MODE];
+if (!jobs) { console.error('사용법: node fetch-base-rates.mjs cofix | bond | all | fill 날짜'); process.exit(1); }
 for (const job of jobs) {
   try { const { hist, ...vals } = await job(); Object.assign(next, vals); Object.assign(history, hist); }
   catch (e) { errors.push(e.message); console.error('⚠', e.message); }

@@ -5,6 +5,8 @@ on:
     - cron: '1 6 15-21 * *'  # COFIX: 매월 15~21일 15:01 (한국 시간) — 공시일 하루만 실제 조회
     - cron: '0 10 * * 1-5'   # 금융채: 평일 19:00 (한국 시간) 하루 한 번
   workflow_dispatch:          # GitHub 화면에서 바로 실행 (COFIX·금융채 모두)
+  push:                       # 빠진 날 채우기: .github/bond-fill-date 에 날짜를 넣어 올리면 그날 금융채만 조회
+    paths: ['.github/bond-fill-date']
 
 permissions:
   contents: write
@@ -19,7 +21,7 @@ jobs:
         with:
           node-version: '20'
       - name: 기준금리 가져오기
-        run: node scripts/fetch-base-rates.mjs ${{ github.event.schedule == '1 6 15-21 * *' && 'cofix' || github.event.schedule == '0 10 * * 1-5' && 'bond' || 'all' }}
+        run: node scripts/fetch-base-rates.mjs ${{ github.event_name == 'push' && 'fill' || github.event.schedule == '1 6 15-21 * *' && 'cofix' || github.event.schedule == '0 10 * * 1-5' && 'bond' || 'all' }} ${{ github.event_name == 'push' && '$(cat .github/bond-fill-date)' || '' }}
       - name: 바뀐 경우에만 저장
         id: save
         run: |
