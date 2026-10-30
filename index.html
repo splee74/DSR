@@ -550,6 +550,14 @@ dialog{border-radius:10px}
           <label class="chk" style="margin-top:4px"><input type="checkbox" id="firstHome"> 생애최초 주택구입 <span id="firstNote" style="color:var(--muted);font-size:12.5px;font-weight:400"></span></label>
           <label class="chk"><input type="checkbox" id="seomin"> 서민·실수요자 <span id="seominNote" style="color:var(--muted);font-size:12.5px;font-weight:400"></span></label>
           <div class="note" id="seominStatus" hidden></div>
+          <label class="chk"><input type="checkbox" id="mExc"> <span style="white-space:nowrap">규제 예외 단지</span> <span id="mExcNote" style="color:var(--muted);font-size:12.5px;font-weight:400">(규제 전 모집공고 등)</span></label>
+          <div class="note" id="mExcBox" hidden>
+            <div class="seg" id="mExcRegBox" style="margin-bottom:8px">
+              <label><input type="radio" name="mExcReg" value="spec" checked><span>강남·서초·송파·용산<small>기존 투기지역</small></span></label>
+              <label><input type="radio" name="mExcReg" value="reg"><span>그 외 규제지역<small>10.15 이후 지정</small></span></label>
+            </div>
+            <div id="mExcText"></div>
+          </div>
         </div>
         <div class="field">
           <label for="mPrice">주택가격 (KB시세)</label>
@@ -868,7 +876,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v70';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v71';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -886,7 +894,9 @@ const DEFAULTS = {
   inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 9.5, nhisRate: 3.595 },
   debt:   { otherRate: 5.52 },
   // 주담대(자담): 수도권·규제지역 가계일반자금 물건당 상한 · 6.27 이전 조건 LTV · 다주택 LTV 차감
-  equity: { excDti: 60, cap: 10000, preLtv: { metro: 70, spec: 40, reg: 70, local: 70 }, multiCut: 10 }
+  equity: { excDti: 60, cap: 10000, preLtv: { metro: 70, spec: 40, reg: 70, local: 70 }, multiCut: 10 },
+  // 주택구입자금 규제 예외 단지(경과규정): 금액 상한 없음 · LTV는 위 6.27 이전 LTV · 아래 만기·스트레스
+  exc:    { term: 40, stress: { variable: 1.5, mixed: 1.2, periodic: 0.6 } }
 };
 const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
 const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
@@ -1072,8 +1082,8 @@ function buildSegs() {
 // 지역별 스트레스 가산금리: 수도권·규제지역 / 지방
 const stressOf = (rtype, local) => (local ? S.stressLocal : S.stress)[rtype];
 // 수도권·규제지역은 만기 상한(기본 30년), 지방은 40년까지
-function syncYears(sel, local) {
-  const max = local ? 40 : num(S.term.capMax) || 30, cur = +sel.value || 30;
+function syncYears(sel, local, exc) {
+  const max = exc ? num(S.exc.term) || 40 : local ? 40 : num(S.term.capMax) || 30, cur = +sel.value || 30;
   if (sel.options.length !== max) fillYears(sel, max, Math.min(cur, max));
 }
 function fillYears(sel, max, def) {
@@ -1291,7 +1301,11 @@ function renderMort() {
   const method = $('input[name=mMethod]:checked').value, mName = method === 'equal' ? '원리금균등' : '원금균등';
   const L = num($('#mAmt').value), price = num($('#mPrice').value), rate = num($('#mRate').value);
   const years = +$('#mYears').value, first = $('#firstHome').checked;
-  const add = stressOf(rtype, region === 'local'), sRate = rate + add;
+  // 규제 예외 단지(경과규정): 수도권·규제지역만 · 금액 상한 없음 · 규제 전 LTV · 규제 전 스트레스 · 만기 40년
+  const exc = $('#mExc').checked && region !== 'local';
+  const excKey = region === 'reg' ? $('input[name=mExcReg]:checked').value : 'metro';
+  const stressAll = k => exc ? S.exc.stress[k] : stressOf(k, region === 'local');
+  const add = stressAll(rtype), sRate = rate + add;
 
   const newA = annualPay(L, rate, years, method);
   const newS = annualPay(L, sRate, years, method);
@@ -1313,20 +1327,29 @@ function renderMort() {
       : `<span style="color:var(--ok);font-weight:600">✔ 요건 충족 → 규제지역 LTV 최대 ${S.ltv.seomin}% 적용</span> (무주택 여부는 상담자 확인)`);
   // 다주택 추가 구입: 수도권·규제지역 0% · 지방 60% (생애최초·서민 우대 없음)
   const multi = $('input[name=mHouse]:checked').value === 'multi';
+  const excBox = $('#mExcBox');
+  excBox.hidden = !exc; $('#mExcRegBox').hidden = region !== 'reg';
+  $('#mExcText').innerHTML = `· 금액 상한(6억·4억·2억) <b>미적용</b><br>· LTV <b>${S.equity.preLtv[excKey]}%</b> (규제 전 ${region === 'reg' ? EREG[excKey] : '수도권'} 기준)${multi ? ` · 다주택 −${S.equity.multiCut}%p` : first ? ` · 생애최초 ${S.ltv.firstLocal}%` : ''}<br>· 스트레스 금리 <b>변동 +${S.exc.stress.variable}%p</b> · 혼합 +${S.exc.stress.mixed}%p · 주기 +${S.exc.stress.periodic}%p (규제 전 기준)<br>· 대출기간 <b>최대 ${S.exc.term}년</b> · DSR 기준(${S.dsr.bank1}%·${S.dsr.bank2}%)은 동일<br><span style="color:var(--muted)">예외 인정 여부(입주자모집공고일·계약일 등)는 은행에 확인하세요.</span>`;
   let ltvLim = S.ltv[region];
-  if (multi) ltvLim = region === 'local' ? S.ltv.multiLocal : 0;
+  if (exc) {
+    // 규제 전 LTV (다주택은 차감, 생애최초는 규제 전 80%)
+    ltvLim = Math.max(0, S.equity.preLtv[excKey] - (multi ? S.equity.multiCut : 0));
+    if (!multi && first) ltvLim = Math.max(ltvLim, S.ltv.firstLocal);
+  }
+  else if (multi) ltvLim = region === 'local' ? S.ltv.multiLocal : 0;
   else {
     if (first) ltvLim = Math.max(ltvLim, region === 'local' ? S.ltv.firstLocal : S.ltv.first);
     if (smOk) ltvLim = Math.max(ltvLim, S.ltv.seomin);
   }
-  const ltvTags = [multi ? '다주택 추가 구입' : '', !multi && first ? '생애최초' : '', !multi && smOk ? '서민·실수요자' : ''].filter(Boolean);
-  const ltvName = `${REGIONS[region]}${ltvTags.length ? ' · ' + ltvTags.join(' · ') : ''}`;
+  const ltvTags = [exc ? '규제 예외 단지' : '', multi ? '다주택 추가 구입' : '', !multi && first ? '생애최초' : '', !multi && smOk ? '서민·실수요자' : ''].filter(Boolean);
+  const ltvName = `${exc && region === 'reg' ? EREG[excKey] : REGIONS[region]}${ltvTags.length ? ' · ' + ltvTags.join(' · ') : ''}`;
 
   // 최대 가능 금액 (연 원리금은 대출금액에 비례 → 1원당 연 원리금으로 역산)
   const unitS = annualPay(1, sRate, years, method);
   const dsrMax = lim => inc ? Math.max(0, (inc * lim / 100 - ex.dsr) / unitS) : 0;
   let cap = Infinity, capLabel = `금액 상한 (${REGIONS[region]} 해당 없음)`;
-  if (S.cap.on[region]) {
+  if (exc) capLabel = '금액 상한 (규제 예외 단지 해당 없음)';
+  else if (S.cap.on[region]) {
     if (price <= S.cap.t1) { cap = S.cap.c1; capLabel = `금액 상한 (주택가격 ${korMan(S.cap.t1)} 이하)`; }
     else if (price <= S.cap.t2) { cap = S.cap.c2; capLabel = `금액 상한 (주택가격 ${korMan(S.cap.t2)} 이하)`; }
     else { cap = S.cap.c3; capLabel = `금액 상한 (주택가격 ${korMan(S.cap.t2)} 초과)`; }
@@ -1367,6 +1390,7 @@ function renderMort() {
     ${sec(1, '상담 조건', cond([
       ['연소득', incomeText(true)],
       ['지역', ltvName],
+      ...(exc ? [['규제 예외', '적용 (금액 상한 없음 · 규제 전 LTV · 스트레스 · 만기 ' + S.exc.term + '년)']] : []),
       ['주택가격 (KB시세)', korMan(price)],
       ['대출 희망금액', korMan(L)],
       ['금리 (실제)', `${rate.toFixed(2)}% · ${RTYPES[rtype]}`],
@@ -1388,7 +1412,7 @@ function renderMort() {
         <span><b>스트레스 (${RTYPES[rtype]})</b>${fx(add)}%p</span><i>=</i>
         <span class="res"><b>DSR 산정금리</b>${sRate.toFixed(2)}%</span>
       </div>
-      <div class="legend">${Object.entries(RTYPES).map(([k, v]) => `<span class="${k === rtype ? 'on' : ''}">${v} ${stressOf(k, region === 'local')}%</span>`).join('')}${region === 'local' ? '<span>지방 기준</span>' : ''}</div>
+      <div class="legend">${Object.entries(RTYPES).map(([k, v]) => `<span class="${k === rtype ? 'on' : ''}">${v} ${stressAll(k)}%</span>`).join('')}${region === 'local' ? '<span>지방 기준</span>' : exc ? '<span>규제 예외 단지</span>' : ''}</div>
       <dl class="kv">
         <dt>DSR 산정 연 원리금 (신규)</dt><dd>${korMan(newS)}</dd>
         <dt>기존 대출 연 원리금</dt><dd>${korMan(ex.dsr)}</dd>
@@ -1650,7 +1674,9 @@ function renderJeonse() {
 
 let tab = 'mort';
 function recalc() {
-  syncYears($('#mYears'), $('input[name=mRegion]:checked')?.value === 'local');
+  const mLocal = $('input[name=mRegion]:checked')?.value === 'local';
+  $('#mExc').disabled = mLocal; if (mLocal) $('#mExc').checked = false;
+  syncYears($('#mYears'), mLocal, $('#mExc').checked);
   syncYears($('#eYears'), $('input[name=eRegion]:checked')?.value === 'local');
   $('#mMultiLbl').textContent = `수도권·규제 LTV 0% · 지방 ${S.ltv.multiLocal}%`;
   const multi = $('input[name=mHouse]:checked').value === 'multi';
@@ -1686,6 +1712,7 @@ const SETTINGS = [
   ['DSR 간주 만기 (기존 대출)', [['deem.credit', '신용대출·마이너스통장', '년'], ['deem.nonhouse', '기타담보대출 (비주택)', '년'], ['deem.office', '오피스텔담보대출', '년'], ['deem.midpay', '중도금·이주비', '년'], ['deem.guar', '보증서담보대출', '년'], ['deem.secur', '유가증권담보대출', '년']]],
   ['주담대(자담)', [['equity.cap', '가계일반자금 물건당 상한 (수도권·규제지역)', '만원'], ['equity.excDti', '6.27 이전 전세퇴거 예외 DTI 한도', '%'], ['equity.multiCut', '다주택 LTV 차감', '%p'],
     ['equity.preLtv.metro', '6.27 이전 LTV · 수도권', '%'], ['equity.preLtv.spec', '6.27 이전 LTV · 강남·서초·송파·용산', '%'], ['equity.preLtv.reg', '6.27 이전 LTV · 그 외 규제지역', '%'], ['equity.preLtv.local', '6.27 이전 LTV · 지방', '%']]],
+  ['규제 예외 단지 (주택구입자금)', [['exc.term', '최대 만기', '년'], ['exc.stress.variable', '스트레스 · 변동금리', '%p'], ['exc.stress.mixed', '스트레스 · 혼합형', '%p'], ['exc.stress.periodic', '스트레스 · 5년 주기형', '%p']]],
   ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (DSR 적용 대상)', '%'], ['stress.jeonse', '스트레스 가산 (DSR 적용 대상)', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원'], ['jeonse.capMember', '세대원 유주택 최대 한도', '만원']]]
 ];
 function openSettings(src = S) {
@@ -1752,7 +1779,7 @@ $('#btnReset').onclick = () => {
   ['#mRate', '#jRate'].forEach(s => $(s).value = '');
   $('#spouseOn').checked = false; $('#spouseOn').onchange({ target: $('#spouseOn') });
   $('input[name=mHouse][value=none]').checked = true; $('input[name=jRegion][value=cap]').checked = true;
-  $('#mYears').value = 30; $('#jYears').value = 2; $('#firstHome').checked = false; $('#seomin').checked = false;
+  $('#mYears').value = 30; $('#jYears').value = 2; $('#firstHome').checked = false; $('#seomin').checked = false; $('#mExc').checked = false;
   ['#custName', '#birth', '#spBirth'].forEach(s => $(s).value = ''); $('#futureOn').checked = false; $('#futureSpOn').checked = false;
   $('#futManual').checked = false; ['#futRateMe', '#futRateSp'].forEach(s => $(s).value = '');
   $('input[name=mMethod][value=equal]').checked = true;
