@@ -474,7 +474,7 @@ dialog{border-radius:10px}
             <label><input type="radio" name="incType" value="인정소득"><span>인정소득<small>건보료·국민연금</small></span></label>
             <label><input type="radio" name="incType" value="신고소득"><span>신고소득<small>카드사용액 등</small></span></label>
           </div>
-          <div class="small" style="margin:0">※ 신고소득: 본인 소득이 없거나, 부부합산 소득 2,400만원 이하<br>※ 증빙소득끼리만 합산 제한 없음 · 인정·신고소득이 들어가면 합계 최대 5,000만원 · 인정+인정 합산 불가</div>
+          <div class="small" style="margin:0">※ 신고소득: 본인 소득이 없거나, 부부합산 소득 2,400만원 이하</div>
         </div>
         <div class="field full" id="recogBox" hidden>
           <span class="flabel">3개월 평균 월 납부액 <small style="font-weight:400;color:var(--muted)">(본인 부담분)</small></span>
@@ -884,7 +884,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v72';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v73';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
