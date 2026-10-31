@@ -474,7 +474,7 @@ dialog{border-radius:10px}
             <label><input type="radio" name="incType" value="인정소득"><span>인정소득<small>건보료·국민연금</small></span></label>
             <label><input type="radio" name="incType" value="신고소득"><span>신고소득<small>카드사용액 등</small></span></label>
           </div>
-          <div class="small" style="margin:0">※ 신고소득: 본인 소득이 없거나, 부부합산 소득 2,400만원 이하</div>
+          <div class="small" style="margin:0">※ 신고소득: 본인 소득이 없거나, 부부합산 소득 2,400만원 이하<br>※ 증빙소득끼리만 합산 제한 없음 · 인정·신고소득이 들어가면 합계 최대 5,000만원 · 인정+인정 합산 불가</div>
         </div>
         <div class="field full" id="recogBox" hidden>
           <span class="flabel">3개월 평균 월 납부액 <small style="font-weight:400;color:var(--muted)">(본인 부담분)</small></span>
@@ -501,6 +501,14 @@ dialog{border-radius:10px}
           <label class="chk" style="font-size:13px"><input type="checkbox" id="spouseOn"> 배우자 소득 합산</label>
           <div class="inp" id="spouseBox" style="opacity:.45"><input id="spouse" class="money" inputmode="numeric" disabled placeholder="0"><span class="u">만원</span></div>
           <div class="hint"></div>
+          <div id="spTypeBox" hidden>
+            <span class="flabel">배우자 소득 유형</span>
+            <div class="seg" style="margin-top:6px">
+              <label><input type="radio" name="spType" value="증빙소득" checked><span>증빙</span></label>
+              <label><input type="radio" name="spType" value="인정소득"><span>인정</span></label>
+              <label><input type="radio" name="spType" value="신고소득"><span>신고</span></label>
+            </div>
+          </div>
           <div id="spBirthBox" hidden>
             <label for="spBirth" class="flabel">배우자 생년월일</label>
             <div class="inp" style="margin-top:6px"><input id="spBirth" class="left date8" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="예) 19920521"></div>
@@ -876,7 +884,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v71';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v72';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -891,7 +899,7 @@ const DEFAULTS = {
   cap:    { on: { metro: true, reg: true, local: false }, t1: 150000, c1: 60000, t2: 250000, c2: 40000, c3: 20000 },
   deem:   { credit: 5, nonhouse: 10, office: 8, midpay: 25, guar: 10, secur: 8 },
   jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000, capMember: 50000 },
-  inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 9.5, nhisRate: 3.595 },
+  inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 9.5, nhisRate: 3.595, mixCap: 5000 },   // mixCap: 인정·신고소득이 들어간 소득 합계 상한
   debt:   { otherRate: 5.52 },
   // 주담대(자담): 수도권·규제지역 가계일반자금 물건당 상한 · 6.27 이전 조건 LTV · 다주택 LTV 차감
   equity: { excDti: 60, cap: 10000, preLtv: { metro: 70, spec: 40, reg: 70, local: 70 }, multiCut: 10 },
@@ -1164,10 +1172,11 @@ function ageOf(b) {                      // 상담일 기준 만 나이
 const ageHintText = el => { const v = el.value.replace(/\D/g, ''); if (!v) return ''; const a = ageOf(el.value); return a !== null ? `만 ${a}세` : v.length === 8 ? '날짜를 확인하세요' : ''; };
 const ageNow = () => ageOf($('#birth').value);
 // 한 사람의 장래 예상소득
-function futureOne(base, age, col, manual) {
+function futureOne(base, age, col, manual, type) {
   const p = { base, age, ok: false, rate: 0, row: -1, fut: base, reason: '', manual: manual !== undefined };
   if (p.manual) {                          // 상담사 직접 입력: 표·나이 조건 대신 입력한 증가율 적용
-    if (!base) p.reason = '연소득을 입력하세요.';
+    if (type !== '증빙소득') p.reason = '증빙소득만 해당됩니다.';
+    else if (!base) p.reason = '연소득을 입력하세요.';
     else if (manual === '') p.reason = '증가율을 입력하세요.';
     else { p.ok = true; p.rate = num(manual); p.fut = base * (1 + p.rate / 100); }
     return p;
@@ -1176,7 +1185,7 @@ function futureOne(base, age, col, manual) {
   if (age === null) p.reason = '생년월일을 입력하면 만 나이로 자동 계산됩니다.';
   else if (p.row < 0) p.reason = `만 ${age}세는 적용 대상이 아닙니다. (만 20~34세만 해당)`;
   else if (col < 0) p.reason = '대출기간 10년 이상만 해당됩니다.';
-  else if ($('input[name=incType]:checked').value !== '증빙소득') p.reason = '1년 이상 근로자(증빙소득)만 해당됩니다.';
+  else if (type !== '증빙소득') p.reason = '1년 이상 근로자(증빙소득)만 해당됩니다.';
   else if ($('input[name=mHouse]:checked')?.value === 'multi') p.reason = '무주택자(처분조건부 1주택 포함)만 해당됩니다.';
   else if (!base) p.reason = '연소득을 입력하세요.';
   else { p.ok = true; p.rate = FUTURE[p.row].rates[col]; p.fut = base * (1 + p.rate / 100); }
@@ -1186,8 +1195,8 @@ function futureCalc() {
   const years = +$('#mYears').value, spOn = $('#spouseOn').checked;
   const col = years >= 30 ? 3 : years >= 20 ? 2 : years >= 15 ? 1 : years >= 10 ? 0 : -1;
   const manual = $('#futManual').checked;
-  const me = futureOne(num($('#income').value), ageNow(), col, manual ? $('#futRateMe').value.trim() : undefined);
-  const sp = spOn ? futureOne(num($('#spouse').value), ageOf($('#spBirth').value), col, manual ? $('#futRateSp').value.trim() : undefined) : null;
+  const me = futureOne(num($('#income').value), ageNow(), col, manual ? $('#futRateMe').value.trim() : undefined, incTypes().me);
+  const sp = spOn && !incTypes().blocked ? futureOne(num($('#spouse').value), ageOf($('#spBirth').value), col, manual ? $('#futRateSp').value.trim() : undefined, incTypes().sp) : null;
   me.apply = me.ok && $('#futureOn').checked;
   if (sp) sp.apply = sp.ok && $('#futureSpOn').checked;
   return { years, col, me, sp, any: me.apply || !!(sp && sp.apply) };
@@ -1245,7 +1254,7 @@ function syncRecogIncome() {
   const won = s => num($(s).value);
   const yr = (pay, rate) => rate && pay ? Math.floor(pay / (rate / 100) * 12 / 10000) : 0;   // 원 → 연 만원
   const nps = won('#npsPay'), nhis = won('#nhisPay');
-  const a = yr(nps, S.inc.npsRate), b = yr(nhis, S.inc.nhisRate), v = Math.max(a, b);
+  const a = yr(nps, S.inc.npsRate), b = yr(nhis, S.inc.nhisRate), raw = Math.max(a, b), v = Math.min(raw, S.inc.mixCap);
   const el = $('#income');
   el.readOnly = !!(nps || nhis);
   el.closest('.inp').classList.toggle('auto', !!(nps || nhis));
@@ -1253,7 +1262,7 @@ function syncRecogIncome() {
   const line = (lbl, pay, rate, y) => pay ? `${lbl} 월 <b>${wonText(pay)}</b> ÷ ${rate}% × 12개월 = 연 <b>${korMan(y)}</b>` : '';
   const lines = [line('국민연금', nps, S.inc.npsRate, a), line('건강보험료', nhis, S.inc.nhisRate, b)].filter(Boolean);
   $('#recogCalc').innerHTML = lines.length
-    ? lines.join('<br>') + `<br><span style="color:var(--brand-ink);font-weight:700">실제 적용 인정소득 ${korMan(v)}</span>${a && b ? ' <span style="color:var(--muted)">(둘 중 큰 금액)</span>' : ''}`
+    ? lines.join('<br>') + (raw > v ? `<br>${korMan(raw)} → 인정소득 상한 <b>${korMan(S.inc.mixCap)}</b> 적용` : '') + `<br><span style="color:var(--brand-ink);font-weight:700">실제 적용 인정소득 ${korMan(v)}</span>${a && b ? ' <span style="color:var(--muted)">(둘 중 큰 금액)</span>' : ''}`
     : '국민연금 또는 건강보험료 월 납부액을 넣으면 연소득이 자동 계산됩니다.';
 }
 function renderIncomeSum() {
@@ -1266,21 +1275,43 @@ function renderIncomeSum() {
     const f = futureCalc();
     if (f.any) fut = `<span class="fut">장래 예상소득 반영 시 합계 ${korMan(income(true))}</span>`;
   }
-  box.innerHTML = `<div class="inc-sum"><span>부부 합산 소득 (본인 ${korMan(me)} + 배우자 ${korMan(sp)})</span><strong>${korMan(me + sp)}</strong>${fut}</div>`;
+  const r = incomeRule(me, sp);
+  const rule = r.blocked ? '<span class="fut" style="color:var(--bad)">인정소득 + 인정소득은 합산할 수 없어 본인 소득만 적용합니다</span>'
+    : r.capped ? `<span class="fut" style="color:var(--bad)">인정·신고소득이 포함되어 합계 상한 ${korMan(S.inc.mixCap)} 적용 (합계 ${korMan(r.raw)})</span>`
+    : r.mixed ? `<span class="fut">인정·신고소득 포함 · 합계 최대 ${korMan(S.inc.mixCap)}</span>` : '';
+  box.innerHTML = `<div class="inc-sum"><span>부부 합산 소득 (본인 ${r.me} ${korMan(me)} + 배우자 ${r.sp} ${korMan(sp)})</span><strong>${korMan(r.v)}</strong>${rule}${fut}</div>`;
 }
 const spouseInc = () => $('#spouseOn').checked ? num($('#spouse').value) : 0;
+// 소득 유형: 증빙+증빙만 합계 제한 없음 · 인정·신고소득이 하나라도 들어가면 합계 최대 mixCap · 인정+인정은 배우자 합산 불가
+function incTypes() {
+  const me = $('input[name=incType]:checked').value, on = $('#spouseOn').checked;
+  const sp = on ? $('input[name=spType]:checked').value : null;
+  const blocked = me === '인정소득' && sp === '인정소득';
+  const mixed = me !== '증빙소득' || (!!sp && !blocked && sp !== '증빙소득');
+  return { me, sp, blocked, mixed };
+}
+// 합산 규칙을 적용한 소득 (raw: 적용 전 합계)
+function incomeRule(meV, spV) {
+  const t = incTypes(), raw = meV + (t.sp && !t.blocked ? spV : 0);
+  const v = t.mixed ? Math.min(raw, S.inc.mixCap) : raw;
+  return { ...t, raw, v, capped: v < raw };
+}
 // useFuture: 주택담보대출에서 장래 예상소득 반영 시 해당 소득을 장래 예상소득으로 대체
 function income(useFuture) {
-  if (!useFuture) return num($('#income').value) + spouseInc();
+  if (!useFuture) return incomeRule(num($('#income').value), spouseInc()).v;
   const f = futureCalc();
-  return (f.me.apply ? f.me.fut : f.me.base) + (f.sp ? (f.sp.apply ? f.sp.fut : f.sp.base) : 0);
+  return incomeRule(f.me.apply ? f.me.fut : f.me.base, f.sp ? (f.sp.apply ? f.sp.fut : f.sp.base) : 0).v;
 }
 function incomeText(useFuture) {
   const t = $('input[name=incType]:checked').value, sp = $('#spouseOn').checked;
   const f = useFuture ? futureCalc() : null, ex = [];
   if (f && f.me.apply) ex.push(`본인 장래소득 +${f.me.rate.toFixed(1)}%`);
   if (f && f.sp && f.sp.apply) ex.push(`배우자 장래소득 +${f.sp.rate.toFixed(1)}%`);
-  return `${korMan(income(useFuture))} <span style="color:var(--muted);font-weight:400">(${t}${sp ? ' · 배우자 합산' : ''}${ex.length ? ' · ' + ex.join(' · ') : ''})</span>`;
+  const r = f ? incomeRule(f.me.apply ? f.me.fut : f.me.base, f.sp ? (f.sp.apply ? f.sp.fut : f.sp.base) : 0)
+    : incomeRule(num($('#income').value), spouseInc());
+  if (r.blocked) ex.push('배우자 인정소득 합산 불가');
+  else if (r.capped) ex.push(`상한 ${korMan(S.inc.mixCap)} 적용`);
+  return `${korMan(income(useFuture))} <span style="color:var(--muted);font-weight:400">(${t}${sp && !r.blocked ? ' + 배우자 ' + r.sp : ''}${ex.length ? ' · ' + ex.join(' · ') : ''})</span>`;
 }
 function existingSum() {
   let dsr = 0, dti = 0, amt = 0;
@@ -1699,7 +1730,7 @@ function recalc() {
 /* ---------- 설정 다이얼로그 ---------- */
 const SETTINGS = [
   ['기타부채', [['debt.otherRate', '기타부채 추정금리 (DTI)', '%']]],
-  ['소득', [['inc.cardRate', '신용카드 사용요율 (신고소득)', '%'], ['inc.cardPct', '신고소득 인정비율', '%'], ['inc.cardCap', '신고소득 상한', '만원'], ['inc.npsRate', '국민연금 환산율 (인정소득)', '%'], ['inc.nhisRate', '건강보험 환산율 (인정소득)', '%']]],
+  ['소득', [['inc.cardRate', '신용카드 사용요율 (신고소득)', '%'], ['inc.cardPct', '신고소득 인정비율', '%'], ['inc.cardCap', '신고소득 상한', '만원'], ['inc.npsRate', '국민연금 환산율 (인정소득)', '%'], ['inc.nhisRate', '건강보험 환산율 (인정소득)', '%'], ['inc.mixCap', '인정·신고소득 포함 시 합계 상한', '만원']]],
   ['LTV 비율', [['ltv.metro', '수도권', '%'], ['ltv.reg', '규제지역', '%'], ['ltv.local', '지방', '%'], ['ltv.first', '생애최초 (수도권·규제지역)', '%'], ['ltv.firstLocal', '생애최초 (지방)', '%'], ['ltv.seomin', '서민·실수요자 (규제지역)', '%'], ['ltv.multiLocal', '다주택 추가구입 (지방 · 수도권·규제는 0%)', '%']]],
   ['서민·실수요자 요건', [['seomin.price', '주택가격(담보가액) 이하', '만원'], ['seomin.income', '부부합산 소득 이하', '만원']]],
   ['스트레스 가산금리 (주담대)', [['stress.variable', '변동금리', '%p'], ['stress.mixed', '혼합형', '%p'], ['stress.periodic', '5년 주기형', '%p']]],
@@ -1750,6 +1781,7 @@ $('#spouseOn').onchange = e => {
   $('#spouse').disabled = !e.target.checked;
   $('#spouseBox').style.opacity = e.target.checked ? 1 : .45;
   $('#spBirthBox').hidden = !e.target.checked;
+  $('#spTypeBox').hidden = !e.target.checked;
   recalc();
 };
 $$('.tabs button').forEach(b => b.onclick = () => {
@@ -1777,7 +1809,7 @@ $('#btnReset').onclick = () => {
   ['eHouse=one', 'ePurpose=general', 'eEvict=next', 'eSrc=jeonse', 'eMethod=equal'].forEach(x => { const [n, v] = x.split('='); $(`input[name=${n}][value=${v}]`).checked = true; });
   ['#income', '#spouse', '#cardUse', '#mPrice', '#mAmt', '#jDeposit', '#jAmt'].forEach(s => { $(s).value = ''; formatMoney($(s)); });
   ['#mRate', '#jRate'].forEach(s => $(s).value = '');
-  $('#spouseOn').checked = false; $('#spouseOn').onchange({ target: $('#spouseOn') });
+  $('#spouseOn').checked = false; $('input[name=spType][value=증빙소득]').checked = true; $('#spouseOn').onchange({ target: $('#spouseOn') });
   $('input[name=mHouse][value=none]').checked = true; $('input[name=jRegion][value=cap]').checked = true;
   $('#mYears').value = 30; $('#jYears').value = 2; $('#firstHome').checked = false; $('#seomin').checked = false; $('#mExc').checked = false;
   ['#custName', '#birth', '#spBirth'].forEach(s => $(s).value = ''); $('#futureOn').checked = false; $('#futureSpOn').checked = false;
