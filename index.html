@@ -910,7 +910,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v77';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v78';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1248,7 +1248,7 @@ function renderFuture(f) {
   const pick = !$('#futureOn').checked && !$('#futureSpOn').checked ? '<div class="future-res off">※ 반영할 사람(본인 · 배우자)을 위에서 체크하세요.</div>' : '';
   const onlyMort = tab !== 'mort' ? '<div class="future-res off">※ 장래 예상소득은 주택구입자금 탭에서만 반영됩니다.</div>' : '';
   $('#futureInfo').innerHTML = onlyMort + pick + line('본인', f.me) + (f.sp ? line('배우자', f.sp) : '') + (futTblOpen ? table +
-    '<p class="small" style="color:var(--bad);margin:6px 0 0;font-size:11.5px;line-height:1.5">※ 여신심사 선진화를 위한 모범규준 및 통계청 연령대별 소득 통계에 따라 계산된 값으로, 30~34세는 만기 30년 이상 구간의 비율이 낮으므로 29년으로 하는 것이 좀 더 유리합니다.</p>' : '');
+    '<p class="small" style="color:var(--bad);margin:6px 0 0;font-size:11.5px;line-height:1.5">※ 여신심사 선진화를 위한 모범규준 및 통계청 연령대별 소득 통계에 따라 계산된 값으로, 30~34세, 35~39세는 은행별 적용 요율이 다르므로 증가율을 직접 넣는 것을 추천드립니다.</p>' : '');
   $('#futManualBox').hidden = !$('#futManual').checked;
   $('#futRateSpBox').hidden = !f.sp;
   $('#futureOn').disabled = !f.me.ok;
