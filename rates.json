@@ -1,13 +1,13 @@
 {
- "updated": "2026-10-31T02:27:05.926Z",
+ "updated": "2026-11-03T00:27:21.070Z",
  "data": {
   "mort": {
    "variable": {
     "sample": false,
-    "asof": "2026-10-31",
+    "asof": "2026-11-03",
     "banks": {
      "kb": {
-      "rate": 4.88,
+      "rate": 4.89,
       "fee": 0.55,
       "idx": "cofixNewBal",
       "term": 6
@@ -83,10 +83,10 @@
    },
    "periodic": {
     "sample": false,
-    "asof": "2026-10-31",
+    "asof": "2026-11-03",
     "banks": {
      "kb": {
-      "rate": 5.36,
+      "rate": 5.29,
       "fee": 0.95
      },
      "woori": {
