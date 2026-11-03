@@ -910,7 +910,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v76';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v77';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1756,6 +1756,8 @@ function recalc() {
   $('#otherRateBox').hidden = tab !== 'jeonse';
   $('#ageHint').textContent = ageHintText($('#birth'));
   $('#spAgeHint').textContent = ageHintText($('#spBirth'));
+  // 배우자 생년월일은 배우자 증빙소득일 때만 (장래 예상소득 계산용)
+  $('#spBirthBox').hidden = !($('#spouseOn').checked && $('input[name=spType]:checked').value === '증빙소득');
   syncCardIncome(); syncCardIncome('sp');
   syncRecogIncome(); syncRecogIncome('sp');
   renderFuture(futureCalc());
@@ -1824,7 +1826,6 @@ $('#futFold').onclick = () => { futTblOpen = !futTblOpen; recalc(); };
 $('#spouseOn').onchange = e => {
   $('#spouse').disabled = !e.target.checked;
   $('#spouseBox').style.opacity = e.target.checked ? 1 : .45;
-  $('#spBirthBox').hidden = !e.target.checked;
   $('#spTypeBox').hidden = !e.target.checked;
   recalc();
 };
