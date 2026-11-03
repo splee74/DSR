@@ -376,7 +376,9 @@ dialog{border-radius:10px}
 .tabbar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabbar::-webkit-scrollbar{display:none}
 .tabbar .tabs,.tabbar .tabs button,.tabbar .policy-link{flex:none;white-space:nowrap}
-@media (max-width:560px){.tabbar .tabs button,.tabbar .policy-link{padding:13px 10px 11px;font-size:14px}.tabbar .policy-link.hot{padding:7px 12px;margin:0 4px}}
+.tabbar .tabs button,.tabbar .policy-link{font-size:14px}   /* 메뉴탭 글씨 */
+.tabbar .policy-link.hot{margin:0 6px}
+@media (max-width:560px){.tabbar .tabs button,.tabbar .policy-link{padding:13px 10px 11px;font-size:13px}.tabbar .policy-link.hot{padding:7px 12px;margin:0 4px}}
 .mbar-in > div{cursor:pointer}
 .fut-fold{border:1px solid var(--brand-line);background:var(--surface);color:var(--brand-ink);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700}
 #futBody{display:flex;flex-direction:column;gap:10px}
@@ -439,8 +441,8 @@ dialog{border-radius:10px}
         <button type="button" data-tab="equity">주담대(자담)</button>
         <button type="button" data-tab="jeonse">전세자금대출</button>
       </nav>
-      <a class="policy-link" href="policy.html">정책자금</a>
       <a class="policy-link hot" href="bank.html">은행금리비교</a>
+      <a class="policy-link" href="policy.html">정책자금</a>
       <a class="policy-link" href="rules.html">규정집</a>
     </div>
   </div>
@@ -567,9 +569,18 @@ dialog{border-radius:10px}
       </div>
     </div>
 
-    <!-- ② 신규 대출: 주담대 -->
+    <!-- ② 기존 대출 -->
+    <div class="card">
+      <h2><span class="num">2</span>기존 대출</h2>
+      <div class="field other-rate" id="otherRateBox" hidden>
+        <div class="note" id="otherRateNote"></div>
+      </div>
+      <div id="loans"></div>
+      <button type="button" class="add" id="addLoan">+ 기존 대출 추가</button>
+    </div>
+    <!-- ③ 신규 대출: 주담대 -->
     <div class="card" id="panel-mort">
-      <h2><span class="num">2</span>신규 주택구입자금 대출</h2>
+      <h2><span class="num">3</span>신규 주택구입자금 대출</h2>
       <div class="grid2">
         <div class="field full">
           <span class="flabel">지역 (LTV)</span>
@@ -624,9 +635,9 @@ dialog{border-radius:10px}
       </div>
     </div>
 
-    <!-- ② 신규 대출: 주담대(자담) · 생활안정자금 -->
+    <!-- ③ 신규 대출: 주담대(자담) · 생활안정자금 -->
     <div class="card" id="panel-equity" hidden>
-      <h2><span class="num">2</span>주담대(자담) · 구입 외 자금</h2>
+      <h2><span class="num">3</span>주담대(자담) · 구입 외 자금</h2>
       <div class="grid2">
         <div class="field full">
           <span class="flabel">지역 (LTV)</span>
@@ -737,9 +748,9 @@ dialog{border-radius:10px}
       </div>
     </div>
 
-    <!-- ② 신규 대출: 전세 -->
+    <!-- ③ 신규 대출: 전세 -->
     <div class="card" id="panel-jeonse" hidden>
-      <h2><span class="num">2</span>신규 전세자금대출</h2>
+      <h2><span class="num">3</span>신규 전세자금대출</h2>
       <div class="grid2">
         <div class="field full">
           <span class="flabel">전세 주택 지역</span>
@@ -779,15 +790,6 @@ dialog{border-radius:10px}
       </div>
     </div>
 
-    <!-- ③ 기존 대출 -->
-    <div class="card">
-      <h2><span class="num">3</span>기존 대출</h2>
-      <div class="field other-rate" id="otherRateBox" hidden>
-        <div class="note" id="otherRateNote"></div>
-      </div>
-      <div id="loans"></div>
-      <button type="button" class="add" id="addLoan">+ 기존 대출 추가</button>
-    </div>
   </section>
 
   <section class="results">
@@ -908,7 +910,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v74';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v75';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1542,7 +1544,7 @@ function syncEquityInputs(e) {
     · <b>전세퇴거자금</b>: 2025.6.27 이전 구입(계약) + 세입자 6.27 이전 입주 → 1억 초과 가능, 6.27 이전 LTV (수도권 ${S.equity.preLtv.metro}% · 강남·서초·송파·용산 ${S.equity.preLtv.spec}% · 그 외 규제지역 ${S.equity.preLtv.reg}% · 지방 ${S.equity.preLtv.local}%)<br>
     · <b>다주택</b>: LTV <b>−${S.equity.multiCut}%p</b><br>
     · 주택가격 구간별 금액 상한(15억 이하 6억 등)은 구입자금 규제라 적용하지 않습니다<br>
-    · 이 주택의 기존 담보대출은 LTV 계산용입니다. DSR에 넣으려면 <b>③ 기존 대출</b>에도 입력하세요`;
+    · 이 주택의 기존 담보대출은 LTV 계산용입니다. DSR에 넣으려면 <b>② 기존 대출</b>에도 입력하세요`;
 }
 function renderEquity() {
   const e = equityCalc(), inc = income(), ex = existingSum();
