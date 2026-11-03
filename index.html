@@ -70,9 +70,6 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @media (max-width:1000px){.layout{grid-template-columns:minmax(0,1fr);padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));gap:16px}}
 @media (max-width:560px){
   .top-in{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));gap:10px}
-  .tabs{order:3;width:100%}.tabs button{flex:1}
-  .actions{width:100%;margin-left:0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px}
-  .actions button{padding:11px 4px;font-size:14px;min-height:44px;white-space:nowrap}
   .inp input,.inp select{font-size:16px}
   .card{padding:18px}
 }
@@ -239,12 +236,6 @@ dialog.notice{width:min(420px,calc(100vw - 32px))}
 #pdfChrome{text-decoration:none;display:inline-flex;align-items:center}
 .pdf-msg{margin:0;font-size:14.5px;line-height:1.7;word-break:keep-all}
 .pdf-msg b{word-break:break-all}
-@media (max-width:640px){
-  /* 휴대폰: 버튼 5개를 3개 · 2개 두 줄로 */
-  .actions{grid-auto-flow:row;grid-template-columns:repeat(6,minmax(0,1fr))}
-  .actions button{grid-column:span 3}
-  .actions.admin button{grid-column:span 2}
-  .actions.admin #btnPdf,.actions.admin #btnFeedback{grid-column:span 3}}
 .notice-lead{margin:0 0 12px;color:var(--sub);font-size:14px}
 .notice-sec{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:18px}
 .notice-sec h3,.notice-h{margin:0 0 10px;font-size:15.5px;font-weight:800}
@@ -293,7 +284,7 @@ button.notice-item{width:100%;font:inherit;background:transparent;text-align:lef
 .ftable td.on.on2{box-shadow:inset 0 0 0 2px var(--text)}
 .ftable tr:last-child td{border-bottom:0}
 .mbar{display:none}
-@media (max-width:1000px){
+@media all{
   body{padding-bottom:84px}
   .mbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -4px 16px #0000001a;
     padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -325,12 +316,8 @@ button.notice-item{width:100%;font:inherit;background:transparent;text-align:lef
 .tabs{background:transparent;border-radius:0;padding:0;gap:4px;align-self:stretch}
 .tabs button{border-radius:0;padding:16px 14px 13px;border-bottom:3px solid transparent;color:var(--sub);font-weight:700;font-size:15px}
 .tabs button.on{background:transparent;box-shadow:none;color:var(--text);border-bottom-color:var(--brand)}
-/* 휴대폰: 탭 4개가 화면 폭에 맞게 줄어듦. 글꼴을 크게 쓴 기기에서도 페이지가 넓어지지 않도록 탭 줄 안에서만 밀어 보기 */
-@media (max-width:560px){.tabbar{gap:0;overflow-x:auto;scrollbar-width:none}.tabbar::-webkit-scrollbar{display:none}.tabbar .tabs{flex:1 0 auto;gap:0}.tabbar .tabs button,.tabbar .policy-link{flex:1 0 auto;justify-content:center;padding-left:clamp(3px,1.4vw,6px);padding-right:clamp(3px,1.4vw,6px);font-size:clamp(12px,3.5vw,15px);white-space:nowrap}}
 .tabbar .policy-link.hot{align-self:center;margin-left:6px;padding:8px 14px;border:0;border-radius:6px;background:var(--brand);color:#fff}
 .tabbar .policy-link.hot:hover{background:var(--brand-dark);color:#fff}
-/* 탭이 5개라 휴대폰에서는 대출 탭 3개 윗줄 · 정책자금·은행금리비교 아랫줄 */
-@media (max-width:560px){.tabbar{flex-wrap:wrap;overflow:visible}.tabbar .tabs{flex:1 1 100%}.tabbar .tabs button{flex:1 1 0}.tabbar .policy-link{flex:1 1 0;border-top:1px solid var(--line);padding-top:10px;padding-bottom:9px;font-size:13.5px}.tabbar .policy-link.hot{align-self:stretch;margin:6px 0 6px 6px;padding-top:8px;padding-bottom:8px;border-top:0}}
 .actions{align-self:center}
 .actions button{border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--sub)}
 .actions button:hover{background:var(--soft)}
@@ -376,6 +363,24 @@ tr.bind td{background:var(--brand-weak)}
 dialog{border-radius:10px}
 .dlg-head button,.btn{border-radius:6px}
 .mbar-in button{border-radius:6px}
+/* v74 머리글 · 탭 · 하단 줄 */
+.top-in{gap:0 12px}
+.brand{padding-block:8px}
+.logo{width:23px;height:23px;font-size:11px;border-radius:6px}
+.brand h1{font-size:11.5px;letter-spacing:-.2px}
+.top .actions{margin-left:auto;width:auto;display:flex;gap:6px;align-self:center}
+.top .actions button{width:38px;height:38px;min-height:0;padding:0;border-radius:50%;font-size:11px;font-weight:700;line-height:1.1;display:grid;place-items:center;white-space:nowrap;letter-spacing:-.5px}
+.top .actions #btnFeedback{background:var(--brand);border-color:var(--brand);color:#fff}
+.top .actions #btnSettings{font-size:16px}
+.top .actions #btnReset.armed{background:var(--bad);border-color:var(--bad);color:#fff;font-size:10px}
+.tabbar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabbar::-webkit-scrollbar{display:none}
+.tabbar .tabs,.tabbar .tabs button,.tabbar .policy-link{flex:none;white-space:nowrap}
+@media (max-width:560px){.tabbar .tabs button,.tabbar .policy-link{padding:13px 10px 11px;font-size:14px}.tabbar .policy-link.hot{padding:7px 12px;margin:0 4px}}
+.mbar-in > div{cursor:pointer}
+.fut-fold{border:1px solid var(--brand-line);background:var(--surface);color:var(--brand-ink);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700}
+#futBody{display:flex;flex-direction:column;gap:10px}
+#futBody[hidden]{display:none}
 @media print{
   .mbar{display:none!important}
   @page{size:A4;margin:10mm}
@@ -402,11 +407,12 @@ dialog{border-radius:10px}
   const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ID;
   document.head.appendChild(s);
   // 눌린 버튼 이름만 기록
-  const EV = { btnPdf: 'pdf_open', pdfShare: 'pdf_kakao', pdfSave: 'pdf_save', pdfPrint: 'pdf_print', pdfChrome: 'pdf_chrome', btnRules: 'rules_open', btnFeedback: 'feedback_open' };
+  const EV = { btnPdf: 'pdf_open', pdfShare: 'pdf_kakao', pdfSave: 'pdf_save', pdfPrint: 'pdf_print', pdfChrome: 'pdf_chrome',  btnFeedback: 'feedback_open' };
   document.addEventListener('click', e => {
     const el = e.target.closest('button, a'); if (!el) return;
     if (EV[el.id]) return gtag('event', EV[el.id]);
     if (el.matches('.tabs button[data-tab]')) return gtag('event', 'tab_select', { tab: el.dataset.tab });
+    if (el.matches('a[href="rules.html"]')) return gtag('event', 'rules_open');
     if (el.matches('.jump a')) return gtag('event', 'rules_tab', { tab: el.getAttribute('href').slice(1) });
   }, true);
 })();
@@ -420,14 +426,12 @@ dialog{border-radius:10px}
   <div class="top-in">
     <div class="brand">
       <div class="logo">%</div>
-      <div><h1>DSR · DTI 계산기</h1><span>주택구입자금 · 주담대(자담) · 전세자금대출 상담</span></div>
+      <div><h1>DSR · DTI 계산기</h1></div>
     </div>
     <div class="actions">
-      <button type="button" id="btnSettings" hidden>⚙ 규제설정</button>
-      <button type="button" id="btnReset">초기화</button>
-      <button type="button" id="btnRules">규정</button>
-      <button type="button" id="btnPdf">결과 공유</button>
-      <button type="button" id="btnFeedback" class="fb-box">의견·문의</button>
+      <button type="button" id="btnSettings" hidden title="규제설정" aria-label="규제설정">⚙</button>
+      <button type="button" id="btnFeedback" title="의견·문의">문의</button>
+      <button type="button" id="btnReset" title="입력 내용 모두 지우기">초기화</button>
     </div>
     <div class="tabbar">
       <nav class="tabs">
@@ -437,6 +441,7 @@ dialog{border-radius:10px}
       </nav>
       <a class="policy-link" href="policy.html">정책자금</a>
       <a class="policy-link hot" href="bank.html">은행금리비교</a>
+      <a class="policy-link" href="rules.html">규정집</a>
     </div>
   </div>
 </header>
@@ -515,14 +520,32 @@ dialog{border-radius:10px}
             <div class="hint" id="spAgeHint"></div>
           </div>
         </div>
+        <div class="field full" id="spRecogBox" hidden>
+          <span class="flabel">배우자 3개월 평균 월 납부액 <small style="font-weight:400;color:var(--muted)">(본인 부담분)</small></span>
+          <div class="grid2" style="margin-top:6px">
+            <div class="field"><label for="spNpsPay">국민연금</label>
+              <div class="inp"><input id="spNpsPay" class="won" inputmode="numeric" placeholder="0"><span class="u">원</span></div><div class="hint"></div></div>
+            <div class="field"><label for="spNhisPay">건강보험료</label>
+              <div class="inp"><input id="spNhisPay" class="won" inputmode="numeric" placeholder="0"><span class="u">원</span></div><div class="hint"></div></div>
+          </div>
+          <div class="note" id="spRecogCalc"></div>
+        </div>
+        <div class="field full" id="spCardBox" hidden>
+          <label for="spCardUse">배우자 연간 카드사용액</label>
+          <div class="inp"><input id="spCardUse" class="money" inputmode="numeric" placeholder="0"><span class="u">만원</span></div>
+          <div class="hint"></div>
+          <div class="note" id="spCardCalc"></div>
+        </div>
         <div class="field full" id="incSum" hidden></div>
         <div class="field full future" id="futureBox">
           <div class="future-head">
-            <span class="flabel" style="color:var(--text);font-weight:600">나이에 따른 장래 예상소득</span>
-            <div style="display:flex;gap:14px;flex-wrap:wrap">
-              <label class="chk"><input type="checkbox" id="futureOn"> 본인 DSR 반영</label>
-              <label class="chk" id="futureSpBox" hidden><input type="checkbox" id="futureSpOn"> 배우자 DSR 반영</label>
-            </div>
+            <label class="chk" style="color:var(--text);font-weight:700"><input type="checkbox" id="futUse"> 나이에 따른 장래 예상소득 적용</label>
+            <button type="button" class="fut-fold" id="futFold" hidden>표 접기 ▲</button>
+          </div>
+          <div id="futBody" hidden>
+          <div style="display:flex;gap:14px;flex-wrap:wrap">
+            <label class="chk"><input type="checkbox" id="futureOn"> 본인 DSR 반영</label>
+            <label class="chk" id="futureSpBox" hidden><input type="checkbox" id="futureSpOn"> 배우자 DSR 반영</label>
           </div>
           <div class="future-cond">
             <span>1년 이상 근로자</span><span>무주택</span><span>구입자금만 가능</span>
@@ -539,6 +562,7 @@ dialog{border-radius:10px}
             </div>
           </div>
           <div id="futureInfo"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -776,7 +800,7 @@ dialog{border-radius:10px}
 <div class="mbar" id="mbar"><div class="mbar-in">
   <div><span id="mbK">스트레스 DSR</span><b id="mbV">—</b></div>
   <div><span>최대 가능금액</span><b id="mbM">—</b></div>
-  <button type="button" id="mbGo">결과 보기</button>
+  <button type="button" id="btnPdf">카톡공유</button>
 </div></div>
 
 <dialog id="fbDlg">
@@ -849,8 +873,8 @@ dialog{border-radius:10px}
     </section>
     <h3 class="notice-h">업데이트 안내</h3>
     <p class="notice-lead">새로 추가된 기능입니다.</p>
-    <div class="notice-item"><b>규정 신설</b><span>주택구입자금 · 주담대(자담) · 전세자금대출 · DSR 규정을 금융위원회 발표 기준으로 정리 (상단 규정 버튼)</span></div>
-    <div class="notice-item"><b>결과 공유 신설</b><span>결과지를 PDF로 만들어 카카오톡으로 바로 보내기 (상단 결과 공유 버튼)</span></div>
+    <div class="notice-item"><b>규정 신설</b><span>주택구입자금 · 주담대(자담) · 전세자금대출 · DSR 규정을 금융위원회 발표 기준으로 정리 (상단 규정집 탭)</span></div>
+    <div class="notice-item"><b>결과 공유 신설</b><span>결과지를 PDF로 만들어 카카오톡으로 바로 보내기 (하단 카톡공유 버튼)</span></div>
   </div>
   <div class="dlg-foot">
     <label class="notice-skip"><input type="checkbox" id="noticeSkip"> 다시 보지 않기</label>
@@ -884,7 +908,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v73';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v74';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1197,10 +1221,12 @@ function futureCalc() {
   const manual = $('#futManual').checked;
   const me = futureOne(num($('#income').value), ageNow(), col, manual ? $('#futRateMe').value.trim() : undefined, incTypes().me);
   const sp = spOn && !incTypes().blocked ? futureOne(num($('#spouse').value), ageOf($('#spBirth').value), col, manual ? $('#futRateSp').value.trim() : undefined, incTypes().sp) : null;
-  me.apply = me.ok && $('#futureOn').checked;
-  if (sp) sp.apply = sp.ok && $('#futureSpOn').checked;
+  const use = $('#futUse').checked;
+  me.apply = use && me.ok && $('#futureOn').checked;
+  if (sp) sp.apply = use && sp.ok && $('#futureSpOn').checked;
   return { years, col, me, sp, any: me.apply || !!(sp && sp.apply) };
 }
+let futTblOpen = true;   // 장래소득 표 펼침 여부
 function renderFuture(f) {
   const colTerm = f.col >= 0 ? FUTURE_TERMS[f.col] : null;
   const cls = (i, j) => j !== f.col || f.me.manual ? '' : [f.me.ok && f.me.row === i ? 'on' : '', f.sp && f.sp.ok && f.sp.row === i ? 'on2' : ''].join(' ');
@@ -1214,28 +1240,36 @@ function renderFuture(f) {
     ? `<div class="future-res"><b>${who}</b> · 만 ${p.age}세 · 대출기간 ${f.years}년(${colTerm.replace("<br>", " ")} 구간) → 증가율 <b>${p.rate.toFixed(1)}%</b><br>
        ${korMan(p.base)} → 장래 예상소득 <span class="hl">${korMan(p.fut)}</span>${p.apply ? ' <b>· DSR 반영</b>' : ''}</div>`
     : `<div class="future-res off"><b>${who}</b> · ${p.reason}</div>`;
-  $('#futureInfo').innerHTML = line('본인', f.me) + (f.sp ? line('배우자', f.sp) : '') + table +
-    '<p class="small" style="color:var(--bad);margin:6px 0 0;font-size:11.5px;line-height:1.5">※ 여신심사 선진화를 위한 모범규준 및 통계청 연령대별 소득 통계에 따라 계산된 값으로, 30~34세는 만기 30년 이상 구간의 비율이 낮으므로 29년으로 하는 것이 좀 더 유리합니다.</p>';
+  const use = $('#futUse').checked;
+  $('#futBody').hidden = !use; $('#futFold').hidden = !use;
+  $('#futFold').textContent = futTblOpen ? '표 접기 ▲' : '표 보기 ▼';
+  $('#futureInfo').innerHTML = line('본인', f.me) + (f.sp ? line('배우자', f.sp) : '') + (futTblOpen ? table +
+    '<p class="small" style="color:var(--bad);margin:6px 0 0;font-size:11.5px;line-height:1.5">※ 여신심사 선진화를 위한 모범규준 및 통계청 연령대별 소득 통계에 따라 계산된 값으로, 30~34세는 만기 30년 이상 구간의 비율이 낮으므로 29년으로 하는 것이 좀 더 유리합니다.</p>' : '');
   $('#futManualBox').hidden = !$('#futManual').checked;
   $('#futRateSpBox').hidden = !f.sp;
   $('#futureOn').disabled = !f.me.ok;
   $('#futureSpBox').hidden = !f.sp;
   $('#futureSpOn').disabled = !(f.sp && f.sp.ok);
 }
+// 본인·배우자 소득 입력칸 (인정·신고소득은 납부액·카드사용액으로 자동 계산)
+const INC_IN = {
+  me: { type: () => $('input[name=incType]:checked').value, on: () => true, el: '#income', card: '#cardBox', use: '#cardUse', cardCalc: '#cardCalc', recog: '#recogBox', nps: '#npsPay', nhis: '#nhisPay', recogCalc: '#recogCalc' },
+  sp: { type: () => $('input[name=spType]:checked').value, on: () => $('#spouseOn').checked, el: '#spouse', card: '#spCardBox', use: '#spCardUse', cardCalc: '#spCardCalc', recog: '#spRecogBox', nps: '#spNpsPay', nhis: '#spNhisPay', recogCalc: '#spRecogCalc' }
+};
 // 신고소득: 연간 카드사용액 ÷ 신용카드 사용요율
-function syncCardIncome() {
-  const card = $('input[name=incType]:checked').value === '신고소득';
-  const el = $('#income');
-  $('#cardBox').hidden = !card;
-  if (!card) { if ($('input[name=incType]:checked').value !== '인정소득') { el.readOnly = false; el.closest('.inp').classList.remove('auto'); } return; }
+function syncCardIncome(who = 'me') {
+  const o = INC_IN[who], card = o.on() && o.type() === '신고소득';
+  const el = $(o.el);
+  $(o.card).hidden = !card;
+  if (!card) { if (o.type() !== '인정소득' || !o.on()) { el.readOnly = false; el.closest('.inp').classList.remove('auto'); } return; }
   el.readOnly = true;
   el.closest('.inp').classList.add('auto');
-  const use = num($('#cardUse').value), r = S.inc.cardRate;
+  const use = num($(o.use).value), r = S.inc.cardRate;
   const calc = r ? Math.floor(use / (r / 100)) : 0;
   const pctV = Math.floor(calc * S.inc.cardPct / 100), v = Math.min(pctV, S.inc.cardCap);
   el.value = v ? v.toLocaleString('ko-KR') : '';
   formatMoney(el);
-  $('#cardCalc').innerHTML = `연간 카드사용액 <b>${korMan(use)}</b> ÷ 신용카드 사용요율 <b>${r.toFixed(2)}%</b> = 산출 소득 <b>${korMan(calc)}</b><br>
+  $(o.cardCalc).innerHTML = `연간 카드사용액 <b>${korMan(use)}</b> ÷ 신용카드 사용요율 <b>${r.toFixed(2)}%</b> = 산출 소득 <b>${korMan(calc)}</b><br>
     산출 소득 × 인정비율 <b>${S.inc.cardPct}%</b> = <b>${korMan(pctV)}</b>${pctV > S.inc.cardCap ? ` → 상한 <b>${korMan(S.inc.cardCap)}</b> 적용` : ` (상한 ${korMan(S.inc.cardCap)})`}<br>
     <span style="color:var(--brand-ink);font-weight:700">실제 적용 신고소득 ${korMan(v)}</span>`;
 }
@@ -1247,21 +1281,21 @@ function formatWon(el) {
   const h = el.closest('.field')?.querySelector('.hint');
   if (h) h.textContent = raw ? wonText(+raw) : '';
 }
-function syncRecogIncome() {
-  const on = $('input[name=incType]:checked').value === '인정소득';
-  $('#recogBox').hidden = !on;
+function syncRecogIncome(who = 'me') {
+  const o = INC_IN[who], on = o.on() && o.type() === '인정소득';
+  $(o.recog).hidden = !on;
   if (!on) return;
   const won = s => num($(s).value);
   const yr = (pay, rate) => rate && pay ? Math.floor(pay / (rate / 100) * 12 / 10000) : 0;   // 원 → 연 만원
-  const nps = won('#npsPay'), nhis = won('#nhisPay');
+  const nps = won(o.nps), nhis = won(o.nhis);
   const a = yr(nps, S.inc.npsRate), b = yr(nhis, S.inc.nhisRate), raw = Math.max(a, b), v = Math.min(raw, S.inc.mixCap);
-  const el = $('#income');
+  const el = $(o.el);
   el.readOnly = !!(nps || nhis);
   el.closest('.inp').classList.toggle('auto', !!(nps || nhis));
   if (nps || nhis) { el.value = v ? v.toLocaleString('ko-KR') : ''; formatMoney(el); }
   const line = (lbl, pay, rate, y) => pay ? `${lbl} 월 <b>${wonText(pay)}</b> ÷ ${rate}% × 12개월 = 연 <b>${korMan(y)}</b>` : '';
   const lines = [line('국민연금', nps, S.inc.npsRate, a), line('건강보험료', nhis, S.inc.nhisRate, b)].filter(Boolean);
-  $('#recogCalc').innerHTML = lines.length
+  $(o.recogCalc).innerHTML = lines.length
     ? lines.join('<br>') + (raw > v ? `<br>${korMan(raw)} → 인정소득 상한 <b>${korMan(S.inc.mixCap)}</b> 적용` : '') + `<br><span style="color:var(--brand-ink);font-weight:700">실제 적용 인정소득 ${korMan(v)}</span>${a && b ? ' <span style="color:var(--muted)">(둘 중 큰 금액)</span>' : ''}`
     : '국민연금 또는 건강보험료 월 납부액을 넣으면 연소득이 자동 계산됩니다.';
 }
@@ -1719,8 +1753,8 @@ function recalc() {
   $('#futureBox').hidden = tab !== 'mort' || $('input[name=incType]:checked').value !== '증빙소득';
   $('#ageHint').textContent = ageHintText($('#birth'));
   $('#spAgeHint').textContent = ageHintText($('#spBirth'));
-  syncCardIncome();
-  syncRecogIncome();
+  syncCardIncome(); syncCardIncome('sp');
+  syncRecogIncome(); syncRecogIncome('sp');
   renderFuture(futureCalc());
   renderIncomeSum();
   $('#results').innerHTML = tab === 'mort' ? renderMort() : tab === 'equity' ? renderEquity() : renderJeonse();
@@ -1777,6 +1811,13 @@ $('#loans').addEventListener('click', e => {
   if (d) { loans.splice(+d.dataset.del, 1); renderLoans(); }
 });
 $('#addLoan').onclick = () => { loans.push(newLoan()); renderLoans(); };
+// 장래 예상소득: 체크하면 펼치고 본인 반영을 켬, 끄면 반영도 끔
+$('#futUse').onchange = e => {
+  if (e.target.checked) { futTblOpen = true; $('#futureOn').checked = true; }
+  else { $('#futureOn').checked = false; $('#futureSpOn').checked = false; }
+  recalc();
+};
+$('#futFold').onclick = () => { futTblOpen = !futTblOpen; recalc(); };
 $('#spouseOn').onchange = e => {
   $('#spouse').disabled = !e.target.checked;
   $('#spouseBox').style.opacity = e.target.checked ? 1 : .45;
@@ -1792,22 +1833,24 @@ $$('.tabs button').forEach(b => b.onclick = () => {
   $('#panel-equity').hidden = tab !== 'equity';
   recalc();
 });
-$('#mbGo').onclick = () => $('.results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+// 하단 줄의 숫자를 누르면 결과로 이동
+$$('.mbar-in > div').forEach(d => d.onclick = () => $('.results').scrollIntoView({ behavior: 'smooth', block: 'start' }));
 // 초기화는 두 번 눌러 확인 (팝업 확인창 없이)
 let resetArm = 0;
 $('#btnReset').onclick = () => {
   const b = $('#btnReset');
   if (!resetArm) {
-    b.textContent = '한 번 더 누르면 초기화';
-    resetArm = setTimeout(() => { resetArm = 0; b.textContent = '초기화'; }, 3000);
+    b.textContent = '한번 더'; b.classList.add('armed');
+    resetArm = setTimeout(() => { resetArm = 0; b.textContent = '초기화'; b.classList.remove('armed'); }, 3000);
     return;
   }
-  clearTimeout(resetArm); resetArm = 0; b.textContent = '초기화';
-  ['#npsPay', '#nhisPay'].forEach(s => { $(s).value = ''; formatWon($(s)); });
+  clearTimeout(resetArm); resetArm = 0; b.textContent = '초기화'; b.classList.remove('armed');
+  $('#futUse').checked = false; futTblOpen = true;
+  ['#npsPay', '#nhisPay', '#spNpsPay', '#spNhisPay'].forEach(s => { $(s).value = ''; formatWon($(s)); });
   ['#ePrice', '#eSenior', '#eAmt', '#eDeposit', '#eNextDep', '#eSrcIn', '#eSrcLoan', '#eOther'].forEach(s => { $(s).value = ''; formatMoney($(s)); });
   $('#eRate').value = ''; $('#eYears').value = 30; $('#ePreBuy').checked = false; $('#ePreTenant').checked = false;
   ['eHouse=one', 'ePurpose=general', 'eEvict=next', 'eSrc=jeonse', 'eMethod=equal'].forEach(x => { const [n, v] = x.split('='); $(`input[name=${n}][value=${v}]`).checked = true; });
-  ['#income', '#spouse', '#cardUse', '#mPrice', '#mAmt', '#jDeposit', '#jAmt'].forEach(s => { $(s).value = ''; formatMoney($(s)); });
+  ['#income', '#spouse', '#cardUse', '#spCardUse', '#mPrice', '#mAmt', '#jDeposit', '#jAmt'].forEach(s => { $(s).value = ''; formatMoney($(s)); });
   ['#mRate', '#jRate'].forEach(s => $(s).value = '');
   $('#spouseOn').checked = false; $('input[name=spType][value=증빙소득]').checked = true; $('#spouseOn').onchange({ target: $('#spouseOn') });
   $('input[name=mHouse][value=none]').checked = true; $('input[name=jRegion][value=cap]').checked = true;
@@ -1823,7 +1866,6 @@ $('#btnSettings').hidden = !adminToken();
 $('.actions').classList.toggle('admin', !!adminToken());
 // 사이트의 규제 설정을 받아 다시 계산
 loadSettings().then(ok => { if (ok) { buildSegs(); recalc(); } });
-$('#btnRules').onclick = () => { location.href = 'rules.html'; };
 
 /* ---------- 의견·문의 (Netlify Forms로 전송) ---------- */
 const FEEDBACK_ENDPOINT = 'https://rad-klepon-472426.netlify.app/';
