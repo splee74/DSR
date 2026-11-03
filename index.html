@@ -773,6 +773,13 @@ dialog{border-radius:10px}
             <label><input type="radio" name="jHouse" value="multi"><span class="x">다주택<small>전세대출 불가</small></span></label>
           </div>
         </div>
+        <div class="field full">
+          <span class="flabel">보증기관</span>
+          <div class="seg seg-even">
+            <label><input type="radio" name="jGuar" value="sgi" checked><span>SGI<small id="jSgiLbl">최대 5억</small></span></label>
+            <label><input type="radio" name="jGuar" value="hug"><span>HUG<small id="jHugLbl">최대 4억</small></span></label>
+          </div>
+        </div>
         <div class="field">
           <label for="jDeposit">전세보증금</label>
           <div class="inp"><input id="jDeposit" class="money" inputmode="numeric" value="40,000"><span class="u">만원</span></div>
@@ -896,7 +903,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v82';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v83';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -910,7 +917,7 @@ const DEFAULTS = {
   dti:    { metro: 60, reg: 40, local: 60 },
   cap:    { on: { metro: true, reg: true, local: false }, t1: 150000, c1: 60000, t2: 250000, c2: 40000, c3: 20000 },
   deem:   { credit: 5, nonhouse: 10, office: 8, midpay: 25, guar: 10, secur: 8 },
-  jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000, capMember: 50000 },
+  jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000, capMember: 50000, capSgi: 50000, capHug: 40000 },   // capSgi·capHug: 보증기관별 최대 한도
   inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 9.5, nhisRate: 3.595, recogPct: 95, mixCap: 5000 },   // mixCap: 인정·신고소득이 들어간 소득 합계 상한
   debt:   { otherRate: 5.52 },
   // 주담대(자담): 수도권·규제지역 가계일반자금 물건당 상한 · 6.27 이전 조건 LTV · 다주택 LTV 차감
@@ -1091,6 +1098,7 @@ function buildSegs() {
   $('#eMultiLbl').textContent = `LTV −${S.equity.multiCut}%p`;
   $('#segRtype').innerHTML = segHTML('mRtype', Object.fromEntries(Object.entries(RTYPES).map(([k, v]) => [k, `${v}<small>스트레스 +${fx(S.stress[k])}%p · 지방 +${S.stressLocal[k]}%p</small>`])), t);
   $('#jStressLbl').textContent = `수도권·규제: DSR · 최대 ${korMan(S.jeonse.capOne)}`;
+  $('#jSgiLbl').textContent = `최대 ${korMan(S.jeonse.capSgi)}`; $('#jHugLbl').textContent = `최대 ${korMan(S.jeonse.capHug)}`;
   $('#jMemberLbl').textContent = `DSR 적용 · 최대 ${korMan(S.jeonse.capMember)}`;
   $('#jNote').innerHTML = `· <b>1주택</b>(본인+배우자 1주택): <b>수도권·규제지역</b>에서 전세대출 시 DSR 적용 · 최대 <b>${korMan(S.jeonse.capOne)}</b> (보유 주택 위치와 무관) · 지방은 DSR 미적용<br>
     · <b>본인 무주택 · 세대원 유주택</b>(등본상 부모·자녀 등 유주택): DSR 적용 · 최대 <b>${korMan(S.jeonse.capMember)}</b><br>
@@ -1663,7 +1671,10 @@ function renderJeonse() {
   const cDsr = dsrOn
     ? { label: `스트레스 DSR ${dsrLim}%`, v: byLim(dsrLim, ex.dsr, sRate), short: `스트레스 DSR ${dsrLim}%` }
     : { label: oneLocal ? 'DSR (지방 1주택자 미적용)' : 'DSR (무주택자 미적용)', v: Infinity, text: '해당 없음' };
-  const items = [cDep, cDsr, cDti];
+  // 보증기관별 최대 한도 (SGI 5억 · HUG 4억)
+  const guar = $('input[name=jGuar]:checked').value, gName = guar.toUpperCase(), gCap = guar === 'hug' ? S.jeonse.capHug : S.jeonse.capSgi;
+  const cGuar = { label: `${gName} 보증 최대 한도`, v: gCap, short: `${gName} 한도 ${korMan(gCap)}` };
+  const items = [cDep, cGuar, cDsr, cDti];
   if (dsrOn) items.splice(1, 0, { label: `${who} 최대 한도`, v: capV, short: `${who} 한도 ${korMan(capV)}` });
   if (oneLocal) items.splice(1, 0, { label: '1주택자 한도 (지방 · 보증기관별 한도 확인)', v: Infinity, text: '보증기관 기준' });
   const f = pickMin(items);
@@ -1696,6 +1707,7 @@ function renderJeonse() {
       ['연소득', incomeText()],
       ['주택 보유', HOUSES[house]],
       ['전세 지역', jLocal ? '지방' : '수도권 · 규제지역'],
+      ['보증기관', `${gName} (최대 ${korMan(gCap)})`],
       ['전세보증금', korMan(dep)],
       ['대출 희망금액', korMan(L)],
       ['금리 (실제)', rate.toFixed(2) + '%'],
@@ -1770,7 +1782,7 @@ const SETTINGS = [
   ['주담대(자담)', [['equity.cap', '가계일반자금 물건당 상한 (수도권·규제지역)', '만원'], ['equity.excDti', '6.27 이전 전세퇴거 예외 DTI 한도', '%'], ['equity.multiCut', '다주택 LTV 차감', '%p'],
     ['equity.preLtv.metro', '6.27 이전 LTV · 수도권', '%'], ['equity.preLtv.spec', '6.27 이전 LTV · 강남·서초·송파·용산', '%'], ['equity.preLtv.reg', '6.27 이전 LTV · 그 외 규제지역', '%'], ['equity.preLtv.local', '6.27 이전 LTV · 지방', '%']]],
   ['규제 예외 단지 (주택구입자금)', [['exc.term', '최대 만기', '년'], ['exc.stress.variable', '스트레스 · 변동금리', '%p'], ['exc.stress.mixed', '스트레스 · 혼합형', '%p'], ['exc.stress.periodic', '스트레스 · 5년 주기형', '%p']]],
-  ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (DSR 적용 대상)', '%'], ['stress.jeonse', '스트레스 가산 (DSR 적용 대상)', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원'], ['jeonse.capMember', '세대원 유주택 최대 한도', '만원']]]
+  ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (DSR 적용 대상)', '%'], ['stress.jeonse', '스트레스 가산 (DSR 적용 대상)', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원'], ['jeonse.capMember', '세대원 유주택 최대 한도', '만원'], ['jeonse.capSgi', 'SGI 보증 최대 한도', '만원'], ['jeonse.capHug', 'HUG 보증 최대 한도', '만원']]]
 ];
 function openSettings(src = S) {
   $('#dlgBody').innerHTML = SETTINGS.map(([title, items]) => `<div class="sgroup"><h3>${title}</h3><div class="grid3">${
@@ -1854,7 +1866,7 @@ $('#btnReset').onclick = () => {
   ['#custName', '#birth', '#spBirth'].forEach(s => $(s).value = ''); $('#futureOn').checked = false; $('#futureSpOn').checked = false;
   $('#futManual').checked = false; ['#futRateMe', '#futRateSp'].forEach(s => $(s).value = '');
   $('input[name=mMethod][value=equal]').checked = true;
-  $('input[name=jHouse][value=none]').checked = true;
+  $('input[name=jHouse][value=none]').checked = true; $('input[name=jGuar][value=sgi]').checked = true;
   loans = []; renderLoans();
 };
 $('#btnSettings').onclick = () => { if (adminToken()) openSettings(); };
