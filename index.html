@@ -382,6 +382,9 @@ dialog{border-radius:10px}
 .mbar-in > div{cursor:pointer}
 .fut-fold{border:1px solid var(--brand-line);background:var(--surface);color:var(--brand-ink);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700}
 #futBody{display:flex;flex-direction:column;gap:10px}
+/* 메뉴탭: 오른쪽에 메뉴가 더 있으면 ▶ 표시 (누르면 오른쪽으로 밀기) */
+.tabwrap{order:3;width:100%;position:relative;min-width:0}
+.tab-more{position:absolute;top:1px;right:0;bottom:0;width:40px;border:0;padding:0 2px 0 14px;background:linear-gradient(90deg,transparent,var(--header-solid) 55%);color:var(--brand);font-size:13px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer}
 #futBody[hidden]{display:none}
 @media print{
   .mbar{display:none!important}
@@ -435,7 +438,8 @@ dialog{border-radius:10px}
       <button type="button" id="btnFeedback" title="의견·문의">문의</button>
       <button type="button" id="btnReset" title="입력 내용 모두 지우기">초기화</button>
     </div>
-    <div class="tabbar">
+    <div class="tabwrap">
+    <div class="tabbar" id="tabbar">
       <nav class="tabs">
         <button type="button" data-tab="mort" class="on">주택구입자금</button>
         <button type="button" data-tab="equity">주담대(자담)</button>
@@ -444,6 +448,8 @@ dialog{border-radius:10px}
       <a class="policy-link hot" href="bank.html">은행금리비교</a>
       <a class="policy-link" href="policy.html">정책자금</a>
       <a class="policy-link" href="rules.html">규정집</a>
+    </div>
+    <button type="button" class="tab-more" id="tabMore" aria-label="메뉴 더 보기" hidden>▶</button>
     </div>
   </div>
 </header>
@@ -910,7 +916,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v78';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v79';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1822,6 +1828,11 @@ $('#futUse').onchange = e => {
   else { $('#futureOn').checked = false; $('#futureSpOn').checked = false; }
   recalc();
 };
+// 메뉴탭 ▶: 오른쪽 끝까지 밀면 사라짐
+{ const tb = $('#tabbar'), more = $('#tabMore');
+  const upd = () => { more.hidden = tb.scrollLeft + tb.clientWidth >= tb.scrollWidth - 4; };
+  tb.addEventListener('scroll', upd, { passive: true }); addEventListener('resize', upd); addEventListener('load', upd); upd();
+  more.onclick = () => tb.scrollBy({ left: tb.clientWidth * .6, behavior: 'smooth' }); }
 $('#futFold').onclick = () => { futTblOpen = !futTblOpen; recalc(); };
 $('#spouseOn').onchange = e => {
   $('#spouse').disabled = !e.target.checked;
