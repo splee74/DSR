@@ -382,6 +382,11 @@ dialog{border-radius:10px}
 .mbar-in > div{cursor:pointer}
 .fut-fold{border:1px solid var(--brand-line);background:var(--surface);color:var(--brand-ink);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700}
 #futBody{display:flex;flex-direction:column;gap:10px}
+/* 상담 정보: 고객명 · 생년월일 한 줄 · 상담일은 머리글에 표시만 */
+.cust-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto minmax(0,1.4fr);gap:8px;align-items:center}
+.cust-row .inp{padding:0 8px}
+.cust-row label{font-size:13px;color:var(--sub);white-space:nowrap;margin:0}
+.cdate-top{font-size:11px;color:var(--muted);white-space:nowrap;align-self:center;margin-right:2px}
 /* 메뉴탭: 오른쪽에 메뉴가 더 있으면 ▶ 표시 (누르면 오른쪽으로 밀기) */
 .tabwrap{order:3;width:100%;position:relative;min-width:0}
 .tab-more{position:absolute;top:1px;right:0;bottom:0;width:40px;border:0;padding:0 2px 0 14px;background:linear-gradient(90deg,transparent,var(--header-solid) 55%);color:var(--brand);font-size:13px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer}
@@ -435,6 +440,7 @@ dialog{border-radius:10px}
     </div>
     <div class="actions">
       <button type="button" id="btnSettings" hidden title="규제설정" aria-label="규제설정">⚙</button>
+      <span class="cdate-top" id="cdateTop"></span>
       <button type="button" id="btnFeedback" title="의견·문의">문의</button>
       <button type="button" id="btnReset" title="입력 내용 모두 지우기">초기화</button>
     </div>
@@ -459,21 +465,14 @@ dialog{border-radius:10px}
     <!-- 상담 정보 -->
     <div class="card">
       <h2>상담 정보</h2>
-      <div class="grid3">
-        <div class="field">
-          <label for="custName">고객명</label>
-          <div class="inp"><input id="custName" class="left" placeholder="고객 이름 입력"></div>
-        </div>
-        <div class="field">
-          <label for="birth">생년월일</label>
-          <div class="inp"><input id="birth" class="left date8" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="예) 19900315"></div>
-          <div class="hint" id="ageHint"></div>
-        </div>
-        <div class="field">
-          <label for="cdate">상담일</label>
-          <div class="inp"><input id="cdate" type="date" class="left"></div>
-        </div>
+      <div class="cust-row">
+        <label for="custName">고객명</label>
+        <div class="inp"><input id="custName" class="left" placeholder="이름"></div>
+        <label for="birth">생년월일</label>
+        <div class="inp"><input id="birth" class="left date8" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="19900315"></div>
       </div>
+      <div class="hint" id="ageHint" style="text-align:right"></div>
+      <input type="hidden" id="cdate">
     </div>
 
     <!-- ① 소득 -->
@@ -916,7 +915,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v79';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v80';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1949,7 +1948,7 @@ fillYears($('#mYears'), 40, 30);
 fillYears($('#jYears'), 10, 2);
 fillYears($('#eYears'), 40, 30);
 buildSegs();
-{ const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('#cdate').value = d.toISOString().slice(0, 10); }
+{ const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('#cdate').value = d.toISOString().slice(0, 10); $('#cdateTop').textContent = '상담일 ' + $('#cdate').value; }
 $$('.money').forEach(formatMoney);
 renderLoans();
 // 다른 브라우저에서 넘어온 입력 내용 되살리기
