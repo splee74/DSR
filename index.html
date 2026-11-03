@@ -903,7 +903,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v83';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v84';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1098,7 +1098,7 @@ function buildSegs() {
   $('#eMultiLbl').textContent = `LTV −${S.equity.multiCut}%p`;
   $('#segRtype').innerHTML = segHTML('mRtype', Object.fromEntries(Object.entries(RTYPES).map(([k, v]) => [k, `${v}<small>스트레스 +${fx(S.stress[k])}%p · 지방 +${S.stressLocal[k]}%p</small>`])), t);
   $('#jStressLbl').textContent = `수도권·규제: DSR · 최대 ${korMan(S.jeonse.capOne)}`;
-  $('#jSgiLbl').textContent = `최대 ${korMan(S.jeonse.capSgi)}`; $('#jHugLbl').textContent = `최대 ${korMan(S.jeonse.capHug)}`;
+  $('#jSgiLbl').textContent = `최대 ${korMan(S.jeonse.capSgi)}`; $('#jHugLbl').textContent = `최대 ${korMan(S.jeonse.capHug)} · 증빙소득만`;
   $('#jMemberLbl').textContent = `DSR 적용 · 최대 ${korMan(S.jeonse.capMember)}`;
   $('#jNote').innerHTML = `· <b>1주택</b>(본인+배우자 1주택): <b>수도권·규제지역</b>에서 전세대출 시 DSR 적용 · 최대 <b>${korMan(S.jeonse.capOne)}</b> (보유 주택 위치와 무관) · 지방은 DSR 미적용<br>
     · <b>본인 무주택 · 세대원 유주택</b>(등본상 부모·자녀 등 유주택): DSR 적용 · 최대 <b>${korMan(S.jeonse.capMember)}</b><br>
@@ -1671,8 +1671,14 @@ function renderJeonse() {
   const cDsr = dsrOn
     ? { label: `스트레스 DSR ${dsrLim}%`, v: byLim(dsrLim, ex.dsr, sRate), short: `스트레스 DSR ${dsrLim}%` }
     : { label: oneLocal ? 'DSR (지방 1주택자 미적용)' : 'DSR (무주택자 미적용)', v: Infinity, text: '해당 없음' };
-  // 보증기관별 최대 한도 (SGI 5억 · HUG 4억)
+  // 보증기관별 최대 한도 (SGI 5억 · HUG 4억) · HUG는 증빙소득만 (배우자 합산 시 배우자도)
   const guar = $('input[name=jGuar]:checked').value, gName = guar.toUpperCase(), gCap = guar === 'hug' ? S.jeonse.capHug : S.jeonse.capSgi;
+  const it = incTypes(), nonProof = [it.me !== '증빙소득' ? '본인 ' + it.me : '', it.sp && it.sp !== '증빙소득' ? '배우자 ' + it.sp : ''].filter(Boolean);
+  if (guar === 'hug' && nonProof.length) {
+    MB = { k: 'HUG 보증', v: '불가', st: 'bad', m: '—' };
+    return `${head}<div class="rp-body"><div class="block">⛔<strong>HUG 보증은 증빙소득만 가능</strong>
+      <p>${nonProof.join(' · ')}이 포함되어 HUG 보증을 이용할 수 없습니다. SGI 보증으로 확인하세요.</p></div></div>${reportFoot()}`;
+  }
   const cGuar = { label: `${gName} 보증 최대 한도`, v: gCap, short: `${gName} 한도 ${korMan(gCap)}` };
   const items = [cDep, cGuar, cDsr, cDti];
   if (dsrOn) items.splice(1, 0, { label: `${who} 최대 한도`, v: capV, short: `${who} 한도 ${korMan(capV)}` });
