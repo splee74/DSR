@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-05T04:20:30.309Z",
+ "updated": "2026-11-05T04:27:26.177Z",
  "data": {
   "mort": {
    "variable": {
@@ -118,7 +118,7 @@
   "jeonse": {
    "hfVar": {
     "sample": false,
-    "asof": "2026-10-29",
+    "asof": "2026-11-05",
     "banks": {
      "kb": {
       "rate": 4.55,
@@ -127,7 +127,7 @@
       "term": 12
      },
      "woori": {
-      "rate": 4.29,
+      "rate": 4.23,
       "fee": 0.35,
       "idx": "cofixNewBal",
       "term": 12
@@ -162,27 +162,27 @@
    },
    "hfFix": {
     "sample": false,
-    "asof": "2026-10-29",
+    "asof": "2026-11-05",
     "banks": {
      "kb": {
-      "rate": 5.01,
+      "rate": 4.97,
       "fee": 0.96
      },
      "woori": {
-      "rate": 5.56,
+      "rate": 5.52,
       "fee": 0.76
      },
      "shinhan": {
-      "rate": 4.72,
+      "rate": 4.68,
       "fee": 0.85
      },
      "hana": {
-      "rate": 4.94,
+      "rate": 4.88,
       "fee": 0.59
      },
      "ibk": {},
      "nh": {
-      "rate": 4.89,
+      "rate": 4.91,
       "fee": 0.93
      },
      "xmvrp9uh3": {}
@@ -190,7 +190,7 @@
    },
    "hugVar": {
     "sample": false,
-    "asof": "2026-10-29",
+    "asof": "2026-11-05",
     "banks": {
      "kb": {
       "rate": 4.66,
@@ -199,7 +199,7 @@
       "term": 12
      },
      "woori": {
-      "rate": 4.28,
+      "rate": 4.19,
       "fee": 0.35,
       "idx": "cofixNewBal",
       "term": 12
@@ -217,7 +217,7 @@
       "term": 6
      },
      "ibk": {
-      "rate": 4.39,
+      "rate": 4.43,
       "fee": 0.57,
       "idx": "cofixNewBal",
       "term": 3
@@ -236,18 +236,18 @@
    },
    "hugFix": {
     "sample": false,
-    "asof": "2026-10-29",
+    "asof": "2026-11-05",
     "banks": {
      "kb": {
-      "rate": 5.07,
+      "rate": 5.03,
       "fee": 0.96
      },
      "woori": {
-      "rate": 5.66,
+      "rate": 5.61,
       "fee": 0.76
      },
      "shinhan": {
-      "rate": 4.71,
+      "rate": 4.67,
       "fee": 0.85
      },
      "hana": {
@@ -255,7 +255,7 @@
      },
      "ibk": {},
      "nh": {
-      "rate": 4.89,
+      "rate": 4.85,
       "fee": 0.93
      },
      "xmvrp9uh3": {}
@@ -263,7 +263,7 @@
    },
    "sgiVar": {
     "sample": false,
-    "asof": "2026-10-29",
+    "asof": "2026-11-05",
     "banks": {
      "kb": {
       "rate": 4.55,
@@ -272,7 +272,7 @@
       "term": 12
      },
      "woori": {
-      "rate": 4.31,
+      "rate": 4.25,
       "fee": 0.35,
       "idx": "cofixNewBal",
       "term": 12
@@ -290,7 +290,7 @@
       "term": 6
      },
      "ibk": {
-      "rate": 4.51,
+      "rate": 4.55,
       "fee": 0.57,
       "idx": "cofixNewBal",
       "term": 3
@@ -309,26 +309,27 @@
    },
    "sgiFix": {
     "sample": false,
-    "asof": "2026-10-29",
+    "asof": "2026-11-05",
     "banks": {
      "kb": {
-      "rate": 5.37,
+      "rate": 5.33,
       "fee": 0.96
      },
      "woori": {
-      "rate": 5.57,
+      "rate": 5.51,
       "fee": 0.76
      },
      "shinhan": {
-      "rate": 4.72,
+      "rate": 4.68,
       "fee": 0.85
      },
      "hana": {
-      "rate": 5.22,
+      "rate": 5.15,
       "fee": 0.59
      },
      "ibk": {},
      "nh": {
+      "rate": 4.85,
       "fee": 0.93
      },
      "xmvrp9uh3": {}
