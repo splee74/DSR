@@ -968,7 +968,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v92';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v93';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -2020,7 +2020,7 @@ renderLoans();
 let RESTORED = false;
 { const q = new URLSearchParams(location.search).get('s');
   if (q) { try { restoreState(JSON.parse(unb64u(q))); RESTORED = true; } catch (e) {} history.replaceState(null, '', location.pathname); } }
-if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {}); // pwa
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {}); // pwa
 
 /* 업데이트 안내: 처음 열 때 한 번 (같은 창에서 다른 페이지 갔다 와도 다시 안 뜸) */
 const NOTICE_ID = 'notice-2026-11-03-update';
