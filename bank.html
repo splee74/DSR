@@ -563,7 +563,7 @@ const prefOn = p => p.on !== false;   // 체크 해제한 항목은 미적용
 const prefRaw = v => (v.prefs || []).filter(prefOn).reduce((s, p) => s + (has(p.rate) ? p.rate : 0), 0);
 // 우대 적용 = 체크한 우대금리 합계, 최대적용가능금리(cap)가 있으면 그 이상은 적용하지 않음
 const prefSum = (v, cap = v.pmax) => { const r = prefRaw(v); return has(cap) ? Math.min(r, cap) : r; };
-const prefTxt = v => (v.prefs || []).length ? '−' + prefSum(v).toFixed(2) + '%p' + (has(v.pmax) && prefRaw(v) > v.pmax ? `<br><span class="sub">최대 적용 (체크 합 ${prefRaw(v).toFixed(2)})</span>` : '') : '–';
+const prefTxt = v => (v.prefs || []).length ? '−' + prefSum(v).toFixed(2) + '%p' : '–';
 const baseOf = (v, t) => has(v.base) ? { r: v.base, auto: false } : { r: (BASE[baseKey(v, t)] || {}).rate || 0, auto: true };
 // 실질적용금리: 직접 입력값 우선, 없으면 기준금리 + 가산금리 − 우대 합계
 function eff(v, t, cap = v.pmax) {
@@ -769,7 +769,7 @@ function render() {
     <div class="sum"><small>${list.length}개 은행 평균</small><strong>${pct(mean)}</strong><em>${TYPE[t].fixed ? `기준금리 ${TYPE[t].baseName} ${pct(BASE[TYPE[t].base].rate)}` : '기준금리는 은행별로 다름'}${chgs.length ? ` · 전월 대비 ${chgTxt(chgs.reduce((s, x) => s + x.chg, 0) / chgs.length)}%p` : ''}</em></div>`;
 
   $('#tblSub').textContent = `${PRODS[prod]} · ${TYPE[t].label}`;
-  $('#tbl').innerHTML = `<tr><th>은행</th><th>기준금리</th><th>가산금리</th><th>우대 적용</th><th>최저 ~ 최고</th><th>실질적용금리</th><th>전월 대비(%p)</th><th>중도상환수수료</th></tr>` +
+  $('#tbl').innerHTML = `<tr><th>은행</th><th>기준금리</th><th>가산금리</th><th>최대우대적용</th><th>최저 ~ 최고</th><th>실질적용금리</th><th>전월 대비(%p)</th><th>중도상환수수료</th></tr>` +
     list.map(x => `<tr class="${x === best ? 'best' : ''}"><td><span class="dot">${x.short}</span><b>${x.name}</b>${x === best ? '<span class="badge">최저</span>' : ''}</td>
       <td>${pct(x.bs.r)}<br><span class="sub">${baseName(x, t)}${x.bs.auto ? '' : ' (직접)'}</span></td><td>${p2(x.spread)}</td>
       <td>${prefTxt(x)}</td>
@@ -777,7 +777,7 @@ function render() {
   $('#cards').innerHTML = list.map(x => `<div class="bc ${x === best ? 'best' : ''}">
       <div class="bc-h"><span class="dot">${x.short}</span><b>${x.name}</b>${x === best ? '<span class="badge">최저</span>' : ''}<div class="r"><strong>${pct(x.rate)}</strong>${x.e.auto ? autoTag : chgTxt(x.chg)}</div></div>
       <dl><dt>기준금리</dt><dd>${baseName(x, t)}</dd><dt>기준 + 가산</dt><dd>${pct(x.bs.r)} + ${has(x.spread) ? x.spread.toFixed(2) : '–'}</dd>
-        <dt>우대 적용</dt><dd>${prefTxt(x)}</dd>
+        <dt>최대우대적용</dt><dd>${prefTxt(x)}</dd>
         <dt>최저 ~ 최고</dt><dd>${rng(x)}</dd><dt>중도상환수수료</dt><dd>${p2(x.fee)}</dd></dl></div>`).join('');
 
   const L = num($('#amt').value), yrs = +$('#yrs').value, way = $('#way').value;
