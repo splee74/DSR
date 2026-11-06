@@ -290,6 +290,18 @@ dialog::backdrop{background:#0006}
 .ed-prefs .lab{font-size:13px;color:var(--sub);font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .ed-prefs .lab span{font-weight:400;color:var(--muted);font-size:12px}
 .prow{display:grid;grid-template-columns:96px minmax(0,1fr) 110px 40px;gap:6px;margin-top:6px;align-items:center}
+/* 주의 표시 항목: 분홍 */
+:root{--pink:#fde4ee;--pink-line:#f3a3c3;--pink-ink:#c2185b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pink:#3b1828;--pink-line:#7d3155;--pink-ink:#ff8cba}}
+:root[data-theme="dark"]{--pink:#3b1828;--pink-line:#7d3155;--pink-ink:#ff8cba}
+.pchk{display:flex;flex-direction:column;gap:3px}
+@media (max-width:560px){.prow{grid-template-columns:62px minmax(0,1fr) 84px 36px;gap:5px}.prow .inp{padding:0 8px}}
+.pwarn{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;padding:0 4px;white-space:nowrap}
+.pwarn input{width:16px;height:16px;accent-color:var(--pink-ink);margin:0}
+.prow.warn .pwarn{color:var(--pink-ink)}
+.prow.warn .inp{background:var(--pink);border-color:var(--pink-line)}
+.prow.warn input.name{color:var(--pink-ink)}
+.pchip.warn{color:var(--pink-ink);background:var(--pink);border-color:var(--pink-line)}
 .pon{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;padding:0 4px;white-space:nowrap}
 .pon input{width:18px;height:18px;accent-color:var(--brand);margin:0}
 .prow.off .pon{color:var(--muted)}
@@ -687,7 +699,7 @@ const isAdmin = () => !ONLINE || !!token();
 /* ── 화면 ── */
 let curType = 'variable';
 const prodNow = () => document.querySelector('input[name=prod]:checked').value;
-const prefChips = v => (v.prefs || []).length ? `<div class="prefs">${v.prefs.map(p => prefOn(p) ? `<span class="pchip">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>` : `<span class="pchip off">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>`).join('')}</div>` : '–';
+const prefChips = v => (v.prefs || []).length ? `<div class="prefs">${v.prefs.map(p => prefOn(p) ? `<span class="pchip${p.warn ? ' warn' : ''}">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>` : `<span class="pchip off${p.warn ? ' warn' : ''}">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>`).join('')}</div>` : '–';
 const chg3 = c => Math.abs(c) < 0.0005 ? '<span class="chg same">– 0.000</span>' : c < 0 ? `<span class="chg down">▼ ${Math.abs(c).toFixed(3)}</span>` : `<span class="chg up">▲ ${c.toFixed(3)}</span>`;
 const chgTxt = c => c === null ? '<span class="chg same">–</span>' : Math.abs(c) < 0.005 ? '<span class="chg same">– 0.00</span>' : c < 0 ? `<span class="chg down">▼ ${Math.abs(c).toFixed(2)}</span>` : `<span class="chg up">▲ ${c.toFixed(2)}</span>`;
 const p2 = v => has(v) ? pct(v) : '–';
@@ -870,7 +882,7 @@ $$('[data-hclose]').forEach(b => b.onclick = () => $('#hist').close());
 
 /* ── 금리 입력 창 ── */
 function today() { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
-const prefRow = (b, p = {}) => `<div class="prow${p.on === false ? ' off' : ''}"><label class="pon" title="체크하면 금리 계산에 적용"><input type="checkbox" data-pon="${b}" ${p.on === false ? '' : 'checked'}><span>적용</span></label><div class="inp"><input class="name" data-pn="${b}" value="${esc(p.name || '')}" placeholder="우대 항목 (예: 급여이체)" lang="ko" inputmode="text" list="prefNames" autocomplete="off"></div>
+const prefRow = (b, p = {}) => `<div class="prow${p.on === false ? ' off' : ''}${p.warn ? ' warn' : ''}"><div class="pchk"><label class="pon" title="체크하면 금리 계산에 적용"><input type="checkbox" data-pon="${b}" ${p.on === false ? '' : 'checked'}><span>적용</span></label><label class="pwarn" title="체크하면 분홍색으로 표시"><input type="checkbox" data-pwarn="${b}" ${p.warn ? 'checked' : ''}><span>주의</span></label></div><div class="inp"><input class="name" data-pn="${b}" value="${esc(p.name || '')}" placeholder="우대 항목 (예: 급여이체)" lang="ko" inputmode="text" list="prefNames" autocomplete="off"></div>
   <div class="inp"><input data-pr="${b}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(p.rate) ? p.rate : ''}" placeholder="0.00"><span class="u">%p</span></div>
   <button type="button" class="del" data-pdel aria-label="삭제">×</button></div>`;
 function edType() { return $('#edType').value; }
@@ -910,8 +922,8 @@ function readBank(id) {
   $$(`#edBody input[data-b="${id}"]`).forEach(el => { if (el.value.trim() !== '') v[el.dataset.k] = parseFloat(el.value); });
   $$(`#edBody select[data-sel="${id}"]`).forEach(el => v[el.dataset.k] = el.dataset.k === 'term' ? +el.value : el.value);
   const st = $(`#edBody [data-stop="${id}"]`); if (st && st.checked) v.stop = true;
-  v.prefs = $$(`[data-plist="${id}"] .prow`).map(r => ({ name: r.querySelector('[data-pn]').value.trim(), rate: parseFloat(r.querySelector('[data-pr]').value), on: r.querySelector('[data-pon]').checked }))
-    .filter(p => p.name).map(p => { const o = { name: p.name }; if (has(p.rate)) o.rate = p.rate; if (!p.on) o.on = false; return o; });
+  v.prefs = $$(`[data-plist="${id}"] .prow`).map(r => ({ name: r.querySelector('[data-pn]').value.trim(), rate: parseFloat(r.querySelector('[data-pr]').value), on: r.querySelector('[data-pon]').checked, warn: !!(r.querySelector('[data-pwarn]') || {}).checked }))
+    .filter(p => p.name).map(p => { const o = { name: p.name }; if (has(p.rate)) o.rate = p.rate; if (!p.on) o.on = false; if (p.warn) o.warn = true; return o; });
   return v;
 }
 // 우대금리 행을 읽어 은행 공통 목록에 바로 반영 (미리보기 모드는 이 기기에 즉시 저장)
@@ -1005,7 +1017,7 @@ $('#edBody').addEventListener('click', e => {
   const del = e.target.closest('[data-pdel]'); if (del) { const id = del.closest('[data-plist]').dataset.plist; del.closest('.prow').remove(); syncPrefs(id); updCalc(); }
 });
 $('#edBody').addEventListener('input', e => { if (e.target.dataset.pmax) { const id = e.target.dataset.pmax, x = parseFloat(e.target.value), m = PMAX[prodNow()], t = edType(); m[t] = m[t] || {}; if (has(x)) m[t][id] = x; else delete m[t][id]; TOUCH.pmax.add(prodNow() + '.' + t + '.' + id); if (!ONLINE) saveLocal(realData()); else dirty = true; return; } const pl = e.target.closest('[data-plist]'); if (pl) syncPrefs(pl.dataset.plist); updCalc(); });
-$('#edBody').addEventListener('change', e => { if (e.target.dataset.stop) { e.target.closest('.ed-bank').classList.toggle('stopped', e.target.checked); updCalc(); return; } if (e.target.dataset.pon) { e.target.closest('.prow').classList.toggle('off', !e.target.checked); syncPrefs(e.target.dataset.pon); updCalc(); return; } if (e.target.dataset.sel) { const b = e.target.dataset.sel, base = $(`#ed-${b}-base`); base.placeholder = '비우면 자동'; updCalc(); } });
+$('#edBody').addEventListener('change', e => { if (e.target.dataset.stop) { e.target.closest('.ed-bank').classList.toggle('stopped', e.target.checked); updCalc(); return; } if (e.target.dataset.pon) { e.target.closest('.prow').classList.toggle('off', !e.target.checked); syncPrefs(e.target.dataset.pon); updCalc(); return; } if (e.target.dataset.pwarn) { e.target.closest('.prow').classList.toggle('warn', e.target.checked); syncPrefs(e.target.dataset.pwarn); return; } if (e.target.dataset.sel) { const b = e.target.dataset.sel, base = $(`#ed-${b}-base`); base.placeholder = '비우면 자동'; updCalc(); } });
 $('#btnEdit').onclick = openEditor;
 $$('[data-edclose]').forEach(b => b.onclick = () => { stash(); $('#ed').close(); render(); if (dirty && ONLINE) toast('입력한 내용은 화면에 보관했습니다. 모두에게 보이려면 [저장]을 누르세요.'); });
 $('#edRoll').onclick = () => { const t = edType(); BANKS.forEach(b => { const e = eff(readBank(b.id), t, pmaxOf(prodNow(), t, b.id)); if (e) { $(`#ed-${b.id}-prev`).value = e.r.toFixed(2); const r = $(`#ed-${b.id}-rate`); if (r.value !== '') r.value = ''; } }); updCalc(); $('#edMsg').textContent = '지금 실질적용금리를 전월 칸으로 옮겼습니다. 이번 달 금리를 입력하고 저장하세요.'; };
