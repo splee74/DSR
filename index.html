@@ -371,7 +371,7 @@ dialog{border-radius:10px}
 .top .actions{margin-left:auto;width:auto;display:flex;gap:6px;align-self:center}
 .top .actions button{width:38px;height:38px;min-height:0;padding:0;border-radius:50%;font-size:11px;font-weight:700;line-height:1.1;display:grid;place-items:center;white-space:nowrap;letter-spacing:-.5px}
 .top .actions #btnFeedback{background:var(--brand);border-color:var(--brand);color:#fff}
-.top .actions #btnSettings{font-size:16px}
+.top .actions #btnSettings,.top .actions #btnNotice{font-size:16px}
 .top .actions #btnReset.armed{background:var(--bad);border-color:var(--bad);color:#fff;font-size:10px}
 .tabbar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabbar::-webkit-scrollbar{display:none}
@@ -484,6 +484,7 @@ dialog{border-radius:10px}
       <button type="button" id="btnFeedback" title="오류신고·의견">오류<br>신고</button>
       <button type="button" id="btnReset" title="입력 내용 모두 지우기">초기화</button>
       <button type="button" id="btnSettings" hidden title="규제설정" aria-label="규제설정">⚙</button>
+      <button type="button" id="btnNotice" hidden title="공지 수정" aria-label="공지 수정">📢</button>
       <!-- 말로 입력: 나중에 다시 쓸 수 있게 기능은 남겨 두고 버튼만 숨김 -->
       <button type="button" id="btnVoice" hidden title="말로 입력" aria-label="말로 입력"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/></svg></button>
     </div>
@@ -906,10 +907,10 @@ dialog{border-radius:10px}
   </form>
 </dialog>
 
-<!-- 업데이트 안내 (공지를 바꾸면 NOTICE_ID 도 바꿀 것) -->
+<!-- 공지사항: 내용은 notice.json (관리자 기기의 📢 버튼으로 수정) · 아래는 notice.json 을 못 받을 때 보이는 예비 내용 -->
 <dialog id="noticeDlg" class="notice" aria-labelledby="noticeTitle">
   <div class="dlg-head"><h2 id="noticeTitle">공지사항</h2><button type="button" data-nclose aria-label="닫기">×</button></div>
-  <div class="dlg-body">
+  <div class="dlg-body" id="noticeBody">
     <div class="notice-item"><b>1. 하나은행 MCI 가입 가능</b></div>
     <div class="notice-item"><b>2. 우리은행 11월 2일부터 금리 인하</b></div>
     <div class="notice-item"><b>3. DSR 계산기 화면 위치 및 디스플레이 수정</b></div>
@@ -918,6 +919,28 @@ dialog{border-radius:10px}
   <div class="dlg-foot">
     <label class="notice-skip"><input type="checkbox" id="noticeSkip"> 다시 보지 않기</label>
     <button type="button" class="btn primary" data-nclose>확인</button>
+  </div>
+</dialog>
+
+<!-- 공지 수정 (관리자 전용) -->
+<dialog id="noticeEdit" class="notice" aria-labelledby="neTitle">
+  <div class="dlg-head"><h2 id="neTitle">📢 공지 수정</h2><button type="button" data-neclose aria-label="닫기">×</button></div>
+  <div class="dlg-body">
+    <div class="field"><label for="neItems">공지 항목 (한 줄에 하나 · 번호는 자동으로 붙음)</label>
+      <textarea id="neItems" rows="7" style="width:100%;font:inherit;font-size:15px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);box-sizing:border-box"></textarea></div>
+    <div class="field" style="margin-top:12px"><label for="neFooter">맺음말 (비워 두면 안 보임)</label>
+      <div class="inp"><input type="text" id="neFooter"></div></div>
+    <label class="chk" style="margin-top:14px;display:flex"><input type="checkbox" id="neShow"> 공지 띄우기 (끄면 아무에게도 안 뜸)</label>
+    <label class="chk" style="margin-top:8px;display:flex"><input type="checkbox" id="neRenew"> 새 공지로 저장 — '다시 보지 않기'를 누른 분께도 다시 띄움</label>
+    <p class="note">오타만 고칠 때는 '새 공지로 저장'을 끄세요. <b>저장하면 1~2분 뒤 모든 사용자에게 적용</b>됩니다.</p>
+    <p class="note" id="neMsg" style="color:var(--bad)"></p>
+  </div>
+  <div class="dlg-foot">
+    <button type="button" class="btn" id="nePreview">미리보기</button>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="btn" data-neclose>취소</button>
+      <button type="button" class="btn primary" id="neSave">저장</button>
+    </div>
   </div>
 </dialog>
 
@@ -968,7 +991,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v98';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v99';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1032,15 +1055,17 @@ async function loadSettings() {
   } catch (e) { return false; }
 }
 const b64s = x => btoa(unescape(encodeURIComponent(x)));
-async function saveSettings() {
+// 관리자 토큰으로 사이트 저장소(GitHub)의 JSON 파일을 저장 → 1~2분 뒤 사이트에 반영
+async function saveRepoJson(file, data, message) {
   const h = { Authorization: 'Bearer ' + adminToken(), Accept: 'application/vnd.github+json' };
-  const url = `https://api.github.com/repos/${REPO}/contents/${SET_FILE}`;
+  const url = `https://api.github.com/repos/${REPO}/contents/${file}`;
   let sha;
   const g = await fetch(url, { headers: h, cache: 'no-store' });
   if (g.ok) sha = (await g.json()).sha; else if (g.status !== 404) throw new Error('GitHub 확인 실패 (' + g.status + ')');
-  const p = await fetch(url, { method: 'PUT', headers: h, body: JSON.stringify({ message: '규제 설정 변경', content: b64s(JSON.stringify(S, null, 1) + '\n'), sha }) });
+  const p = await fetch(url, { method: 'PUT', headers: h, body: JSON.stringify({ message, content: b64s(JSON.stringify(data, null, 1) + '\n'), sha }) });
   if (!p.ok) throw new Error(p.status === 409 ? '그사이 다른 곳에서 저장되었습니다. 다시 저장해 주세요.' : '저장 실패 (' + p.status + '). 관리자 토큰을 확인하세요.');
 }
+const saveSettings = () => saveRepoJson(SET_FILE, S, '규제 설정 변경');
 const getPath = (o, p) => p.split('.').reduce((a, k) => a[k], o);
 function setPath(o, p, v) { const ks = p.split('.'), last = ks.pop(); ks.reduce((a, k) => a[k], o)[last] = v; }
 
@@ -2022,20 +2047,77 @@ let RESTORED = false;
   if (q) { try { restoreState(JSON.parse(unb64u(q))); RESTORED = true; } catch (e) {} history.replaceState(null, '', location.pathname); } }
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {}); // pwa
 
-/* 업데이트 안내: 처음 열 때 한 번 (같은 창에서 다른 페이지 갔다 와도 다시 안 뜸) */
-const NOTICE_ID = 'notice-2026-11-03-update';
+/* 공지사항: 처음 열 때 한 번 (같은 창에서 다른 페이지 갔다 와도 다시 안 뜸)
+   내용은 notice.json (관리자 기기 📢 버튼으로 수정) · 못 받으면 index.html 안의 예비 내용 */
+const NOTICE_FILE = 'notice.json';
+let NOTICE = { id: 'notice-2026-11-03-update', show: true, items: null, footer: '' };
+const escHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+function renderNotice(n) {
+  $('#noticeBody').innerHTML = n.items.map((t, i) => `<div class="notice-item"><b>${i + 1}. ${escHtml(t)}</b></div>`).join('')
+    + (n.footer ? `<p class="notice-lead" style="margin:14px 0 0;text-align:center;font-weight:700;color:var(--text)">${escHtml(n.footer)}</p>` : '');
+}
 (() => {
   const d = $('#noticeDlg');
-  let seen = false;
-  try { seen = localStorage.getItem(NOTICE_ID) === 'hide' || sessionStorage.getItem(NOTICE_ID) === '1'; } catch (e) {}
+  let preview = false;   // 관리자 미리보기: 닫아도 '봤음' 기록 안 함
   const close = () => {
-    try { sessionStorage.setItem(NOTICE_ID, '1'); if ($('#noticeSkip').checked) localStorage.setItem(NOTICE_ID, 'hide'); } catch (e) {}
+    if (!preview) try { sessionStorage.setItem(NOTICE.id, '1'); if ($('#noticeSkip').checked) localStorage.setItem(NOTICE.id, 'hide'); } catch (e) {}
+    preview = false;
     if (d.open) d.close();
   };
   $$('[data-nclose]').forEach(b => b.addEventListener('click', close));
   d.addEventListener('cancel', close);
-  const openNotice = () => setTimeout(() => { if (!document.querySelector('dialog[open]')) d.showModal(); }, 300);
-  if (!seen && !RESTORED) { if (document.getElementById('splash')) document.addEventListener('splashdone', openNotice, { once: true }); else openNotice(); }
+  d.previewWith = n => { preview = true; renderNotice(n); $('#noticeSkip').checked = false; d.showModal(); };
+  const load = (async () => {
+    if (!/^https?:$/.test(location.protocol)) return;
+    try {
+      const r = await fetch(NOTICE_FILE + '?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const j = await r.json();
+      if (j && j.id && Array.isArray(j.items)) { NOTICE = { id: String(j.id), show: j.show !== false, items: j.items.map(String).filter(Boolean), footer: j.footer ? String(j.footer) : '' }; renderNotice(NOTICE); }
+    } catch (e) {}
+  })();
+  const openNotice = () => load.then(() => {
+    let seen = false;
+    try { seen = localStorage.getItem(NOTICE.id) === 'hide' || sessionStorage.getItem(NOTICE.id) === '1'; } catch (e) {}
+    if (seen || !NOTICE.show || (NOTICE.items && !NOTICE.items.length)) return;
+    setTimeout(() => { if (!document.querySelector('dialog[open]')) d.showModal(); }, 300);
+  });
+  if (!RESTORED) { if (document.getElementById('splash')) document.addEventListener('splashdone', openNotice, { once: true }); else openNotice(); }
+})();
+
+/* 공지 수정 (관리자 기기만 📢 버튼이 보임) */
+(() => {
+  const ed = $('#noticeEdit'), msg = $('#neMsg');
+  $('#btnNotice').hidden = !adminToken();
+  const current = () => NOTICE.items || $$('#noticeBody .notice-item b').map(b => b.textContent.replace(/^\d+\.\s*/, ''));
+  const footerNow = () => NOTICE.items ? NOTICE.footer : ($('#noticeBody .notice-lead')?.textContent || '');
+  const read = () => ({ items: $('#neItems').value.split('\n').map(s => s.trim().replace(/^\d+[.)]\s*/, '')).filter(Boolean), footer: $('#neFooter').value.trim() });
+  $('#btnNotice').onclick = () => {
+    if (!adminToken()) return;
+    $('#neItems').value = current().join('\n');
+    $('#neFooter').value = footerNow();
+    $('#neShow').checked = NOTICE.show;
+    $('#neRenew').checked = true;
+    msg.textContent = '';
+    ed.showModal();
+  };
+  $$('[data-neclose]').forEach(b => b.onclick = () => ed.close());
+  $('#nePreview').onclick = () => { const n = read(); if (!n.items.length) { msg.textContent = '공지 항목을 한 줄 이상 적어 주세요.'; return; } $('#noticeDlg').previewWith(n); };
+  $('#neSave').onclick = async () => {
+    const n = read(), btn = $('#neSave');
+    if (!n.items.length && $('#neShow').checked) { msg.textContent = '공지 항목을 한 줄 이상 적거나, \'공지 띄우기\'를 꺼 주세요.'; return; }
+    const now = new Date(), p2 = x => String(x).padStart(2, '0');
+    const id = $('#neRenew').checked ? `notice-${now.getFullYear()}-${p2(now.getMonth() + 1)}-${p2(now.getDate())}-${p2(now.getHours())}${p2(now.getMinutes())}${p2(now.getSeconds())}` : NOTICE.id;
+    const data = { id, show: $('#neShow').checked, items: n.items, footer: n.footer };
+    btn.disabled = true; msg.style.color = 'var(--sub)'; msg.textContent = '저장 중…';
+    try {
+      await saveRepoJson(NOTICE_FILE, data, '공지 변경');
+      NOTICE = data; renderNotice(NOTICE);
+      msg.style.color = 'var(--good, #1a7f37)'; msg.textContent = '저장했습니다. 1~2분 뒤 모든 사용자에게 적용됩니다.';
+      setTimeout(() => ed.open && ed.close(), 1200);
+    } catch (e) { msg.style.color = 'var(--bad)'; msg.textContent = e.message || '저장 실패'; }
+    finally { btn.disabled = false; }
+  };
 })();
 
 /* 결과지 PDF 공유: 기기 안에서 PDF를 만들어(서버로 보내지 않음) 공유 창 → 카카오톡 · 공유가 안 되는 기기는 저장 */
