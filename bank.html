@@ -560,13 +560,16 @@ const sampleAll = () => { const d = {}; for (const p in PRODS) { d[p] = {}; keys
 
 /* ── 금리 계산 ── */
 const prefOn = p => p.on !== false;   // 체크 해제한 항목은 미적용
-const prefSum = v => (v.prefs || []).filter(prefOn).reduce((s, p) => s + (has(p.rate) ? p.rate : 0), 0);
+const prefRaw = v => (v.prefs || []).filter(prefOn).reduce((s, p) => s + (has(p.rate) ? p.rate : 0), 0);
+// 우대 적용 = 체크한 우대금리 합계, 최대적용가능금리(cap)가 있으면 그 이상은 적용하지 않음
+const prefSum = (v, cap = v.pmax) => { const r = prefRaw(v); return has(cap) ? Math.min(r, cap) : r; };
+const prefTxt = v => (v.prefs || []).length ? '−' + prefSum(v).toFixed(2) + '%p' + (has(v.pmax) && prefRaw(v) > v.pmax ? `<br><span class="sub">최대 적용 (체크 합 ${prefRaw(v).toFixed(2)})</span>` : '') : '–';
 const baseOf = (v, t) => has(v.base) ? { r: v.base, auto: false } : { r: (BASE[baseKey(v, t)] || {}).rate || 0, auto: true };
 // 실질적용금리: 직접 입력값 우선, 없으면 기준금리 + 가산금리 − 우대 합계
-function eff(v, t) {
+function eff(v, t, cap = v.pmax) {
   if (v.stop) return null;   // 취급중단
   if (has(v.rate)) return { r: v.rate, auto: false };
-  if (has(v.spread)) { const b = baseOf(v, t).r; return { r: +(b + v.spread - prefSum(v)).toFixed(2), auto: true }; }
+  if (has(v.spread)) { const b = baseOf(v, t).r; return { r: +(b + v.spread - prefSum(v, cap)).toFixed(2), auto: true }; }
   return null;
 }
 
@@ -603,7 +606,7 @@ function merge(src) {
 }
 // 우대금리: 상담사가 넣은 값 우선. 아직 하나도 안 넣었을 때만 예시 우대금리를 보여줌 (모든 금리유형 동일)
 const prefsOf = (prod, id, v) => PREFS[prod] && PREFS[prod][id] !== undefined ? PREFS[prod][id] : (PREFS[prod] && Object.keys(PREFS[prod]).length ? [] : ((v && v.prefs) || []));
-const bankV = (prod, t, id) => { const v = DATA[prod][t].banks[id] || {}; return { ...v, prefs: prefsOf(prod, id, v) }; };
+const bankV = (prod, t, id) => { const v = DATA[prod][t].banks[id] || {}; return { ...v, prefs: prefsOf(prod, id, v), pmax: pmaxOf(prod, t, id) }; };
 const readLocal = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
 function saveLocal(data) { try { localStorage.setItem(LKEY, JSON.stringify({ data, prefs: PREFS, prefMax: PMAX, banks: XBANKS, savedAt: new Date().toISOString() })); } catch (e) {} }
 const realData = () => { const out = {}; for (const p in DATA) { out[p] = {}; for (const t in DATA[p]) if (!DATA[p][t].sample) out[p][t] = DATA[p][t]; } return out; };
@@ -769,12 +772,12 @@ function render() {
   $('#tbl').innerHTML = `<tr><th>은행</th><th>기준금리</th><th>가산금리</th><th>우대 적용</th><th>최저 ~ 최고</th><th>실질적용금리</th><th>전월 대비(%p)</th><th>중도상환수수료</th></tr>` +
     list.map(x => `<tr class="${x === best ? 'best' : ''}"><td><span class="dot">${x.short}</span><b>${x.name}</b>${x === best ? '<span class="badge">최저</span>' : ''}</td>
       <td>${pct(x.bs.r)}<br><span class="sub">${baseName(x, t)}${x.bs.auto ? '' : ' (직접)'}</span></td><td>${p2(x.spread)}</td>
-      <td>${(x.prefs || []).length ? '−' + prefSum(x).toFixed(2) + '%p' : '–'}</td>
+      <td>${prefTxt(x)}</td>
       <td>${rng(x)}</td><td><span class="b">${pct(x.rate)}</span>${x.e.auto ? '<br>' + autoTag : ''}</td><td>${chgTxt(x.chg)}</td><td>${p2(x.fee)}</td></tr>`).join('');
   $('#cards').innerHTML = list.map(x => `<div class="bc ${x === best ? 'best' : ''}">
       <div class="bc-h"><span class="dot">${x.short}</span><b>${x.name}</b>${x === best ? '<span class="badge">최저</span>' : ''}<div class="r"><strong>${pct(x.rate)}</strong>${x.e.auto ? autoTag : chgTxt(x.chg)}</div></div>
       <dl><dt>기준금리</dt><dd>${baseName(x, t)}</dd><dt>기준 + 가산</dt><dd>${pct(x.bs.r)} + ${has(x.spread) ? x.spread.toFixed(2) : '–'}</dd>
-        <dt>우대 적용</dt><dd>${(x.prefs || []).length ? '−' + prefSum(x).toFixed(2) + '%p' : '–'}</dd>
+        <dt>우대 적용</dt><dd>${prefTxt(x)}</dd>
         <dt>최저 ~ 최고</dt><dd>${rng(x)}</dd><dt>중도상환수수료</dt><dd>${p2(x.fee)}</dd></dl></div>`).join('');
 
   const L = num($('#amt').value), yrs = +$('#yrs').value, way = $('#way').value;
@@ -937,10 +940,10 @@ function updCalc() {
   if ($('#edBanks').childElementCount) renderEdBanks();
   const t = edType();
   BANKS.forEach(b => {
-    const v = readBank(b.id), el = $('#calc-' + b.id), bs = baseOf(v, t);
+    const v = readBank(b.id), el = $('#calc-' + b.id), bs = baseOf(v, t), cap = pmaxOf(prodNow(), t, b.id), ps = prefSum(v, cap);
     if (v.stop) el.innerHTML = '<b>취급중단</b> — 이 유형은 비교·1등·월 상환액에서 빠지고 표에 "취급중단"으로 표시됩니다';
     else if (has(v.rate)) el.innerHTML = `실질적용금리 <b>${pct(v.rate)}</b> (직접 입력)`;
-    else if (has(v.spread)) el.innerHTML = `자동 계산: 기준(${baseName(v, t)}) ${bs.r.toFixed(2)} + 가산 ${v.spread.toFixed(2)} − 우대 ${prefSum(v).toFixed(2)} = <b>${pct(bs.r + v.spread - prefSum(v))}</b>`;
+    else if (has(v.spread)) el.innerHTML = `자동 계산: 기준(${baseName(v, t)}) ${bs.r.toFixed(2)} + 가산 ${v.spread.toFixed(2)} − 우대 ${ps.toFixed(2)}${has(cap) && prefRaw(v) > cap ? ` (최대적용가능 ${cap.toFixed(2)})` : ''} = <b>${pct(bs.r + v.spread - ps)}</b>`;
     else el.innerHTML = '<span style="color:var(--muted)">실질적용금리 또는 가산금리를 넣으면 비교에 들어갑니다</span>';
   });
 }
@@ -1005,7 +1008,7 @@ $('#edBody').addEventListener('input', e => { if (e.target.dataset.pmax) { const
 $('#edBody').addEventListener('change', e => { if (e.target.dataset.stop) { e.target.closest('.ed-bank').classList.toggle('stopped', e.target.checked); updCalc(); return; } if (e.target.dataset.pon) { e.target.closest('.prow').classList.toggle('off', !e.target.checked); syncPrefs(e.target.dataset.pon); updCalc(); return; } if (e.target.dataset.sel) { const b = e.target.dataset.sel, base = $(`#ed-${b}-base`); base.placeholder = '비우면 자동'; updCalc(); } });
 $('#btnEdit').onclick = openEditor;
 $$('[data-edclose]').forEach(b => b.onclick = () => { stash(); $('#ed').close(); render(); if (dirty && ONLINE) toast('입력한 내용은 화면에 보관했습니다. 모두에게 보이려면 [저장]을 누르세요.'); });
-$('#edRoll').onclick = () => { const t = edType(); BANKS.forEach(b => { const e = eff(readBank(b.id), t); if (e) { $(`#ed-${b.id}-prev`).value = e.r.toFixed(2); const r = $(`#ed-${b.id}-rate`); if (r.value !== '') r.value = ''; } }); updCalc(); $('#edMsg').textContent = '지금 실질적용금리를 전월 칸으로 옮겼습니다. 이번 달 금리를 입력하고 저장하세요.'; };
+$('#edRoll').onclick = () => { const t = edType(); BANKS.forEach(b => { const e = eff(readBank(b.id), t, pmaxOf(prodNow(), t, b.id)); if (e) { $(`#ed-${b.id}-prev`).value = e.r.toFixed(2); const r = $(`#ed-${b.id}-rate`); if (r.value !== '') r.value = ''; } }); updCalc(); $('#edMsg').textContent = '지금 실질적용금리를 전월 칸으로 옮겼습니다. 이번 달 금리를 입력하고 저장하세요.'; };
 $('#edSample').onclick = () => {
   const keep = {}; BANKS.forEach(b => keep[b.id] = readBank(b.id).prefs);
   fillEditor(sampleSet(prodNow(), edType()), false);
