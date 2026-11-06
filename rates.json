@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-06T01:07:11.798Z",
+ "updated": "2026-11-06T01:08:49.967Z",
  "data": {
   "mort": {
    "variable": {
@@ -371,7 +371,8 @@
     },
     {
      "name": "MCI,MCG 가입불가",
-     "on": false
+     "on": false,
+     "warn": true
     }
    ],
    "woori": [
@@ -407,7 +408,8 @@
     },
     {
      "name": "MCI,MCG 가입불가",
-     "on": false
+     "on": false,
+     "warn": true
     }
    ],
    "shinhan": [
@@ -449,7 +451,8 @@
     },
     {
      "name": "MCI,MCG 가입불가",
-     "on": false
+     "on": false,
+     "warn": true
     }
    ],
    "hana": [
@@ -567,7 +570,8 @@
     },
     {
      "name": "MCI,MCG 가입불가",
-     "on": false
+     "on": false,
+     "warn": true
     }
    ],
    "xmvrp9uh3": [
