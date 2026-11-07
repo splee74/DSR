@@ -998,7 +998,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v102';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v103';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -2253,7 +2253,8 @@ $$('[data-pclose]').forEach(b => b.onclick = () => $('#pdfDlg').close());
 const CS_KEY = 'csproUrl';
 { const q = URLQ.get('cspro');
   if (q !== null) try { if (q) localStorage.setItem(CS_KEY, q.endsWith('/') ? q : q + '/'); else localStorage.removeItem(CS_KEY); } catch (e) {} }
-const csUrl = () => { try { return localStorage.getItem(CS_KEY) || ''; } catch (e) { return ''; } };
+// 관리자 기기(은행금리 관리자 토큰이 있는 기기)는 따로 설정하지 않아도 이 사이트의 /cs/ 고객관리로 연결
+const csUrl = () => { try { return localStorage.getItem(CS_KEY) || (adminToken() ? location.origin + '/cs/' : ''); } catch (e) { return ''; } };
 $('#csSave').hidden = $('#csSaveBar').hidden = !csUrl();
 // 상담저장에 함께 넘길 자세한 내용: 화면의 결과 보고서(상담 조건 · 비율 · 최대 금액)와 기존 대출 목록을 [구역, 항목, 값] 으로
 function csItems() {
