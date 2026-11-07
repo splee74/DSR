@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>신분증 스캔</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" type="image/png" href="icon-192.png?v=2">
+<meta name="robots" content="noindex">
+<style>
+/* 레이아웃: 머리글 → ① 앞면·뒷면 촬영 → ② 사본 옵션 → ③ 결과(A4 사본) · 모서리 맞추기는 전체 화면 편집기 */
+:root{
+  --brand:#03c75a;--brand-dark:#02b351;--ink:#008a3e;--weak:#eafaf1;--weak-line:#b8ebcd;
+  --bg:#f5f6f7;--card:#fff;--soft:#f5f6f7;--line:#e3e5e8;--line-strong:#d4d5d9;
+  --text:#1e1e23;--sub:#4e5258;--muted:#8b8f96;--bad:#c9302c;--badbg:#fdecec;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#1ed36f;--brand-dark:#03c75a;--ink:#4fe393;--weak:#10301f;--weak-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--soft:#26272b;--line:#323338;--line-strong:#46474e;
+  --text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;--bad:#ff7a73;--badbg:#3a1a19;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#1ed36f;--brand-dark:#03c75a;--ink:#4fe393;--weak:#10301f;--weak-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--soft:#26272b;--line:#323338;--line-strong:#46474e;
+  --text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;--bad:#ff7a73;--badbg:#3a1a19;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.6;letter-spacing:-.2px;word-break:keep-all;padding-bottom:72px}
+button,input{font:inherit;letter-spacing:inherit}
+button{cursor:pointer}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+.top{background:var(--card);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.top .wrap{padding-block:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.back{width:100%;font-size:13.5px;font-weight:700;color:var(--ink);text-decoration:none}
+.logo{width:36px;height:36px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center}
+.top h1{margin:0;font-size:18px;font-weight:800;letter-spacing:-.5px}
+.top .sub{display:block;font-size:12px;color:var(--muted)}
+main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px;min-width:0}
+@media (max-width:640px){.card{padding:16px}}
+.card>h2{margin:0 0 12px;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+.card>h2 .num{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:4px;background:var(--brand);color:#fff;font-size:12px}
+.privacy{display:flex;gap:10px;align-items:flex-start;background:var(--weak);border:1px solid var(--weak-line);border-radius:8px;padding:12px 14px;font-size:13.5px;color:var(--sub)}
+.privacy b{color:var(--text)}
+
+/* ① 앞면·뒷면 */
+.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:520px){.slots{grid-template-columns:minmax(0,1fr)}}
+.slot{display:flex;flex-direction:column;gap:8px;min-width:0}
+.slot-head{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-size:14.5px}
+.slot-head small{font-weight:500;color:var(--muted);font-size:12.5px}
+.prev{position:relative;aspect-ratio:85.6/54;max-width:100%;border:1.5px dashed var(--line-strong);border-radius:10px;background:var(--soft);display:grid;place-items:center;overflow:hidden;color:var(--muted);font-size:13px;text-align:center;touch-action:none}
+.prev.done{border-style:solid;border-color:var(--line);background:#fff}
+.prev canvas{width:100%;height:100%;display:block}
+.mask-box{position:absolute;background:#000;border:2px solid #ffde00;border-radius:3px;cursor:move;touch-action:none}
+.mask-box::after{content:"";position:absolute;right:-9px;bottom:-9px;width:18px;height:18px;border-radius:50%;background:#ffde00;border:2px solid #000;cursor:nwse-resize}
+.mask-tip{position:absolute;left:6px;bottom:6px;background:#000b;color:#fff;font-size:11px;padding:2px 6px;border-radius:4px;pointer-events:none}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:40px;padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--text);font-weight:700;font-size:14px;text-decoration:none}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dark)}
+.btn.grow{flex:1 1 0}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible,.seg button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+/* ② 옵션 */
+.opt{display:flex;flex-direction:column;gap:14px}
+.opt label.chk{display:flex;align-items:flex-start;gap:8px;font-weight:700}
+.opt label.chk input{width:20px;height:20px;margin-top:2px;accent-color:var(--brand)}
+.opt .hint{display:block;font-weight:400;font-size:12.5px;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{flex:1 1 0;min-width:84px;min-height:40px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--sub);font-weight:700;font-size:13.5px}
+.seg button.on{border-color:var(--brand);background:var(--weak);color:var(--ink);box-shadow:inset 0 0 0 1px var(--brand)}
+.field-label{font-weight:700;font-size:14px;margin-bottom:6px}
+.txt{width:100%;min-height:42px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);padding:8px 12px}
+.txt:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+
+/* ③ 결과 */
+.sheet-wrap{display:flex;justify-content:center;background:var(--soft);border-radius:8px;padding:12px}
+.sheet{width:min(100%,420px);aspect-ratio:210/297;background:#fff;box-shadow:0 2px 10px #0002;display:block}
+.out-note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.msg{font-size:13.5px;margin:8px 0 0;color:var(--ink);font-weight:700}
+.msg.bad{color:var(--bad)}
+
+/* 모서리 맞추기 (전체 화면) */
+.editor{position:fixed;inset:0;z-index:100;background:#111;color:#fff;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.ed-head{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:14px}
+.ed-head b{font-size:15px}
+.ed-head span{color:#bbb;font-size:12.5px}
+.ed-stage{position:relative;flex:1;min-height:0;display:grid;place-items:center;overflow:hidden;touch-action:none}
+.ed-inner{position:relative}
+.ed-inner canvas{display:block}
+.ed-inner svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.handle{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #fff;background:#03c75acc;box-shadow:0 0 0 2px #0006;touch-action:none;cursor:grab}
+.handle:active{cursor:grabbing}
+.loupe{position:absolute;left:10px;top:10px;width:120px;height:120px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 10px #0008;pointer-events:none;background:#000}
+.ed-foot{display:flex;gap:8px;padding:10px 14px calc(10px + 0px)}
+.ed-foot .btn{background:#2a2b2f;border-color:#3a3b40;color:#fff}
+.ed-foot .btn.primary{background:var(--brand);border-color:var(--brand)}
+.busy{position:fixed;inset:0;z-index:120;background:#0008;display:grid;place-items:center;color:#fff;font-weight:700}
+
+/* 계산기로 돌아가기 */
+.home-fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:50;display:inline-flex;align-items:center;gap:4px;padding:12px 18px;border-radius:999px;background:var(--brand);color:#fff;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 4px 14px #0003}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="back" href="./">‹ DSR·DTI 계산기</a>
+  <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5.5 16c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4M14 10h4.5M14 13.5h3"/></svg></div>
+  <div><h1>신분증 스캔</h1><span class="sub">사진 한 장으로 반듯한 신분증 사본 (A4 · PDF)</span></div>
+</div></header>
+
+<main class="wrap" id="locked" hidden>
+  <section class="card">
+    <h2>관리자만 사용할 수 있습니다</h2>
+    <p style="margin:0;color:var(--sub)">신분증 스캔은 관리자로 등록된 기기에서만 열립니다. 은행금리비교 → ✎ 금리 입력에서 관리자 토큰을 등록한 기기로 열어 주세요.</p>
+    <div class="row" style="margin-top:12px"><a class="btn primary" href="./">계산기로 돌아가기</a></div>
+  </section>
+</main>
+
+<main class="wrap" id="app">
+  <div class="privacy" role="note">
+    <span aria-hidden="true">🔒</span>
+    <div><b>사진은 이 기기 안에서만 처리합니다.</b> 서버로 보내거나 저장하지 않고, 이 화면을 닫으면 사라집니다. 필요한 사본은 아래 [PDF 저장]·[공유]로 남기세요.</div>
+  </div>
+
+  <section class="card">
+    <h2><span class="num">01</span>신분증 촬영</h2>
+    <div class="slots">
+      <div class="slot" data-side="front">
+        <div class="slot-head">앞면 <small>주민등록증 · 운전면허증</small></div>
+        <div class="prev" id="prevFront">카드를 어두운 바탕에 놓고<br>위에서 찍어 주세요</div>
+        <div class="row">
+          <button type="button" class="btn primary grow" data-shot="front">📷 촬영</button>
+          <button type="button" class="btn grow" data-pick="front">사진 선택</button>
+        </div>
+        <div class="row" data-tools="front" hidden>
+          <button type="button" class="btn grow" data-adjust="front">모서리 다시 맞추기</button>
+          <button type="button" class="btn" data-rotate="front" aria-label="앞면 뒤집기">↻ 뒤집기</button>
+          <button type="button" class="btn" data-clear="front">지우기</button>
+        </div>
+      </div>
+      <div class="slot" data-side="back">
+        <div class="slot-head">뒷면 <small>선택</small></div>
+        <div class="prev" id="prevBack">뒷면이 필요할 때만<br>찍으세요</div>
+        <div class="row">
+          <button type="button" class="btn primary grow" data-shot="back">📷 촬영</button>
+          <button type="button" class="btn grow" data-pick="back">사진 선택</button>
+        </div>
+        <div class="row" data-tools="back" hidden>
+          <button type="button" class="btn grow" data-adjust="back">모서리 다시 맞추기</button>
+          <button type="button" class="btn" data-rotate="back" aria-label="뒷면 뒤집기">↻ 뒤집기</button>
+          <button type="button" class="btn" data-clear="back">지우기</button>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="fileShot" accept="image/*" capture="environment" hidden>
+    <input type="file" id="filePick" accept="image/*" hidden>
+  </section>
+
+  <section class="card opt">
+    <h2><span class="num">02</span>사본 설정</h2>
+    <div>
+      <div class="field-label">보정</div>
+      <div class="seg" id="segTone">
+        <button type="button" data-tone="scan" class="on">스캔처럼</button>
+        <button type="button" data-tone="orig">원본 색</button>
+        <button type="button" data-tone="gray">흑백</button>
+      </div>
+    </div>
+    <label class="chk"><input type="checkbox" id="optMask" checked>
+      <span>주민등록번호 뒷자리 가리기<span class="hint">앞면 미리보기의 검은 상자를 손가락으로 옮기고, 노란 점을 끌어 크기를 맞추세요.</span></span></label>
+    <div>
+      <label class="chk"><input type="checkbox" id="optMark">
+        <span>제출용 문구 넣기<span class="hint">사본이 다른 곳에 쓰이지 않도록 카드 위에 문구를 비스듬히 넣습니다.</span></span></label>
+      <input class="txt" id="markText" type="text" maxlength="40" placeholder="예: OO은행 대출 신청 제출용" style="margin-top:8px">
+    </div>
+    <div>
+      <div class="field-label">A4 사본 크기</div>
+      <div class="seg" id="segSize">
+        <button type="button" data-size="1" class="on">실제 크기</button>
+        <button type="button" data-size="1.5">크게 (1.5배)</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">03</span>신분증 사본</h2>
+    <div class="sheet-wrap"><canvas class="sheet" id="sheet" width="827" height="1170" aria-label="A4 신분증 사본 미리보기"></canvas></div>
+    <p class="out-note" id="outNote">앞면을 찍으면 여기에 A4 사본이 만들어집니다.</p>
+    <div class="row" style="margin-top:10px">
+      <button type="button" class="btn primary grow" id="btnShare" disabled>공유</button>
+      <button type="button" class="btn grow" id="btnPdf" disabled>PDF 저장</button>
+      <button type="button" class="btn grow" id="btnJpg" disabled>이미지 저장</button>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button type="button" class="btn primary grow" id="btnCardPdf" disabled>신분증 크기 PDF (85.6 × 54mm)</button>
+    </div>
+    <p class="out-note">신분증 크기 PDF는 종이 크기가 신분증과 똑같아서, 인쇄할 때 <b>실제 크기(100%)</b>로 뽑으면 실물 크기로 나옵니다. 앞면·뒷면이 한 장씩 들어갑니다.</p>
+    <div class="row" style="margin-top:6px">
+      <button type="button" class="btn grow" id="btnCard" disabled>앞면 카드만 이미지로 저장</button>
+    </div>
+    <p class="msg" id="msg" hidden></p>
+  </section>
+</main>
+
+<a class="home-fab" href="./">‹ 계산기</a>
+
+<!-- 모서리 맞추기 -->
+<div class="editor" id="editor" hidden role="dialog" aria-modal="true" aria-label="신분증 모서리 맞추기">
+  <div class="ed-head"><b id="edTitle">앞면</b><span>초록 점 4개를 신분증 네 모서리에 맞추세요</span></div>
+  <div class="ed-stage" id="edStage">
+    <div class="ed-inner" id="edInner">
+      <canvas id="edCanvas"></canvas>
+      <svg id="edSvg"><polygon id="edPoly" fill="#03c75a33" stroke="#03c75a" stroke-width="2.5"/></svg>
+    </div>
+    <canvas class="loupe" id="loupe" width="240" height="240" hidden></canvas>
+  </div>
+  <div class="ed-foot">
+    <button type="button" class="btn grow" id="edCancel">취소</button>
+    <button type="button" class="btn grow" id="edAuto">자동으로 찾기</button>
+    <button type="button" class="btn primary grow" id="edDone">완료</button>
+  </div>
+</div>
+<div class="busy" id="busy" hidden>처리하는 중…</div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+// 관리자 기기(은행금리 관리자 토큰이 있는 기기)에서만 사용
+{ let ok = false; try { ok = !!localStorage.getItem('bankAdminToken'); } catch (e) {}
+  $('#locked').hidden = ok; $('#app').hidden = !ok; $('.home-fab').hidden = !ok; }
+const CARD_W = 1350, CARD_H = 852;           // 신분증(ID-1, 85.6 × 54mm) 비율
+const MAX_SRC = 2200;                        // 원본 사진은 긴 쪽 2200px 로 줄여서 처리
+const S = {                                  // 화면 상태 (사진은 메모리에만)
+  front: null, back: null,                   // { src: canvas, quad: [[x,y]×4], card: canvas(보정 전), flip: bool }
+  tone: 'scan', mask: { x: .26, y: .32, w: .26, h: .12 }, size: 1
+};
+
+/* ---------------- 사진 불러오기 ---------------- */
+let pendingSide = 'front';
+$$('[data-shot]').forEach(b => b.onclick = () => { pendingSide = b.dataset.shot; $('#fileShot').click(); });
+$$('[data-pick]').forEach(b => b.onclick = () => { pendingSide = b.dataset.pick; $('#filePick').click(); });
+['#fileShot', '#filePick'].forEach(id => $(id).onchange = async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  busy(true);
+  try {
+    const src = await loadToCanvas(f);
+    const quad = detectQuad(src) || defaultQuad(src);
+    busy(false);
+    openEditor(pendingSide, src, quad);
+  } catch (err) {
+    busy(false); say('사진을 열지 못했습니다. 다른 사진으로 다시 해 주세요.', true);
+  }
+});
+
+async function loadToCanvas(file) {
+  let bmp;
+  try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+  catch (e) { bmp = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(file); }); }
+  const w = bmp.width, h = bmp.height, k = Math.min(1, MAX_SRC / Math.max(w, h));
+  const c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  return c;
+}
+const defaultQuad = c => { const w = c.width, h = c.height, mw = w * .1, mh = h * .1; return [[mw, mh], [w - mw, mh], [w - mw, h - mh], [mw, h - mh]]; };
+
+/* ---------------- 신분증 테두리 자동 찾기 ----------------
+   사진을 작게 줄여 경계선(밝기 변화)을 찾고, 허프 변환으로 직선을 뽑은 뒤
+   서로 평행한 두 쌍이 만드는 사각형 중 경계선에 가장 잘 맞고 신분증 비율에 가까운 것을 고름 */
+function detectQuad(src) {
+  const k = 400 / Math.max(src.width, src.height);
+  const w = Math.round(src.width * k), h = Math.round(src.height * k);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const ctx = c.getContext('2d', { willReadFrequently: true }); ctx.drawImage(src, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data, N = w * h;
+  let g = new Float32Array(N);
+  for (let i = 0; i < N; i++) g[i] = .299 * d[i * 4] + .587 * d[i * 4 + 1] + .114 * d[i * 4 + 2];
+  g = boxBlur(boxBlur(g, w, h), w, h);
+  const mag = new Float32Array(N), ang = new Float32Array(N);
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const i = y * w + x;
+    const gx = g[i - w + 1] + 2 * g[i + 1] + g[i + w + 1] - g[i - w - 1] - 2 * g[i - 1] - g[i + w - 1];
+    const gy = g[i + w - 1] + 2 * g[i + w] + g[i + w + 1] - g[i - w - 1] - 2 * g[i - w] - g[i - w + 1];
+    mag[i] = Math.hypot(gx, gy); ang[i] = Math.atan2(gy, gx);
+  }
+  const sorted = Float32Array.from(mag).sort();
+  const thr = Math.max(25, sorted[Math.floor(N * .9)]);
+  // 허프 변환 (경계 방향 ±4° 만 투표)
+  const T = 180, diag = Math.ceil(Math.hypot(w, h)), R = diag * 2 + 1;
+  const acc = new Float32Array(T * R), cs = [], sn = [];
+  for (let t = 0; t < T; t++) { cs.push(Math.cos(t * Math.PI / T)); sn.push(Math.sin(t * Math.PI / T)); }
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const i = y * w + x; if (mag[i] < thr) continue;
+    let a = ang[i]; if (a < 0) a += Math.PI; const t0 = Math.round(a / Math.PI * T);
+    for (let dt = -4; dt <= 4; dt++) {
+      const t = ((t0 + dt) % T + T) % T;
+      const r = Math.round(x * cs[t] + y * sn[t]) + diag;
+      acc[t * R + r] += 1;
+    }
+  }
+  // 강한 직선 뽑기 (주변은 지움)
+  const lines = [];
+  for (let n = 0; n < 18; n++) {
+    let best = 0, bi = -1;
+    for (let i = 0; i < acc.length; i++) if (acc[i] > best) { best = acc[i]; bi = i; }
+    if (bi < 0 || (lines.length && best < lines[0].v * .12) || best < Math.min(w, h) * .25) break;
+    const t = Math.floor(bi / R), r = bi % R - diag;
+    lines.push({ t: t * Math.PI / T, r, v: best });
+    for (let dt = -6; dt <= 6; dt++) {
+      const tt = ((t + dt) % T + T) % T, flip = (t + dt < 0 || t + dt >= T);
+      const rc = (flip ? -r : r) + diag;
+      for (let dr = -12; dr <= 12; dr++) { const rr = rc + dr; if (rr >= 0 && rr < R) acc[tt * R + rr] = 0; }
+    }
+  }
+  if (lines.length < 4) return null;
+  // 평행한 쌍
+  const minSep = Math.min(w, h) * .18, pairs = [];
+  for (let i = 0; i < lines.length; i++) for (let j = i + 1; j < lines.length; j++) {
+    let a = lines[i], b = lines[j], dt = Math.abs(a.t - b.t), br = b.r, bt = b.t;
+    if (dt > Math.PI / 2) { dt = Math.PI - dt; bt = b.t + (b.t < a.t ? Math.PI : -Math.PI); br = -b.r; }
+    if (dt > 15 * Math.PI / 180) continue;
+    if (Math.abs(a.r - br) < minSep) continue;
+    pairs.push({ a, b, t: (a.t + bt) / 2 });
+  }
+  const supp = (p, q) => {   // 변 위에 경계선이 얼마나 있는지 (0~1)
+    let hit = 0; const n = 40;
+    for (let s = 0; s <= n; s++) {
+      const x = Math.round(p[0] + (q[0] - p[0]) * s / n), y = Math.round(p[1] + (q[1] - p[1]) * s / n);
+      let ok = false;
+      for (let yy = y - 2; yy <= y + 2 && !ok; yy++) for (let xx = x - 2; xx <= x + 2; xx++) {
+        if (xx > 0 && yy > 0 && xx < w - 1 && yy < h - 1 && mag[yy * w + xx] >= thr) { ok = true; break; }
+      }
+      if (ok) hit++;
+    }
+    return hit / (n + 1);
+  };
+  let best = null, bestScore = 0;
+  for (let i = 0; i < pairs.length; i++) for (let j = i + 1; j < pairs.length; j++) {
+    const P = pairs[i], Q = pairs[j];
+    let da = Math.abs(P.t - Q.t) % Math.PI; da = Math.min(da, Math.PI - da);
+    if (da < 55 * Math.PI / 180) continue;
+    const pts = [cross(P.a, Q.a), cross(P.a, Q.b), cross(P.b, Q.b), cross(P.b, Q.a)];
+    if (pts.some(p => !p || p[0] < -w * .04 || p[1] < -h * .04 || p[0] > w * 1.04 || p[1] > h * 1.04)) continue;
+    const q = orderQuad(pts), area = polyArea(q);
+    if (area < w * h * .12 || !isConvex(q)) continue;
+    const sides = q.map((p, k) => supp(p, q[(k + 1) % 4]));
+    const sMean = sides.reduce((s, v) => s + v, 0) / 4, sMin = Math.min(...sides);
+    const L = q.map((p, k) => Math.hypot(q[(k + 1) % 4][0] - p[0], q[(k + 1) % 4][1] - p[1]));
+    const long = Math.max(L[0] + L[2], L[1] + L[3]), short = Math.min(L[0] + L[2], L[1] + L[3]);
+    const ratio = long / short, ar = .65 + .35 * Math.exp(-(((ratio - 1.586) / .45) ** 2));
+    const score = (sMean * .6 + sMin * .4) * ar * (.75 + .25 * Math.sqrt(area / (w * h)));
+    if (score > bestScore) { bestScore = score; best = q; }
+  }
+  if (!best || bestScore < .35) return null;
+  const rough = best.map(([x, y]) => [Math.min(src.width, Math.max(0, x / k)), Math.min(src.height, Math.max(0, y / k))]);
+  return refineQuad(src, rough);
+}
+// 더 큰 사진에서 각 변을 따라 경계가 가장 뚜렷한 곳으로 옮긴 뒤 직선을 다시 그어 모서리를 정확하게
+function refineQuad(src, quad) {
+  const k = Math.min(1, 1200 / Math.max(src.width, src.height));
+  const w = Math.round(src.width * k), h = Math.round(src.height * k);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const ctx = c.getContext('2d', { willReadFrequently: true }); ctx.drawImage(src, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const G = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= w || y >= h) return null; const i = (y * w + x) * 4; return .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2]; };
+  const q = quad.map(([x, y]) => [x * k, y * k]), R = 10, lines = [];
+  for (let s = 0; s < 4; s++) {
+    const a = q[s], b = q[(s + 1) % 4], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const tx = (b[0] - a[0]) / len, ty = (b[1] - a[1]) / len, nx = -ty, ny = tx, pts = [];
+    for (let t = .08; t <= .92; t += .02) {
+      const px = a[0] + (b[0] - a[0]) * t, py = a[1] + (b[1] - a[1]) * t;
+      let bestD = null, bestG = 0;
+      for (let o = -R; o <= R; o++) {
+        const g1 = G(px + nx * (o - 1.5), py + ny * (o - 1.5)), g2 = G(px + nx * (o + 1.5), py + ny * (o + 1.5));
+        if (g1 === null || g2 === null) continue;
+        const gr = Math.abs(g2 - g1); if (gr > bestG) { bestG = gr; bestD = o; }
+      }
+      if (bestD !== null && bestG > 18) pts.push([px + nx * bestD, py + ny * bestD]);
+    }
+    if (pts.length < 10) return quad;
+    // 점들에 가장 잘 맞는 직선 (주성분)
+    const mx = pts.reduce((v, p) => v + p[0], 0) / pts.length, my = pts.reduce((v, p) => v + p[1], 0) / pts.length;
+    let sxx = 0, syy = 0, sxy = 0; pts.forEach(([x, y]) => { sxx += (x - mx) ** 2; syy += (y - my) ** 2; sxy += (x - mx) * (y - my); });
+    const th = .5 * Math.atan2(2 * sxy, sxx - syy), nt = th + Math.PI / 2;
+    lines.push({ t: nt, r: mx * Math.cos(nt) + my * Math.sin(nt) });
+  }
+  const out = [];
+  for (let s = 0; s < 4; s++) {
+    const p = cross(lines[(s + 3) % 4], lines[s]);
+    if (!p || Math.hypot(p[0] - q[s][0], p[1] - q[s][1]) > Math.max(w, h) * .04) return quad;
+    out.push([Math.min(src.width, Math.max(0, p[0] / k)), Math.min(src.height, Math.max(0, p[1] / k))]);
+  }
+  return out;
+}
+function boxBlur(a, w, h) {
+  const o = new Float32Array(a.length);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let s = 0, n = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const xx = x + dx, yy = y + dy; if (xx >= 0 && yy >= 0 && xx < w && yy < h) { s += a[yy * w + xx]; n++; }
+    }
+    o[y * w + x] = s / n;
+  }
+  return o;
+}
+function cross(l1, l2) {
+  const a1 = Math.cos(l1.t), b1 = Math.sin(l1.t), a2 = Math.cos(l2.t), b2 = Math.sin(l2.t);
+  const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-6) return null;
+  return [(l1.r * b2 - l2.r * b1) / det, (a1 * l2.r - a2 * l1.r) / det];
+}
+// 왼쪽 위부터 시계 방향
+function orderQuad(pts) {
+  const cx = pts.reduce((s, p) => s + p[0], 0) / 4, cy = pts.reduce((s, p) => s + p[1], 0) / 4;
+  const q = [...pts].sort((a, b) => Math.atan2(a[1] - cy, a[0] - cx) - Math.atan2(b[1] - cy, b[0] - cx));
+  let s = 0; q.forEach((p, i) => { if (p[0] + p[1] < q[s][0] + q[s][1]) s = i; });
+  return [...q.slice(s), ...q.slice(0, s)];
+}
+const polyArea = q => Math.abs(q.reduce((s, p, i) => s + p[0] * q[(i + 1) % 4][1] - q[(i + 1) % 4][0] * p[1], 0)) / 2;
+function isConvex(q) {
+  let sign = 0;
+  for (let i = 0; i < 4; i++) {
+    const a = q[i], b = q[(i + 1) % 4], c = q[(i + 2) % 4];
+    const z = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+    if (Math.abs(z) < 1e-6) return false;
+    if (!sign) sign = Math.sign(z); else if (Math.sign(z) !== sign) return false;
+  }
+  return true;
+}
+
+/* ---------------- 모서리 맞추기 편집기 ---------------- */
+let ED = null;
+function openEditor(side, src, quad) {
+  ED = { side, src, quad: quad.map(p => [...p]), scale: 1 };
+  $('#edTitle').textContent = side === 'front' ? '앞면' : '뒷면';
+  $('#editor').hidden = false; document.body.style.overflow = 'hidden';
+  layoutEditor();
+}
+function layoutEditor() {
+  const st = $('#edStage'), cv = $('#edCanvas');
+  const k = Math.min((st.clientWidth - 24) / ED.src.width, (st.clientHeight - 24) / ED.src.height);
+  ED.scale = k;
+  cv.width = Math.round(ED.src.width * k); cv.height = Math.round(ED.src.height * k);
+  cv.getContext('2d').drawImage(ED.src, 0, 0, cv.width, cv.height);
+  $('#edInner').style.width = cv.width + 'px'; $('#edInner').style.height = cv.height + 'px';
+  $$('.handle').forEach(h => h.remove());
+  ED.quad.forEach((p, i) => {
+    const hd = document.createElement('div'); hd.className = 'handle'; hd.dataset.i = i;
+    hd.setAttribute('aria-label', ['왼쪽 위', '오른쪽 위', '오른쪽 아래', '왼쪽 아래'][i] + ' 모서리');
+    $('#edInner').appendChild(hd); dragHandle(hd);
+  });
+  drawEditor();
+}
+function drawEditor() {
+  const k = ED.scale;
+  $$('.handle').forEach(h => { const p = ED.quad[h.dataset.i]; h.style.left = p[0] * k + 'px'; h.style.top = p[1] * k + 'px'; });
+  $('#edPoly').setAttribute('points', ED.quad.map(p => `${p[0] * k},${p[1] * k}`).join(' '));
+}
+function dragHandle(hd) {
+  hd.addEventListener('pointerdown', e => {
+    e.preventDefault(); hd.setPointerCapture(e.pointerId);
+    const i = +hd.dataset.i, box = $('#edCanvas').getBoundingClientRect();
+    const move = ev => {
+      const x = Math.min(ED.src.width, Math.max(0, (ev.clientX - box.left) / ED.scale));
+      const y = Math.min(ED.src.height, Math.max(0, (ev.clientY - box.top) / ED.scale));
+      ED.quad[i] = [x, y]; drawEditor(); drawLoupe(x, y, i);
+    };
+    const up = () => { hd.removeEventListener('pointermove', move); hd.removeEventListener('pointerup', up); hd.removeEventListener('pointercancel', up); $('#loupe').hidden = true; };
+    hd.addEventListener('pointermove', move); hd.addEventListener('pointerup', up); hd.addEventListener('pointercancel', up);
+    drawLoupe(ED.quad[i][0], ED.quad[i][1], i);
+  });
+}
+// 손가락에 가려지는 모서리를 확대해서 보여줌 (맞추는 점과 반대쪽 위에 표시)
+function drawLoupe(x, y, i) {
+  const L = $('#loupe'), c = L.getContext('2d'), r = 40 / ED.scale;
+  L.hidden = false;
+  L.style.left = (i === 0 || i === 3) ? 'auto' : '10px'; L.style.right = (i === 0 || i === 3) ? '10px' : 'auto';
+  c.fillStyle = '#000'; c.fillRect(0, 0, 240, 240);
+  c.drawImage(ED.src, x - r, y - r, r * 2, r * 2, 0, 0, 240, 240);
+  c.strokeStyle = '#03c75a'; c.lineWidth = 3; c.beginPath(); c.moveTo(120, 96); c.lineTo(120, 144); c.moveTo(96, 120); c.lineTo(144, 120); c.stroke();
+}
+$('#edCancel').onclick = () => closeEditor();
+$('#edAuto').onclick = () => {
+  const q = detectQuad(ED.src);
+  if (q) { ED.quad = q; drawEditor(); } else say('테두리를 자동으로 찾지 못했습니다. 점을 손으로 옮겨 주세요.', true, true);
+};
+$('#edDone').onclick = () => {
+  const { side, src, quad } = ED;
+  closeEditor();
+  busy(true);
+  setTimeout(() => {
+    S[side] = { src, quad, card: warpCard(src, quad), flip: S[side]?.src === src ? S[side].flip : false };
+    busy(false); refresh();
+  }, 30);
+};
+function closeEditor() { $('#editor').hidden = true; document.body.style.overflow = ''; $('#loupe').hidden = true; }
+addEventListener('resize', () => { if (ED && !$('#editor').hidden) layoutEditor(); });
+
+/* ---------------- 반듯하게 펴기 (원근 보정) ---------------- */
+function warpCard(src, quad) {
+  let q = orderQuad(quad);
+  // 긴 변이 가로가 되도록 (세로로 찍은 사진)
+  const top = Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]) + Math.hypot(q[2][0] - q[3][0], q[2][1] - q[3][1]);
+  const left = Math.hypot(q[3][0] - q[0][0], q[3][1] - q[0][1]) + Math.hypot(q[2][0] - q[1][0], q[2][1] - q[1][1]);
+  if (left > top) q = [q[3], q[0], q[1], q[2]];
+  // 가장자리를 0.8% 안쪽으로: 모서리가 살짝 어긋나도 탁자·그림자가 끼지 않게
+  const ex = CARD_W * .008, ey = CARD_H * .008;
+  const H = homography([[-ex, -ey], [CARD_W + ex, -ey], [CARD_W + ex, CARD_H + ey], [-ex, CARD_H + ey]], q);
+  const sw = src.width, sh = src.height;
+  const sd = src.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, sw, sh).data;
+  const out = document.createElement('canvas'); out.width = CARD_W; out.height = CARD_H;
+  const oc = out.getContext('2d'), od = oc.createImageData(CARD_W, CARD_H), o = od.data;
+  for (let v = 0; v < CARD_H; v++) for (let u = 0; u < CARD_W; u++) {
+    const den = H[6] * u + H[7] * v + 1;
+    let x = (H[0] * u + H[1] * v + H[2]) / den, y = (H[3] * u + H[4] * v + H[5]) / den;
+    x = Math.min(sw - 1.001, Math.max(0, x)); y = Math.min(sh - 1.001, Math.max(0, y));
+    const x0 = x | 0, y0 = y | 0, fx = x - x0, fy = y - y0, i0 = (y0 * sw + x0) * 4, i1 = i0 + sw * 4, j = (v * CARD_W + u) * 4;
+    for (let ch = 0; ch < 3; ch++) {
+      const a = sd[i0 + ch] + (sd[i0 + 4 + ch] - sd[i0 + ch]) * fx, b = sd[i1 + ch] + (sd[i1 + 4 + ch] - sd[i1 + ch]) * fx;
+      o[j + ch] = a + (b - a) * fy;
+    }
+    o[j + 3] = 255;
+  }
+  oc.putImageData(od, 0, 0);
+  return out;
+}
+// 4쌍의 점으로 원근 변환 행렬 (dst → src)
+function homography(from, to) {
+  const A = [], B = [];
+  for (let i = 0; i < 4; i++) {
+    const [u, v] = from[i], [x, y] = to[i];
+    A.push([u, v, 1, 0, 0, 0, -u * x, -v * x]); B.push(x);
+    A.push([0, 0, 0, u, v, 1, -u * y, -v * y]); B.push(y);
+  }
+  for (let c = 0; c < 8; c++) {   // 가우스 소거
+    let p = c; for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+    [A[c], A[p]] = [A[p], A[c]]; [B[c], B[p]] = [B[p], B[c]];
+    for (let r = 0; r < 8; r++) if (r !== c) {
+      const f = A[r][c] / A[c][c];
+      for (let k = c; k < 8; k++) A[r][k] -= f * A[c][k];
+      B[r] -= f * B[c];
+    }
+  }
+  return B.map((b, i) => b / A[i][i]);
+}
+
+/* ---------------- 보정 (스캔처럼 · 흑백) ---------------- */
+function toned(card, tone, flip) {
+  const c = document.createElement('canvas'); c.width = CARD_W; c.height = CARD_H;
+  const x = c.getContext('2d', { willReadFrequently: true });
+  if (flip) { x.translate(CARD_W, CARD_H); x.rotate(Math.PI); }
+  x.drawImage(card, 0, 0); x.setTransform(1, 0, 0, 1, 0, 0);
+  if (tone === 'orig') return c;
+  const img = x.getImageData(0, 0, CARD_W, CARD_H), d = img.data, n = CARD_W * CARD_H;
+  if (tone === 'gray') for (let i = 0; i < n * 4; i += 4) { const g = .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2]; d[i] = d[i + 1] = d[i + 2] = g; }
+  // 채널별로 어두운 1% → 0, 밝은 1% → 255 (색 번짐·누런 조명 정리)
+  for (let ch = 0; ch < 3; ch++) {
+    const hist = new Uint32Array(256); for (let i = ch; i < n * 4; i += 4) hist[d[i]]++;
+    let lo = 0, hi = 255, s = 0; while (s + hist[lo] < n * .01 && lo < 254) s += hist[lo++];
+    s = 0; while (s + hist[hi] < n * .01 && hi > lo + 1) s += hist[hi--];
+    const span = Math.max(30, hi - lo), lut = new Uint8ClampedArray(256);
+    for (let v = 0; v < 256; v++) lut[v] = Math.pow(Math.min(1, Math.max(0, (v - lo) / span)), .92) * 255;
+    for (let i = ch; i < n * 4; i += 4) d[i] = lut[d[i]];
+  }
+  // 글자 또렷하게 (언샤프 마스크)
+  const src = new Uint8ClampedArray(d), W = CARD_W, amt = tone === 'gray' ? .7 : .55;
+  for (let y = 1; y < CARD_H - 1; y++) for (let x2 = 1; x2 < W - 1; x2++) {
+    const i = (y * W + x2) * 4;
+    for (let ch = 0; ch < 3; ch++) {
+      const k = i + ch;
+      const blur = (src[k - 4] + src[k + 4] + src[k - W * 4] + src[k + W * 4] + src[k] * 4) / 8;
+      d[k] = src[k] + (src[k] - blur) * amt * 2;
+    }
+  }
+  x.putImageData(img, 0, 0);
+  return c;
+}
+
+/* ---------------- 미리보기 · 가림 상자 ---------------- */
+const cardCache = {};
+function finalCard(side) {
+  const s = S[side]; if (!s) return null;
+  const key = [side, S.tone, s.flip, s.card.__id || (s.card.__id = Math.random())].join('|');
+  if (cardCache[side]?.key !== key) cardCache[side] = { key, c: toned(s.card, S.tone, s.flip) };
+  const c = document.createElement('canvas'); c.width = CARD_W; c.height = CARD_H;
+  const x = c.getContext('2d'); x.drawImage(cardCache[side].c, 0, 0);
+  if (side === 'front' && $('#optMask').checked) {
+    const m = S.mask; x.fillStyle = '#000'; x.fillRect(m.x * CARD_W, m.y * CARD_H, m.w * CARD_W, m.h * CARD_H);
+  }
+  const mark = $('#markText').value.trim();
+  if ($('#optMark').checked && mark) {
+    x.save(); x.translate(CARD_W / 2, CARD_H / 2); x.rotate(-18 * Math.PI / 180);
+    x.font = `800 ${Math.round(CARD_H * .085)}px Pretendard,"Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
+    x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = 'rgba(214,32,32,.5)';
+    for (const dy of [-CARD_H * .26, 0, CARD_H * .26]) x.fillText(mark, 0, dy, CARD_W * .95);
+    x.restore();
+  }
+  return c;
+}
+function refresh() {
+  for (const side of ['front', 'back']) {
+    const box = side === 'front' ? $('#prevFront') : $('#prevBack'), s = S[side];
+    $(`[data-tools="${side}"]`).hidden = !s;
+    if (!s) { box.classList.remove('done'); box.innerHTML = side === 'front' ? '카드를 어두운 바탕에 놓고<br>위에서 찍어 주세요' : '뒷면이 필요할 때만<br>찍으세요'; continue; }
+    box.classList.add('done'); box.innerHTML = '';
+    const cv = document.createElement('canvas'); cv.width = CARD_W; cv.height = CARD_H;
+    cv.getContext('2d').drawImage(finalCard(side), 0, 0);
+    cv.setAttribute('aria-label', (side === 'front' ? '앞면' : '뒷면') + ' 보정 결과');
+    box.appendChild(cv);
+    if (side === 'front' && $('#optMask').checked) maskBox(box);
+  }
+  drawSheet();
+}
+// 가림 상자: 끌어서 옮기기, 오른쪽 아래 노란 점으로 크기 조절
+function maskBox(box) {
+  const m = document.createElement('div'); m.className = 'mask-box'; box.appendChild(m);
+  const tip = document.createElement('div'); tip.className = 'mask-tip'; tip.textContent = '검은 상자를 번호 뒷자리에 맞추세요'; box.appendChild(tip);
+  const place = () => Object.assign(m.style, { left: S.mask.x * 100 + '%', top: S.mask.y * 100 + '%', width: S.mask.w * 100 + '%', height: S.mask.h * 100 + '%' });
+  place();
+  m.addEventListener('pointerdown', e => {
+    e.preventDefault(); m.setPointerCapture(e.pointerId);
+    const r = box.getBoundingClientRect(), mr = m.getBoundingClientRect();
+    const resize = e.clientX > mr.right - 22 && e.clientY > mr.bottom - 22;
+    const sx = e.clientX, sy = e.clientY, o = { ...S.mask };
+    const move = ev => {
+      const dx = (ev.clientX - sx) / r.width, dy = (ev.clientY - sy) / r.height;
+      if (resize) { S.mask.w = Math.min(1 - o.x, Math.max(.05, o.w + dx)); S.mask.h = Math.min(1 - o.y, Math.max(.03, o.h + dy)); }
+      else { S.mask.x = Math.min(1 - o.w, Math.max(0, o.x + dx)); S.mask.y = Math.min(1 - o.h, Math.max(0, o.y + dy)); }
+      place();
+    };
+    const up = () => { m.removeEventListener('pointermove', move); m.removeEventListener('pointerup', up); m.removeEventListener('pointercancel', up); refresh(); };
+    m.addEventListener('pointermove', move); m.addEventListener('pointerup', up); m.addEventListener('pointercancel', up);
+  });
+}
+
+/* ---------------- A4 사본 ---------------- */
+const DPI = 200, A4W = Math.round(210 / 25.4 * DPI), A4H = Math.round(297 / 25.4 * DPI);
+function buildSheet() {
+  const c = document.createElement('canvas'); c.width = A4W; c.height = A4H;
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, A4W, A4H);
+  const cw = Math.round(85.6 / 25.4 * DPI * S.size), ch = Math.round(54 / 25.4 * DPI * S.size), rad = 3.18 / 25.4 * DPI * S.size;
+  const sides = ['front', 'back'].filter(s => S[s]);
+  const gap = Math.round(14 / 25.4 * DPI), top = Math.round(36 / 25.4 * DPI);
+  sides.forEach((side, i) => {
+    const px = Math.round((A4W - cw) / 2), py = top + i * (ch + gap);
+    x.save(); roundRect(x, px, py, cw, ch, rad); x.clip();
+    x.drawImage(finalCard(side), px, py, cw, ch); x.restore();
+    x.strokeStyle = '#c8cbd0'; x.lineWidth = 2; roundRect(x, px, py, cw, ch, rad); x.stroke();
+  });
+  return c;
+}
+function roundRect(x, l, t, w, h, r) { x.beginPath(); x.moveTo(l + r, t); x.arcTo(l + w, t, l + w, t + h, r); x.arcTo(l + w, t + h, l, t + h, r); x.arcTo(l, t + h, l, t, r); x.arcTo(l, t, l + w, t, r); x.closePath(); }
+function drawSheet() {
+  const has = !!S.front, cv = $('#sheet'), x = cv.getContext('2d');
+  x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height);
+  if (has) x.drawImage(buildSheet(), 0, 0, cv.width, cv.height);
+  ['#btnShare', '#btnPdf', '#btnJpg', '#btnCard', '#btnCardPdf'].forEach(id => $(id).disabled = !has);
+  $('#outNote').textContent = has
+    ? `A4 한 장 · ${S.back ? '앞면과 뒷면' : '앞면'} · ${S.size === 1 ? '실제 크기(85.6 × 54mm)' : '1.5배 크기'}`
+    : '앞면을 찍으면 여기에 A4 사본이 만들어집니다.';
+}
+
+/* ---------------- 저장 · 공유 ---------------- */
+const stamp = () => { const d = new Date(); return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`; };
+const toBlob = (c, type = 'image/jpeg', q = .92) => new Promise(ok => c.toBlob(ok, type, q));
+async function sheetFile(kind) {
+  const c = buildSheet();
+  if (kind === 'pdf') {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+    pdf.addImage(c.toDataURL('image/jpeg', .92), 'JPEG', 0, 0, 210, 297);
+    return new File([pdf.output('blob')], `신분증사본_${stamp()}.pdf`, { type: 'application/pdf' });
+  }
+  return new File([await toBlob(c)], `신분증사본_${stamp()}.jpg`, { type: 'image/jpeg' });
+}
+function loadScript(src) {
+  if (document.querySelector(`script[src="${src}"]`)) return Promise.resolve();
+  return new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => no(new Error('PDF 도구를 불러오지 못했습니다. 인터넷 연결을 확인하세요.')); document.head.appendChild(s); });
+}
+function download(file) {
+  const a = document.createElement('a'), url = URL.createObjectURL(file);
+  a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+$('#btnPdf').onclick = () => run(async () => { download(await sheetFile('pdf')); say('PDF를 저장했습니다.'); });
+$('#btnJpg').onclick = () => run(async () => { download(await sheetFile('jpg')); say('이미지를 저장했습니다.'); });
+// 종이 크기 = 신분증 크기(85.6 × 54mm) PDF: 앞면 1쪽, 뒷면 있으면 2쪽
+$('#btnCardPdf').onclick = () => run(async () => {
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: [85.6, 54], orientation: 'landscape' });
+  ['front', 'back'].filter(s => S[s]).forEach((side, i) => {
+    if (i) pdf.addPage([85.6, 54], 'landscape');
+    pdf.addImage(finalCard(side).toDataURL('image/jpeg', .95), 'JPEG', 0, 0, 85.6, 54);
+  });
+  download(new File([pdf.output('blob')], `신분증_실물크기_${stamp()}.pdf`, { type: 'application/pdf' }));
+  say('신분증 크기 PDF를 저장했습니다. 인쇄할 때 배율을 100%(실제 크기)로 하세요.');
+});
+$('#btnCard').onclick = () => run(async () => { download(new File([await toBlob(finalCard('front'))], `신분증_앞면_${stamp()}.jpg`, { type: 'image/jpeg' })); say('앞면 카드 이미지를 저장했습니다.'); });
+$('#btnShare').onclick = () => run(async () => {
+  const f = await sheetFile('jpg');
+  if (navigator.canShare && navigator.canShare({ files: [f] })) {
+    try { await navigator.share({ files: [f] }); say('공유했습니다.'); }
+    catch (e) { if (e.name !== 'AbortError') { download(f); say('공유가 안 되어 이미지로 저장했습니다. 저장된 파일을 카톡으로 보내 주세요.'); } }
+  } else { download(f); say('이 브라우저는 바로 공유가 안 되어 이미지로 저장했습니다. 저장된 파일을 카톡으로 보내 주세요.'); }
+});
+async function run(fn) { busy(true); try { await fn(); } catch (e) { say(e.message || '저장하지 못했습니다.', true); } finally { busy(false); } }
+
+/* ---------------- 버튼들 ---------------- */
+$$('[data-adjust]').forEach(b => b.onclick = () => { const s = S[b.dataset.adjust]; if (s) openEditor(b.dataset.adjust, s.src, s.quad); });
+$$('[data-rotate]').forEach(b => b.onclick = () => { const s = S[b.dataset.rotate]; if (s) { s.flip = !s.flip; refresh(); } });
+$$('[data-clear]').forEach(b => b.onclick = () => { S[b.dataset.clear] = null; delete cardCache[b.dataset.clear]; refresh(); });
+$$('#segTone button').forEach(b => b.onclick = () => { S.tone = b.dataset.tone; $$('#segTone button').forEach(x => x.classList.toggle('on', x === b)); refresh(); });
+$$('#segSize button').forEach(b => b.onclick = () => { S.size = +b.dataset.size; $$('#segSize button').forEach(x => x.classList.toggle('on', x === b)); drawSheet(); });
+$('#optMask').onchange = refresh;
+$('#optMark').onchange = refresh;
+let markTimer; $('#markText').oninput = () => { if (!$('#optMark').checked) $('#optMark').checked = true; clearTimeout(markTimer); markTimer = setTimeout(refresh, 250); };
+
+function busy(on) { $('#busy').hidden = !on; }
+function say(t, bad, toast) {
+  const m = $('#msg'); m.hidden = false; m.textContent = t; m.classList.toggle('bad', !!bad);
+  if (toast) { const b = $('#busy'); b.textContent = t; b.hidden = false; setTimeout(() => { b.hidden = true; b.textContent = '처리하는 중…'; }, 1600); }
+}
+// 화면을 떠나면 사진을 메모리에서 지움
+addEventListener('pagehide', () => { S.front = S.back = null; });
+drawSheet();
+</script>
+</body>
+</html>
