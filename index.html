@@ -998,7 +998,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v101';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v102';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -2273,7 +2273,8 @@ $('#csSave').onclick = $('#csSaveBar').onclick = () => {
   const tabName = $(`.tabs button[data-tab="${tab}"]`)?.textContent.trim() || tab;
   const sum = { tab: tabName, name: $('#custName').value.trim(), birth: $('#birth').value, date: $('#cdate').value, k: MB.k, v: MB.v, m: MB.m, items: csItems() };
   const d = b64u(JSON.stringify({ v: 1, s: b64u(JSON.stringify(snapState())), sum, calc: location.origin + location.pathname }));
-  window.open(csUrl() + 'dsr-import?d=' + d, '_blank');
+  // 고객관리 첫 화면(?p=)으로 열어 앱이 계산 결과 저장 화면으로 이동 (dsr1.co.kr/cs/ 처럼 화면별 파일이 없는 곳에서도 동작)
+  window.open(csUrl() + '?p=' + encodeURIComponent('/dsr-import?d=' + d), '_blank');
 };
 // 크롬으로 넘어온 경우: 입력 내용을 채운 뒤 PDF 창을 바로 띄움 (고객관리에서 연 경우는 제외)
 if (RESTORED && !FROM_CS) setTimeout(() => { const n = $('#noticeDlg'); if (n.open) n.close(); $('#btnPdf').click(); }, 500);

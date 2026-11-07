@@ -1,5 +1,5 @@
 // 오프라인 실행용 캐시. index.html 등을 수정하면 VERSION 값을 올려주세요.
-const VERSION = 'dsr-v101';
+const VERSION = 'dsr-v102';
 const FILES = ['./', './index.html', './policy.html', './bank.html', './rules.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './splash.jpg'];
 
 self.addEventListener('install', e => {
@@ -20,6 +20,7 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const u = new URL(e.request.url);
   if (u.pathname.startsWith('/.netlify/')) return;   // 서버 함수는 캐시하지 않음
+  if (u.pathname.startsWith('/cs/')) return;   // 고객관리(/cs/)는 자체 서비스워커가 관리
   if (/google/.test(u.hostname)) return;   // 방문자 분석은 캐시하지 않음
   e.respondWith(
     fetch(u.origin === self.location.origin ? new Request(e.request, { cache: 'no-cache' }) : e.request)

@@ -1,0 +1,1 @@
+{"name":"대출 고객관리","short_name":"대출 고객관리","description":"사업자용 고객 관리 앱","start_url":"/cs/","display":"standalone","background_color":"#ffffff","theme_color":"#03c75a","lang":"ko","scope":"/cs/","orientation":"portrait","icons":[{"src":"favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
