@@ -598,6 +598,17 @@ function finalCard(side) {
     for (const dy of [-CARD_H * .26, 0, CARD_H * .26]) x.fillText(mark, 0, dy, CARD_W * .95);
     x.restore();
   }
+  // 신분증처럼 모서리를 둥글게 (규격 모서리 반지름 3.18mm) · 바깥은 투명
+  x.globalCompositeOperation = 'destination-in';
+  roundRect(x, 0, 0, CARD_W, CARD_H, CARD_R); x.fillStyle = '#000'; x.fill();
+  x.globalCompositeOperation = 'source-over';
+  return c;
+}
+const CARD_R = Math.round(CARD_W * 3.18 / 85.6);
+// 투명한 모서리를 흰 바탕에 얹기 (JPG·PDF 용)
+function onWhite(card) {
+  const c = document.createElement('canvas'); c.width = card.width; c.height = card.height;
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(card, 0, 0);
   return c;
 }
 function refresh() {
@@ -693,12 +704,13 @@ $('#btnCardPdf').onclick = () => run(async () => {
   const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: [85.6, 54], orientation: 'landscape' });
   ['front', 'back'].filter(s => S[s]).forEach((side, i) => {
     if (i) pdf.addPage([85.6, 54], 'landscape');
-    pdf.addImage(finalCard(side).toDataURL('image/jpeg', .95), 'JPEG', 0, 0, 85.6, 54);
+    pdf.addImage(onWhite(finalCard(side)).toDataURL('image/jpeg', .95), 'JPEG', 0, 0, 85.6, 54);
   });
   download(new File([pdf.output('blob')], `신분증_실물크기_${stamp()}.pdf`, { type: 'application/pdf' }));
   say('신분증 크기 PDF를 저장했습니다. 인쇄할 때 배율을 100%(실제 크기)로 하세요.');
 });
-$('#btnCard').onclick = () => run(async () => { download(new File([await toBlob(finalCard('front'))], `신분증_앞면_${stamp()}.jpg`, { type: 'image/jpeg' })); say('앞면 카드 이미지를 저장했습니다.'); });
+// 카드만 저장: 둥근 모서리 바깥이 투명한 PNG (다른 문서에 붙이기 좋게)
+$('#btnCard').onclick = () => run(async () => { download(new File([await toBlob(finalCard('front'), 'image/png')], `신분증_앞면_${stamp()}.png`, { type: 'image/png' })); say('앞면 카드 이미지를 저장했습니다. (모서리 바깥은 투명)'); });
 $('#btnShare').onclick = () => run(async () => {
   const f = await sheetFile('jpg');
   if (navigator.canShare && navigator.canShare({ files: [f] })) {
