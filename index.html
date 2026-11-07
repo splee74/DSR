@@ -424,14 +424,12 @@ dialog{border-radius:10px}
 @media (min-aspect-ratio:941/1672){#splash .sp-img{
   -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 5%,#000 86%,transparent 100%),linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%);-webkit-mask-composite:source-in;
   mask-image:linear-gradient(180deg,transparent 0,#000 5%,#000 86%,transparent 100%),linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%);mask-composite:intersect}}
-#splash .sp-url{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);transform:translateX(-50%);
+#splash .sp-url{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 7vh);transform:translateX(-50%);
   padding:.4em 1.6em;border-radius:999px;background:#fff;color:#00873c;border:2px solid #03c75a;box-shadow:0 4px 14px #0002;
   font-family:Pretendard,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;font-size:min(5.4vw,26px);font-weight:800;letter-spacing:0;white-space:nowrap}
 #splash.out{opacity:0;pointer-events:none}
-.splash-go{position:absolute;right:calc(20px + env(safe-area-inset-right,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));border:0;border-radius:999px;background:#fff;color:#00a347;font-size:17px;font-weight:800;padding:14px 24px;letter-spacing:-.3px;cursor:pointer;animation:splashGlow 1.1s ease-in-out infinite}
-.splash-go:focus-visible{outline:3px solid #ffe14d;outline-offset:3px}
-@keyframes splashGlow{0%,100%{box-shadow:0 0 0 0 #ffffffb0,0 4px 14px #0003;opacity:1}50%{box-shadow:0 0 0 12px #ffffff00,0 0 26px 6px #fff8;opacity:.72}}
-@media (prefers-reduced-motion:reduce){.splash-go{animation:none}}
+#splash{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#splash:focus-visible{outline:3px solid #ffe14d;outline-offset:-6px}
 @media print{
   #splash{display:none!important}
   .mbar{display:none!important}
@@ -472,11 +470,10 @@ dialog{border-radius:10px}
 </head>
 <body>
 <!-- 시작 화면: 앱을 열 때 · 오른쪽 아래 [시작하기]를 눌러 들어감 -->
-<div id="splash" role="img" aria-label="DSR 계산기 시작 화면">
+<div id="splash" role="button" tabindex="0" aria-label="DSR 계산기 시작 화면 · 누르면 시작합니다">
   <div class="sp-bg" aria-hidden="true"></div>
   <img class="sp-img" src="splash2.jpg" alt="" width="941" height="1672">
   <div class="sp-url">dsr1.co.kr</div>
-  <button type="button" class="splash-go" id="splashGo">시작하기 ▶</button>
 </div>
 <script>
 (() => {
@@ -484,10 +481,16 @@ dialog{border-radius:10px}
   let skip = false;   // 같은 창에서 은행금리비교 등을 갔다 돌아올 때 · 크롬으로 넘겨 받은 경우는 생략
   try { skip = !!sessionStorage.getItem('splashSeen') || /[?&]s=/.test(location.search); sessionStorage.setItem('splashSeen', '1'); } catch (e) {}
   if (skip) { el.remove(); return; }
-  document.getElementById('splashGo').onclick = () => {
+  // 화면 아무 곳이나 누르면 (키보드는 Enter · Space) 계산기로
+  let gone = false;
+  const go = () => {
+    if (gone) return; gone = true;
     el.classList.add('out');
     setTimeout(() => { el.remove(); document.dispatchEvent(new Event('splashdone')); }, 350);
   };
+  el.addEventListener('click', go);
+  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  el.focus({ preventScroll: true });
 })();
 </script>
 
@@ -1015,7 +1018,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v106';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v107';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
