@@ -519,10 +519,10 @@ dialog{border-radius:10px}
         <button type="button" data-tab="equity">주담대(자담)</button>
         <button type="button" data-tab="jeonse">전세자금대출</button>
       </nav>
-      <a class="policy-link hot" href="bank.html">은행금리비교</a>
+      <a class="policy-link" href="bank.html">은행금리비교</a>
+      <a class="policy-link" id="lnkIdscan" href="idscan.html" hidden>신분증스캔</a>
       <a class="policy-link" href="policy.html">정책자금</a>
       <a class="policy-link" href="rules.html">규정집</a>
-      <a class="policy-link" id="lnkIdscan" href="idscan.html" hidden>신분증스캔</a>
     </div>
     <button type="button" class="tab-more" id="tabMore" aria-label="메뉴 더 보기" hidden>▶</button>
     </div>
@@ -1018,7 +1018,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v107';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v108';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
