@@ -1,5 +1,5 @@
 // 오프라인 실행용 캐시. index.html 등을 수정하면 VERSION 값을 올려주세요.
-const VERSION = 'dsr-v109';
+const VERSION = 'dsr-v110';
 const FILES = ['./', './index.html', './policy.html', './bank.html', './rules.html', './idscan.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './splash2.jpg'];
 
 self.addEventListener('install', e => {

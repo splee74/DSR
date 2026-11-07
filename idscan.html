@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>신분증 스캔</title>
+<title>SCAN</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="icon" type="image/png" href="icon-192.png?v=2">
 <meta name="robots" content="noindex">
@@ -71,6 +71,8 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
 .opt .hint{display:block;font-weight:400;font-size:12.5px;color:var(--muted)}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg button{flex:1 1 0;min-width:84px;min-height:40px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--sub);font-weight:700;font-size:13.5px}
+.seg.mode{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px}
+.seg.mode button{min-height:46px;font-size:15px}
 .seg button.on{border-color:var(--brand);background:var(--weak);color:var(--ink);box-shadow:inset 0 0 0 1px var(--brand)}
 .field-label{font-weight:700;font-size:14px;margin-bottom:6px}
 .txt{width:100%;min-height:42px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);padding:8px 12px}
@@ -109,13 +111,13 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
 <header class="top"><div class="wrap">
   <a class="back" href="./">‹ DSR·DTI 계산기</a>
   <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5.5 16c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4M14 10h4.5M14 13.5h3"/></svg></div>
-  <div><h1>신분증 스캔</h1><span class="sub">사진 한 장으로 반듯한 신분증 사본 (A4 · PDF)</span></div>
+  <div><h1>SCAN</h1><span class="sub">신분증 · 명함을 사진 한 장으로 반듯하게</span></div>
 </div></header>
 
 <main class="wrap" id="locked" hidden>
   <section class="card">
     <h2>관리자만 사용할 수 있습니다</h2>
-    <p style="margin:0;color:var(--sub)">신분증 스캔은 관리자로 등록된 기기에서만 열립니다. 은행금리비교 → ✎ 금리 입력에서 관리자 토큰을 등록한 기기로 열어 주세요.</p>
+    <p style="margin:0;color:var(--sub)">SCAN은 관리자로 등록된 기기에서만 열립니다. 은행금리비교 → ✎ 금리 입력에서 관리자 토큰을 등록한 기기로 열어 주세요.</p>
     <div class="row" style="margin-top:12px"><a class="btn primary" href="./">계산기로 돌아가기</a></div>
   </section>
 </main>
@@ -123,14 +125,19 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
 <main class="wrap" id="app">
   <div class="privacy" role="note">
     <span aria-hidden="true">🔒</span>
-    <div><b>사진은 이 기기 안에서만 처리합니다.</b> 서버로 보내거나 저장하지 않고, 이 화면을 닫으면 사라집니다. 필요한 사본은 아래 [PDF 저장]·[공유]로 남기세요.</div>
+    <div><b>사진은 이 기기 안에서만 처리합니다.</b> 서버로 보내거나 저장하지 않고, 이 화면을 닫으면 사라집니다. 필요한 결과는 아래 [저장]·[공유]로 남기세요.</div>
+  </div>
+
+  <div class="seg mode" id="segMode" role="tablist" aria-label="스캔할 것">
+    <button type="button" data-mode="id" class="on" role="tab">🪪 신분증</button>
+    <button type="button" data-mode="biz" role="tab">📇 명함</button>
   </div>
 
   <section class="card">
-    <h2><span class="num">01</span>신분증 촬영</h2>
+    <h2><span class="num">01</span><span id="shotTitle">신분증 촬영</span></h2>
     <div class="slots">
       <div class="slot" data-side="front">
-        <div class="slot-head">앞면 <small>주민등록증 · 운전면허증</small></div>
+        <div class="slot-head">앞면 <small id="frontHint">주민등록증 · 운전면허증</small></div>
         <div class="prev" id="prevFront">카드를 어두운 바탕에 놓고<br>위에서 찍어 주세요</div>
         <div class="row">
           <button type="button" class="btn primary grow" data-shot="front">📷 촬영</button>
@@ -138,7 +145,7 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
         </div>
         <div class="row" data-tools="front" hidden>
           <button type="button" class="btn grow" data-adjust="front">모서리 다시 맞추기</button>
-          <button type="button" class="btn" data-rotate="front" aria-label="앞면 뒤집기">↻ 뒤집기</button>
+          <button type="button" class="btn" data-rotate="front" aria-label="앞면 돌리기">↻ 뒤집기</button>
           <button type="button" class="btn" data-clear="front">지우기</button>
         </div>
       </div>
@@ -151,7 +158,7 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
         </div>
         <div class="row" data-tools="back" hidden>
           <button type="button" class="btn grow" data-adjust="back">모서리 다시 맞추기</button>
-          <button type="button" class="btn" data-rotate="back" aria-label="뒷면 뒤집기">↻ 뒤집기</button>
+          <button type="button" class="btn" data-rotate="back" aria-label="뒷면 돌리기">↻ 뒤집기</button>
           <button type="button" class="btn" data-clear="back">지우기</button>
         </div>
       </div>
@@ -161,15 +168,16 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
   </section>
 
   <section class="card opt">
-    <h2><span class="num">02</span>사본 설정</h2>
+    <h2><span class="num">02</span><span id="optTitle">사본 설정</span></h2>
     <div>
-      <div class="field-label">보정</div>
+      <div class="field-label id-only">보정</div>
       <div class="seg" id="segTone">
         <button type="button" data-tone="scan" class="on">스캔처럼</button>
         <button type="button" data-tone="orig">원본 색</button>
         <button type="button" data-tone="gray">흑백</button>
       </div>
     </div>
+    <div class="id-only opt">
     <label class="chk"><input type="checkbox" id="optMask" checked>
       <span>주민등록번호 뒷자리 가리기<span class="hint">앞면 미리보기의 검은 상자를 손가락으로 옮기고, 노란 점을 끌어 크기를 맞추세요.</span></span></label>
     <div>
@@ -184,9 +192,10 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
         <button type="button" data-size="1.5">크게 (1.5배)</button>
       </div>
     </div>
+    </div>
   </section>
 
-  <section class="card">
+  <section class="card id-only">
     <h2><span class="num">03</span>신분증 사본</h2>
     <div class="sheet-wrap"><canvas class="sheet" id="sheet" width="827" height="1170" aria-label="A4 신분증 사본 미리보기"></canvas></div>
     <p class="out-note" id="outNote">앞면을 찍으면 여기에 A4 사본이 만들어집니다.</p>
@@ -204,13 +213,25 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
     </div>
     <p class="msg" id="msg" hidden></p>
   </section>
+
+  <section class="card biz-only" hidden>
+    <h2><span class="num">03</span>명함 저장</h2>
+    <div class="row">
+      <button type="button" class="btn primary grow" id="bizShare" disabled>공유 · 갤러리에 저장</button>
+      <button type="button" class="btn grow" id="bizSave" disabled>이미지 파일로 저장</button>
+    </div>
+    <p class="out-note">· <b>안드로이드</b>: [이미지 파일로 저장]을 누르면 갤러리의 <b>Download</b> 앨범에 들어갑니다.<br>
+      · <b>아이폰</b>: [공유 · 갤러리에 저장] → <b>이미지 저장</b>을 누르면 사진 앱에 들어갑니다.<br>
+      · 카톡으로 보내려면 [공유 · 갤러리에 저장]에서 카카오톡을 고르세요. 앞면·뒷면이 함께 갑니다.</p>
+    <p class="msg" id="msg2" hidden></p>
+  </section>
 </main>
 
 <a class="home-fab" href="./">‹ 계산기</a>
 
 <!-- 모서리 맞추기 -->
 <div class="editor" id="editor" hidden role="dialog" aria-modal="true" aria-label="신분증 모서리 맞추기">
-  <div class="ed-head"><b id="edTitle">앞면</b><span>초록 점 4개를 신분증 네 모서리에 맞추세요</span></div>
+  <div class="ed-head"><b id="edTitle">앞면</b><span id="edHint">초록 점 4개를 신분증 네 모서리에 맞추세요</span></div>
   <div class="ed-stage" id="edStage">
     <div class="ed-inner" id="edInner">
       <canvas id="edCanvas"></canvas>
@@ -232,10 +253,16 @@ const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAl
 // 관리자 기기(은행금리 관리자 토큰이 있는 기기)에서만 사용
 { let ok = false; try { ok = !!localStorage.getItem('bankAdminToken'); } catch (e) {}
   $('#locked').hidden = ok; $('#app').hidden = !ok; $('.home-fab').hidden = !ok; }
-const CARD_W = 1350, CARD_H = 852;           // 신분증(ID-1, 85.6 × 54mm) 비율
+// 스캔할 것: 신분증(ID-1, 85.6 × 54mm) · 명함(90 × 50mm)
+const MODES = {
+  id:  { w: 1350, h: 852, ratio: 1.586, name: '신분증', front: '주민등록증 · 운전면허증', empty: '카드를 어두운 바탕에 놓고<br>위에서 찍어 주세요' },
+  biz: { w: 1500, h: 833, ratio: 1.8, name: '명함', front: '명함 앞면', empty: '명함을 어두운 바탕에 놓고<br>위에서 찍어 주세요' },
+};
+let CARD_W = 1350, CARD_H = 852, TARGET_RATIO = 1.586;
 const MAX_SRC = 2200;                        // 원본 사진은 긴 쪽 2200px 로 줄여서 처리
 const S = {                                  // 화면 상태 (사진은 메모리에만)
-  front: null, back: null,                   // { src: canvas, quad: [[x,y]×4], card: canvas(보정 전), flip: bool }
+  mode: 'id', saved: {},                     // 모드별로 찍은 사진 따로 보관
+  front: null, back: null,                   // { src: canvas, quad: [[x,y]×4], card: canvas(보정 전), rot: 0~3 (90도 단위) }
   tone: 'scan', mask: { x: .26, y: .32, w: .26, h: .12 }, size: 1
 };
 
@@ -277,15 +304,16 @@ function detectQuad(src) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const ctx = c.getContext('2d', { willReadFrequently: true }); ctx.drawImage(src, 0, 0, w, h);
   const d = ctx.getImageData(0, 0, w, h).data, N = w * h;
-  let g = new Float32Array(N);
-  for (let i = 0; i < N; i++) g[i] = .299 * d[i * 4] + .587 * d[i * 4 + 1] + .114 * d[i * 4 + 2];
-  g = boxBlur(boxBlur(g, w, h), w, h);
+  // 빨강·초록·파랑 각각의 경계 중 가장 뚜렷한 것 (밝기는 비슷해도 색이 다른 테두리도 찾게)
+  const chans = [0, 1, 2].map(c => { let g = new Float32Array(N); for (let i = 0; i < N; i++) g[i] = d[i * 4 + c]; return boxBlur(boxBlur(g, w, h), w, h); });
   const mag = new Float32Array(N), ang = new Float32Array(N);
   for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
     const i = y * w + x;
-    const gx = g[i - w + 1] + 2 * g[i + 1] + g[i + w + 1] - g[i - w - 1] - 2 * g[i - 1] - g[i + w - 1];
-    const gy = g[i + w - 1] + 2 * g[i + w] + g[i + w + 1] - g[i - w - 1] - 2 * g[i - w] - g[i - w + 1];
-    mag[i] = Math.hypot(gx, gy); ang[i] = Math.atan2(gy, gx);
+    for (const g of chans) {
+      const gx = g[i - w + 1] + 2 * g[i + 1] + g[i + w + 1] - g[i - w - 1] - 2 * g[i - 1] - g[i + w - 1];
+      const gy = g[i + w - 1] + 2 * g[i + w] + g[i + w + 1] - g[i - w - 1] - 2 * g[i - w] - g[i - w + 1];
+      const m = Math.hypot(gx, gy); if (m > mag[i]) { mag[i] = m; ang[i] = Math.atan2(gy, gx); }
+    }
   }
   const sorted = Float32Array.from(mag).sort();
   const thr = Math.max(25, sorted[Math.floor(N * .9)]);
@@ -351,7 +379,7 @@ function detectQuad(src) {
     const sMean = sides.reduce((s, v) => s + v, 0) / 4, sMin = Math.min(...sides);
     const L = q.map((p, k) => Math.hypot(q[(k + 1) % 4][0] - p[0], q[(k + 1) % 4][1] - p[1]));
     const long = Math.max(L[0] + L[2], L[1] + L[3]), short = Math.min(L[0] + L[2], L[1] + L[3]);
-    const ratio = long / short, ar = .65 + .35 * Math.exp(-(((ratio - 1.586) / .45) ** 2));
+    const ratio = long / short, ar = .65 + .35 * Math.exp(-(((ratio - TARGET_RATIO) / .45) ** 2));
     const score = (sMean * .6 + sMin * .4) * ar * (.75 + .25 * Math.sqrt(area / (w * h)));
     if (score > bestScore) { bestScore = score; best = q; }
   }
@@ -366,18 +394,22 @@ function refineQuad(src, quad) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const ctx = c.getContext('2d', { willReadFrequently: true }); ctx.drawImage(src, 0, 0, w, h);
   const d = ctx.getImageData(0, 0, w, h).data;
-  const G = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= w || y >= h) return null; const i = (y * w + x) * 4; return .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2]; };
-  const q = quad.map(([x, y]) => [x * k, y * k]), R = 10, lines = [];
+  const G = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= w || y >= h) return null; return (y * w + x) * 4; };
+  const q = quad.map(([x, y]) => [x * k, y * k]), R = 14, lines = [];
   for (let s = 0; s < 4; s++) {
     const a = q[s], b = q[(s + 1) % 4], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const tx = (b[0] - a[0]) / len, ty = (b[1] - a[1]) / len, nx = -ty, ny = tx, pts = [];
     for (let t = .08; t <= .92; t += .02) {
       const px = a[0] + (b[0] - a[0]) * t, py = a[1] + (b[1] - a[1]) * t;
-      let bestD = null, bestG = 0;
+      // 변을 가로질러 색 차이(가장 큰 채널)를 재고, 뚜렷한 경계가 여러 개면 가장 바깥쪽 것을 카드 테두리로 (가장자리 띠 무늬 대비)
+      const gs = [];
       for (let o = -R; o <= R; o++) {
         const g1 = G(px + nx * (o - 1.5), py + ny * (o - 1.5)), g2 = G(px + nx * (o + 1.5), py + ny * (o + 1.5));
-        if (g1 === null || g2 === null) continue;
-        const gr = Math.abs(g2 - g1); if (gr > bestG) { bestG = gr; bestD = o; }
+        gs.push(g1 === null || g2 === null ? 0 : Math.max(Math.abs(d[g2] - d[g1]), Math.abs(d[g2 + 1] - d[g1 + 1]), Math.abs(d[g2 + 2] - d[g1 + 2])));
+      }
+      const bestG = Math.max(...gs); let bestD = null;
+      for (let j = 0; j < gs.length; j++) {   // n 은 안쪽 방향이므로 j 가 작을수록 바깥
+        if (gs[j] >= bestG * .55 && (j === 0 || gs[j] >= gs[j - 1]) && (j === gs.length - 1 || gs[j] >= gs[j + 1])) { bestD = j - R; break; }
       }
       if (bestD !== null && bestG > 18) pts.push([px + nx * bestD, py + ny * bestD]);
     }
@@ -492,7 +524,7 @@ $('#edDone').onclick = () => {
   closeEditor();
   busy(true);
   setTimeout(() => {
-    S[side] = { src, quad, card: warpCard(src, quad), flip: S[side]?.src === src ? S[side].flip : false };
+    S[side] = { src, quad, card: warpCard(src, quad), rot: S[side]?.src === src ? S[side].rot : 0 };
     busy(false); refresh();
   }, 30);
 };
@@ -505,19 +537,20 @@ function warpCard(src, quad) {
   // 긴 변이 가로가 되도록 (세로로 찍은 사진)
   const top = Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]) + Math.hypot(q[2][0] - q[3][0], q[2][1] - q[3][1]);
   const left = Math.hypot(q[3][0] - q[0][0], q[3][1] - q[0][1]) + Math.hypot(q[2][0] - q[1][0], q[2][1] - q[1][1]);
-  if (left > top) q = [q[3], q[0], q[1], q[2]];
+  let OW = CARD_W, OH = CARD_H;
+  if (left > top) { if (S.mode === 'biz') { OW = CARD_H; OH = CARD_W; } else q = [q[3], q[0], q[1], q[2]]; }
   // 가장자리를 0.8% 안쪽으로: 모서리가 살짝 어긋나도 탁자·그림자가 끼지 않게
-  const ex = CARD_W * .008, ey = CARD_H * .008;
-  const H = homography([[-ex, -ey], [CARD_W + ex, -ey], [CARD_W + ex, CARD_H + ey], [-ex, CARD_H + ey]], q);
+  const ex = OW * .008, ey = OH * .008;
+  const H = homography([[-ex, -ey], [OW + ex, -ey], [OW + ex, OH + ey], [-ex, OH + ey]], q);
   const sw = src.width, sh = src.height;
   const sd = src.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, sw, sh).data;
-  const out = document.createElement('canvas'); out.width = CARD_W; out.height = CARD_H;
-  const oc = out.getContext('2d'), od = oc.createImageData(CARD_W, CARD_H), o = od.data;
-  for (let v = 0; v < CARD_H; v++) for (let u = 0; u < CARD_W; u++) {
+  const out = document.createElement('canvas'); out.width = OW; out.height = OH;
+  const oc = out.getContext('2d'), od = oc.createImageData(OW, OH), o = od.data;
+  for (let v = 0; v < OH; v++) for (let u = 0; u < OW; u++) {
     const den = H[6] * u + H[7] * v + 1;
     let x = (H[0] * u + H[1] * v + H[2]) / den, y = (H[3] * u + H[4] * v + H[5]) / den;
     x = Math.min(sw - 1.001, Math.max(0, x)); y = Math.min(sh - 1.001, Math.max(0, y));
-    const x0 = x | 0, y0 = y | 0, fx = x - x0, fy = y - y0, i0 = (y0 * sw + x0) * 4, i1 = i0 + sw * 4, j = (v * CARD_W + u) * 4;
+    const x0 = x | 0, y0 = y | 0, fx = x - x0, fy = y - y0, i0 = (y0 * sw + x0) * 4, i1 = i0 + sw * 4, j = (v * OW + u) * 4;
     for (let ch = 0; ch < 3; ch++) {
       const a = sd[i0 + ch] + (sd[i0 + 4 + ch] - sd[i0 + ch]) * fx, b = sd[i1 + ch] + (sd[i1 + 4 + ch] - sd[i1 + ch]) * fx;
       o[j + ch] = a + (b - a) * fy;
@@ -548,13 +581,13 @@ function homography(from, to) {
 }
 
 /* ---------------- 보정 (스캔처럼 · 흑백) ---------------- */
-function toned(card, tone, flip) {
-  const c = document.createElement('canvas'); c.width = CARD_W; c.height = CARD_H;
+function toned(card, tone, rot) {
+  const odd = rot % 2 === 1, CW = odd ? card.height : card.width, CH = odd ? card.width : card.height;
+  const c = document.createElement('canvas'); c.width = CW; c.height = CH;
   const x = c.getContext('2d', { willReadFrequently: true });
-  if (flip) { x.translate(CARD_W, CARD_H); x.rotate(Math.PI); }
-  x.drawImage(card, 0, 0); x.setTransform(1, 0, 0, 1, 0, 0);
+  x.translate(CW / 2, CH / 2); x.rotate(rot * Math.PI / 2); x.drawImage(card, -card.width / 2, -card.height / 2); x.setTransform(1, 0, 0, 1, 0, 0);
   if (tone === 'orig') return c;
-  const img = x.getImageData(0, 0, CARD_W, CARD_H), d = img.data, n = CARD_W * CARD_H;
+  const img = x.getImageData(0, 0, CW, CH), d = img.data, n = CW * CH;
   if (tone === 'gray') for (let i = 0; i < n * 4; i += 4) { const g = .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2]; d[i] = d[i + 1] = d[i + 2] = g; }
   // 채널별로 어두운 1% → 0, 밝은 1% → 255 (색 번짐·누런 조명 정리)
   for (let ch = 0; ch < 3; ch++) {
@@ -566,8 +599,8 @@ function toned(card, tone, flip) {
     for (let i = ch; i < n * 4; i += 4) d[i] = lut[d[i]];
   }
   // 글자 또렷하게 (언샤프 마스크)
-  const src = new Uint8ClampedArray(d), W = CARD_W, amt = tone === 'gray' ? .7 : .55;
-  for (let y = 1; y < CARD_H - 1; y++) for (let x2 = 1; x2 < W - 1; x2++) {
+  const src = new Uint8ClampedArray(d), W = CW, amt = tone === 'gray' ? .7 : .55;
+  for (let y = 1; y < CH - 1; y++) for (let x2 = 1; x2 < W - 1; x2++) {
     const i = (y * W + x2) * 4;
     for (let ch = 0; ch < 3; ch++) {
       const k = i + ch;
@@ -583,10 +616,12 @@ function toned(card, tone, flip) {
 const cardCache = {};
 function finalCard(side) {
   const s = S[side]; if (!s) return null;
-  const key = [side, S.tone, s.flip, s.card.__id || (s.card.__id = Math.random())].join('|');
-  if (cardCache[side]?.key !== key) cardCache[side] = { key, c: toned(s.card, S.tone, s.flip) };
-  const c = document.createElement('canvas'); c.width = CARD_W; c.height = CARD_H;
-  const x = c.getContext('2d'); x.drawImage(cardCache[side].c, 0, 0);
+  const key = [S.mode, side, S.tone, s.rot, s.card.__id || (s.card.__id = Math.random())].join('|');
+  if (cardCache[side]?.key !== key) cardCache[side] = { key, c: toned(s.card, S.tone, s.rot) };
+  const t = cardCache[side].c;
+  const c = document.createElement('canvas'); c.width = t.width; c.height = t.height;
+  const x = c.getContext('2d'); x.drawImage(t, 0, 0);
+  if (S.mode === 'biz') return c;          // 명함: 보정만
   if (side === 'front' && $('#optMask').checked) {
     const m = S.mask; x.fillStyle = '#000'; x.fillRect(m.x * CARD_W, m.y * CARD_H, m.w * CARD_W, m.h * CARD_H);
   }
@@ -615,13 +650,17 @@ function refresh() {
   for (const side of ['front', 'back']) {
     const box = side === 'front' ? $('#prevFront') : $('#prevBack'), s = S[side];
     $(`[data-tools="${side}"]`).hidden = !s;
-    if (!s) { box.classList.remove('done'); box.innerHTML = side === 'front' ? '카드를 어두운 바탕에 놓고<br>위에서 찍어 주세요' : '뒷면이 필요할 때만<br>찍으세요'; continue; }
+    if (!s) { box.classList.remove('done'); box.style.aspectRatio = `${CARD_W}/${CARD_H}`; box.style.width = ''; box.innerHTML = side === 'front' ? MODES[S.mode].empty : '뒷면이 필요할 때만<br>찍으세요'; continue; }
     box.classList.add('done'); box.innerHTML = '';
-    const cv = document.createElement('canvas'); cv.width = CARD_W; cv.height = CARD_H;
-    cv.getContext('2d').drawImage(finalCard(side), 0, 0);
+    const fc = finalCard(side);
+    box.style.aspectRatio = `${fc.width}/${fc.height}`;
+    box.style.width = fc.height > fc.width ? 'min(100%, 240px)' : '';   // 세로 명함은 너무 길지 않게
+    box.style.justifySelf = box.style.alignSelf = fc.height > fc.width ? 'center' : '';
+    const cv = document.createElement('canvas'); cv.width = fc.width; cv.height = fc.height;
+    cv.getContext('2d').drawImage(fc, 0, 0);
     cv.setAttribute('aria-label', (side === 'front' ? '앞면' : '뒷면') + ' 보정 결과');
     box.appendChild(cv);
-    if (side === 'front' && $('#optMask').checked) maskBox(box);
+    if (S.mode === 'id' && side === 'front' && $('#optMask').checked) maskBox(box);
   }
   drawSheet();
 }
@@ -665,6 +704,7 @@ function buildSheet() {
 }
 function roundRect(x, l, t, w, h, r) { x.beginPath(); x.moveTo(l + r, t); x.arcTo(l + w, t, l + w, t + h, r); x.arcTo(l + w, t + h, l, t + h, r); x.arcTo(l, t + h, l, t, r); x.arcTo(l, t, l + w, t, r); x.closePath(); }
 function drawSheet() {
+  if (S.mode === 'biz') { ['#bizShare', '#bizSave'].forEach(id => $(id).disabled = !S.front); return; }
   const has = !!S.front, cv = $('#sheet'), x = cv.getContext('2d');
   x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height);
   if (has) x.drawImage(buildSheet(), 0, 0, cv.width, cv.height);
@@ -718,11 +758,45 @@ $('#btnShare').onclick = () => run(async () => {
     catch (e) { if (e.name !== 'AbortError') { download(f); say('공유가 안 되어 이미지로 저장했습니다. 저장된 파일을 카톡으로 보내 주세요.'); } }
   } else { download(f); say('이 브라우저는 바로 공유가 안 되어 이미지로 저장했습니다. 저장된 파일을 카톡으로 보내 주세요.'); }
 });
+// 명함: 앞면(·뒷면) JPG
+async function bizFiles() {
+  const d = new Date(), t = `${stamp()}_${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
+  return Promise.all(['front', 'back'].filter(s => S[s]).map(async s =>
+    new File([await toBlob(finalCard(s), 'image/jpeg', .93)], `명함_${s === 'front' ? '앞면' : '뒷면'}_${t}.jpg`, { type: 'image/jpeg' })));
+}
+$('#bizSave').onclick = () => run(async () => {
+  const files = await bizFiles();
+  for (const [i, f] of files.entries()) { if (i) await new Promise(r => setTimeout(r, 600)); download(f); }
+  say(`명함 이미지 ${files.length}장을 저장했습니다.`);
+});
+$('#bizShare').onclick = () => run(async () => {
+  const files = await bizFiles();
+  if (navigator.canShare && navigator.canShare({ files })) {
+    try { await navigator.share({ files }); say('공유했습니다.'); }
+    catch (e) { if (e.name !== 'AbortError') { files.forEach(download); say('공유가 안 되어 이미지 파일로 저장했습니다.'); } }
+  } else { files.forEach(download); say('이 브라우저는 바로 공유가 안 되어 이미지 파일로 저장했습니다.'); }
+});
+function setMode(m, quiet) {
+  if (!MODES[m]) m = 'id';
+  if (m !== S.mode) { S.saved[S.mode] = { front: S.front, back: S.back }; S.mode = m; ({ front: S.front = null, back: S.back = null } = S.saved[m] || {}); }
+  const M = MODES[m]; CARD_W = M.w; CARD_H = M.h; TARGET_RATIO = M.ratio;
+  for (const k in cardCache) delete cardCache[k];
+  $$('#segMode button').forEach(b => { const on = b.dataset.mode === m; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+  $$('.id-only').forEach(e => e.hidden = m !== 'id'); $$('.biz-only').forEach(e => e.hidden = m !== 'biz');
+  $('#shotTitle').textContent = `${M.name} 촬영`; $('#frontHint').textContent = M.front;
+  $('#optTitle').textContent = m === 'id' ? '사본 설정' : '보정';
+  $('#edHint').textContent = `초록 점 4개를 ${M.name} 네 모서리에 맞추세요`;
+  $$('[data-rotate]').forEach(b => b.textContent = m === 'biz' ? '↻ 돌리기' : '↻ 뒤집기');
+  $('#msg').hidden = $('#msg2').hidden = true;
+  try { localStorage.setItem('scanMode', m); } catch (e) {}
+  if (!quiet) refresh();
+}
+$$('#segMode button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
 async function run(fn) { busy(true); try { await fn(); } catch (e) { say(e.message || '저장하지 못했습니다.', true); } finally { busy(false); } }
 
 /* ---------------- 버튼들 ---------------- */
 $$('[data-adjust]').forEach(b => b.onclick = () => { const s = S[b.dataset.adjust]; if (s) openEditor(b.dataset.adjust, s.src, s.quad); });
-$$('[data-rotate]').forEach(b => b.onclick = () => { const s = S[b.dataset.rotate]; if (s) { s.flip = !s.flip; refresh(); } });
+$$('[data-rotate]').forEach(b => b.onclick = () => { const s = S[b.dataset.rotate]; if (s) { s.rot = (s.rot + (S.mode === 'biz' ? 1 : 2)) % 4; refresh(); } });
 $$('[data-clear]').forEach(b => b.onclick = () => { S[b.dataset.clear] = null; delete cardCache[b.dataset.clear]; refresh(); });
 $$('#segTone button').forEach(b => b.onclick = () => { S.tone = b.dataset.tone; $$('#segTone button').forEach(x => x.classList.toggle('on', x === b)); refresh(); });
 $$('#segSize button').forEach(b => b.onclick = () => { S.size = +b.dataset.size; $$('#segSize button').forEach(x => x.classList.toggle('on', x === b)); drawSheet(); });
@@ -732,12 +806,12 @@ let markTimer; $('#markText').oninput = () => { if (!$('#optMark').checked) $('#
 
 function busy(on) { $('#busy').hidden = !on; }
 function say(t, bad, toast) {
-  const m = $('#msg'); m.hidden = false; m.textContent = t; m.classList.toggle('bad', !!bad);
+  const m = $(S.mode === 'biz' ? '#msg2' : '#msg'); m.hidden = false; m.textContent = t; m.classList.toggle('bad', !!bad);
   if (toast) { const b = $('#busy'); b.textContent = t; b.hidden = false; setTimeout(() => { b.hidden = true; b.textContent = '처리하는 중…'; }, 1600); }
 }
 // 화면을 떠나면 사진을 메모리에서 지움
-addEventListener('pagehide', () => { S.front = S.back = null; });
-drawSheet();
+addEventListener('pagehide', () => { S.front = S.back = null; S.saved = {}; });
+{ let m = 'id'; try { m = localStorage.getItem('scanMode') || 'id'; } catch (e) {} setMode(m); }
 </script>
 </body>
 </html>
