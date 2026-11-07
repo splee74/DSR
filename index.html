@@ -371,6 +371,7 @@ dialog{border-radius:10px}
 .top .actions{margin-left:auto;width:auto;display:flex;gap:6px;align-self:center}
 .top .actions button{width:38px;height:38px;min-height:0;padding:0;border-radius:50%;font-size:11px;font-weight:700;line-height:1.1;display:grid;place-items:center;white-space:nowrap;letter-spacing:-.5px}
 .top .actions #btnFeedback{background:var(--brand);border-color:var(--brand);color:#fff}
+.top .actions #btnManual{border-color:var(--brand);color:var(--brand)}
 .top .actions #btnSettings,.top .actions #btnNotice{font-size:16px}
 .top .actions #btnReset.armed{background:var(--bad);border-color:var(--bad);color:#fff;font-size:10px}
 .tabbar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -481,6 +482,7 @@ dialog{border-radius:10px}
     </div>
     <div class="actions">
       <span class="cdate-top" id="cdateTop"></span>
+      <button type="button" id="btnManual" title="사용 설명서 PDF 내려받기">사용법</button>
       <button type="button" id="btnFeedback" title="오류신고·의견">오류<br>신고</button>
       <button type="button" id="btnReset" title="입력 내용 모두 지우기">초기화</button>
       <button type="button" id="btnSettings" hidden title="규제설정" aria-label="규제설정">⚙</button>
@@ -991,7 +993,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v99';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v100';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1941,6 +1943,12 @@ $$('.tabs button').forEach(b => b.onclick = () => {
 $$('.mbar-in > div').forEach(d => d.onclick = () => $('.results').scrollIntoView({ behavior: 'smooth', block: 'start' }));
 // 초기화는 두 번 눌러 확인 (팝업 확인창 없이)
 let resetArm = 0;
+// 사용 설명서 PDF 내려받기 (manual/manual.html 로 만든 manual.pdf)
+$('#btnManual').onclick = () => {
+  const a = document.createElement('a');
+  a.href = 'manual.pdf?' + APP_VERSION; a.download = 'DSR계산기_사용설명서.pdf';
+  document.body.appendChild(a); a.click(); a.remove();
+};
 $('#btnReset').onclick = () => {
   const b = $('#btnReset');
   if (!resetArm) {
