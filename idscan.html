@@ -114,13 +114,6 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
   <div><h1>SCAN</h1><span class="sub">신분증 · 명함을 사진 한 장으로 반듯하게</span></div>
 </div></header>
 
-<main class="wrap" id="locked" hidden>
-  <section class="card">
-    <h2>관리자만 사용할 수 있습니다</h2>
-    <p style="margin:0;color:var(--sub)">SCAN은 관리자로 등록된 기기에서만 열립니다. 은행금리비교 → ✎ 금리 입력에서 관리자 토큰을 등록한 기기로 열어 주세요.</p>
-    <div class="row" style="margin-top:12px"><a class="btn primary" href="./">계산기로 돌아가기</a></div>
-  </section>
-</main>
 
 <main class="wrap" id="app">
   <div class="privacy" role="note">
@@ -217,12 +210,12 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
   <section class="card biz-only" hidden>
     <h2><span class="num">03</span>명함 저장</h2>
     <div class="row">
-      <button type="button" class="btn primary grow" id="bizShare" disabled>공유 · 갤러리에 저장</button>
+      <button type="button" class="btn primary grow" id="bizShare" disabled>공유</button>
       <button type="button" class="btn grow" id="bizSave" disabled>이미지 파일로 저장</button>
     </div>
     <p class="out-note">· <b>안드로이드</b>: [이미지 파일로 저장]을 누르면 갤러리의 <b>Download</b> 앨범에 들어갑니다.<br>
-      · <b>아이폰</b>: [공유 · 갤러리에 저장] → <b>이미지 저장</b>을 누르면 사진 앱에 들어갑니다.<br>
-      · 카톡으로 보내려면 [공유 · 갤러리에 저장]에서 카카오톡을 고르세요. 앞면·뒷면이 함께 갑니다.</p>
+      · <b>아이폰</b>: [공유] → <b>이미지 저장</b>을 누르면 사진 앱에 들어갑니다.<br>
+      · 카톡으로 보내려면 [공유]에서 카카오톡을 고르세요. 앞면·뒷면이 함께 갑니다.</p>
     <p class="msg" id="msg2" hidden></p>
   </section>
 </main>
@@ -250,9 +243,7 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
 <script>
 'use strict';
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-// 관리자 기기(은행금리 관리자 토큰이 있는 기기)에서만 사용
-{ let ok = false; try { ok = !!localStorage.getItem('bankAdminToken'); } catch (e) {}
-  $('#locked').hidden = ok; $('#app').hidden = !ok; $('.home-fab').hidden = !ok; }
+// SCAN 은 모든 이용자가 사용 (2026-11-08부터, 예전엔 관리자 기기만)
 // 스캔할 것: 신분증(ID-1, 85.6 × 54mm) · 명함(90 × 50mm)
 const MODES = {
   id:  { w: 1350, h: 852, ratio: 1.586, name: '신분증', front: '주민등록증 · 운전면허증', empty: '카드를 어두운 바탕에 놓고<br>위에서 찍어 주세요' },
