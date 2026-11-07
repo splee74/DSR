@@ -363,6 +363,9 @@ tr.bind td{background:var(--brand-weak)}
 dialog{border-radius:10px}
 .dlg-head button,.btn{border-radius:6px}
 .mbar-in button{border-radius:6px}
+/* 상담저장(고객관리 연동): 카톡공유 왼쪽 · 카톡공유와 같은 초록 */
+.mbar-in #csSaveBar:not([hidden])+#btnPdf{margin-left:0}
+@media (max-width:400px){.mbar-in{gap:10px}.mbar-in button{padding:11px 12px}}
 /* v74 머리글 · 탭 · 하단 줄 */
 .top-in{gap:0 12px}
 .brand{padding-block:8px}
@@ -861,6 +864,7 @@ dialog{border-radius:10px}
 <div class="mbar" id="mbar"><div class="mbar-in">
   <div><span id="mbK">스트레스 DSR</span><b id="mbV">—</b></div>
   <div><span>최대 가능금액</span><b id="mbM">—</b></div>
+  <button type="button" id="csSaveBar" hidden>상담저장</button>
   <button type="button" id="btnPdf">카톡공유</button>
 </div></div>
 
@@ -972,6 +976,7 @@ dialog{border-radius:10px}
   <div class="dlg-head"><h2 id="pdfTitle">결과 공유</h2><button type="button" data-pclose aria-label="닫기">×</button></div>
   <div class="dlg-body"><p class="pdf-msg" id="pdfMsg"></p></div>
   <div class="dlg-foot">
+    <button type="button" class="btn" id="csSave" hidden>고객관리에 저장</button>
     <button type="button" class="btn" id="pdfSave">PDF 저장</button>
     <a class="btn primary" id="pdfChrome" href="#" hidden>크롬에서 열기</a>
     <button type="button" class="btn primary" id="pdfShare">카톡으로 공유</button>
@@ -993,7 +998,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v100';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v101';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -2051,8 +2056,10 @@ $$('.money').forEach(formatMoney);
 renderLoans();
 // 다른 브라우저에서 넘어온 입력 내용 되살리기
 let RESTORED = false;
-{ const q = new URLSearchParams(location.search).get('s');
-  if (q) { try { restoreState(JSON.parse(unb64u(q))); RESTORED = true; } catch (e) {} history.replaceState(null, '', location.pathname); } }
+const URLQ = new URLSearchParams(location.search), FROM_CS = URLQ.get('from') === 'cs';
+{ const q = URLQ.get('s');
+  if (q) { try { restoreState(JSON.parse(unb64u(q))); RESTORED = true; } catch (e) {} }
+  if (q || URLQ.has('cspro')) history.replaceState(null, '', location.pathname); }
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {}); // pwa
 
 /* 공지사항: 처음 열 때 한 번 (같은 창에서 다른 페이지 갔다 와도 다시 안 뜸)
@@ -2240,8 +2247,36 @@ $('#pdfPrint').onclick = () => {
   setTimeout(() => URL.revokeObjectURL(url), 120000);
 };
 $$('[data-pclose]').forEach(b => b.onclick = () => $('#pdfDlg').close());
-// 크롬으로 넘어온 경우: 입력 내용을 채운 뒤 PDF 창을 바로 띄움
-if (RESTORED) setTimeout(() => { const n = $('#noticeDlg'); if (n.open) n.close(); $('#btnPdf').click(); }, 500);
+/* ---------- 고객관리(cs_pro) 연동: 이 기기에서 ?cspro=<주소> 로 한 번 열어 둔 경우에만 버튼이 보임 ----------
+   [고객관리에 저장] → 고객관리 앱 /dsr-import?d=… 를 새 창으로 열어 입력값(s)과 결과 요약을 넘김
+   고객관리 앱의 [계산기로 열기] → 이 계산기 ?s=…&from=cs 로 열림 (PDF 창은 띄우지 않음) */
+const CS_KEY = 'csproUrl';
+{ const q = URLQ.get('cspro');
+  if (q !== null) try { if (q) localStorage.setItem(CS_KEY, q.endsWith('/') ? q : q + '/'); else localStorage.removeItem(CS_KEY); } catch (e) {} }
+const csUrl = () => { try { return localStorage.getItem(CS_KEY) || ''; } catch (e) { return ''; } };
+$('#csSave').hidden = $('#csSaveBar').hidden = !csUrl();
+// 상담저장에 함께 넘길 자세한 내용: 화면의 결과 보고서(상담 조건 · 비율 · 최대 금액)와 기존 대출 목록을 [구역, 항목, 값] 으로
+function csItems() {
+  const t = el => (el?.textContent || '').replace(/\s+/g, ' ').trim(), out = [];
+  const R = $('#results');
+  R.querySelectorAll('.cond > div').forEach(d => out.push(['상담 조건', t(d.querySelector('dt')), t(d.querySelector('dd'))]));
+  if (loans.length) loans.forEach((l, i) => {
+    const left = l.type === 'direct' ? (l.months ? l.months + '개월' : '') : l.type === 'mort' && l.years ? l.years + '년' : ''; // 잔여기간은 주담대·할부만 입력
+    out.push(['기존 대출', `${i + 1}. ${LOAN_TYPES[l.type] || l.type}`, [l.amt ? korMan(num(l.amt)) : '', l.rate ? l.rate + '%' : '', left ? '잔여 ' + left : ''].filter(Boolean).join(' · ')]);
+  });
+  R.querySelectorAll('.kpi').forEach(k => out.push(['결과', t(k.querySelector('.k')), [t(k.querySelector('.v')), t(k.querySelector('.s'))].filter(Boolean).join(' · ')]));
+  R.querySelectorAll('.amount > div').forEach(d => out.push(['결과', t(d.querySelector('small')), [t(d.querySelector('strong')), t(d.querySelector('em'))].filter(Boolean).join(' · ')]));
+  const al = R.querySelector('.alert'); if (al) out.push(['결과', '주의', t(al)]);
+  return out.filter(r => r[1] && r[2]);
+}
+$('#csSave').onclick = $('#csSaveBar').onclick = () => {
+  const tabName = $(`.tabs button[data-tab="${tab}"]`)?.textContent.trim() || tab;
+  const sum = { tab: tabName, name: $('#custName').value.trim(), birth: $('#birth').value, date: $('#cdate').value, k: MB.k, v: MB.v, m: MB.m, items: csItems() };
+  const d = b64u(JSON.stringify({ v: 1, s: b64u(JSON.stringify(snapState())), sum, calc: location.origin + location.pathname }));
+  window.open(csUrl() + 'dsr-import?d=' + d, '_blank');
+};
+// 크롬으로 넘어온 경우: 입력 내용을 채운 뒤 PDF 창을 바로 띄움 (고객관리에서 연 경우는 제외)
+if (RESTORED && !FROM_CS) setTimeout(() => { const n = $('#noticeDlg'); if (n.open) n.close(); $('#btnPdf').click(); }, 500);
 /* ---------- 말로 입력: 말(또는 직접 쓴 글)에서 이름·생년월일·소득·대출을 찾아 입력칸에 넣기 ----------
    음성 → 글자는 브라우저 음성인식(크롬: Google · 사파리: Apple)이 바꾸고, 글자 분석은 이 기기 안에서만 함 */
 (() => {
