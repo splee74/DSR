@@ -559,11 +559,11 @@ dialog{border-radius:10px}
           <div class="small" style="margin:0">※ 신고소득: 본인 소득이 없거나, 부부합산 소득 2,400만원 이하</div>
         </div>
         <div class="field full" id="recogBox" hidden>
-          <span class="flabel">3개월 평균 월 납부액 <small style="font-weight:400;color:var(--muted)">(본인 부담분)</small></span>
+          <span class="flabel">3개월 평균 월 납부액</span>
           <div class="grid2" style="margin-top:6px">
             <div class="field"><label for="npsPay">국민연금</label>
               <div class="inp"><input id="npsPay" class="won" inputmode="numeric" placeholder="0"><span class="u">원</span></div><div class="hint"></div></div>
-            <div class="field"><label for="nhisPay">건강보험료</label>
+            <div class="field"><label for="nhisPay">건강보험료 <small style="font-weight:400;color:var(--muted)">지역가입자 세대주만 · 장기요양 제외</small></label>
               <div class="inp"><input id="nhisPay" class="won" inputmode="numeric" placeholder="0"><span class="u">원</span></div><div class="hint"></div></div>
           </div>
           <div class="note" id="recogCalc"></div>
@@ -598,11 +598,11 @@ dialog{border-radius:10px}
           </div>
         </div>
         <div class="field full" id="spRecogBox" hidden>
-          <span class="flabel">배우자 3개월 평균 월 납부액 <small style="font-weight:400;color:var(--muted)">(본인 부담분)</small></span>
+          <span class="flabel">배우자 3개월 평균 월 납부액</span>
           <div class="grid2" style="margin-top:6px">
             <div class="field"><label for="spNpsPay">국민연금</label>
               <div class="inp"><input id="spNpsPay" class="won" inputmode="numeric" placeholder="0"><span class="u">원</span></div><div class="hint"></div></div>
-            <div class="field"><label for="spNhisPay">건강보험료</label>
+            <div class="field"><label for="spNhisPay">건강보험료 <small style="font-weight:400;color:var(--muted)">지역가입자 세대주만 · 장기요양 제외</small></label>
               <div class="inp"><input id="spNhisPay" class="won" inputmode="numeric" placeholder="0"><span class="u">원</span></div><div class="hint"></div></div>
           </div>
           <div class="note" id="spRecogCalc"></div>
@@ -1039,7 +1039,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v117';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v118';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1054,7 +1054,7 @@ const DEFAULTS = {
   cap:    { on: { metro: true, reg: true, local: false }, t1: 150000, c1: 60000, t2: 250000, c2: 40000, c3: 20000 },
   deem:   { credit: 5, nonhouse: 10, office: 8, midpay: 25, guar: 10, secur: 8 },
   jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000, capMember: 50000, capSgi: 50000, capHug: 40000 },   // capSgi·capHug: 보증기관별 최대 한도
-  inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 9.5, nhisRate: 3.595, recogPct: 95, mixCap: 5000 },   // mixCap: 인정·신고소득이 들어간 소득 합계 상한
+  inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 9.5, nhisRate: 7.19, recogPct: 95, mixCap: 5000 },   // mixCap: 인정·신고소득이 들어간 소득 합계 상한
   debt:   { otherRate: 5.52 },
   // 주담대(자담): 수도권·규제지역 가계일반자금 물건당 상한 · 6.27 이전 조건 LTV · 다주택 LTV 차감
   equity: { excDti: 60, cap: 10000, preLtv: { metro: 70, spec: 40, reg: 70, local: 70 }, multiCut: 10,
@@ -1419,7 +1419,7 @@ function formatWon(el) {
   const h = el.closest('.field')?.querySelector('.hint');
   if (h) h.textContent = raw ? wonText(+raw) : '';
 }
-const recogTip = () => `<br><small style="color:var(--muted);font-size:11.5px">※ 인정소득은 환산 소득의 ${S.inc.recogPct}%만 인정됩니다 (신고소득은 ${S.inc.cardPct}%)</small>`;
+const recogTip = () => `<br><small style="color:var(--muted);font-size:11.5px">※ 인정소득은 환산 소득의 ${S.inc.recogPct}%만 인정됩니다 (신고소득은 ${S.inc.cardPct}%)<br>※ 건강보험료는 <b>지역가입자 세대주</b>만 인정 · <b>장기요양보험료는 빼고</b> 건강보험료만 입력</small>`;
 function syncRecogIncome(who = 'me') {
   const o = INC_IN[who], on = o.on() && o.type() === '인정소득';
   $(o.recog).hidden = !on;
@@ -1433,7 +1433,7 @@ function syncRecogIncome(who = 'me') {
   el.closest('.inp').classList.toggle('auto', !!(nps || nhis));
   if (nps || nhis) { el.value = v ? v.toLocaleString('ko-KR') : ''; formatMoney(el); }
   const line = (lbl, pay, rate, y) => pay ? `${lbl} 월 <b>${wonText(pay)}</b> ÷ ${rate}% × 12개월 = 연 <b>${korMan(y)}</b>` : '';
-  const lines = [line('국민연금', nps, S.inc.npsRate, a), line('건강보험료', nhis, S.inc.nhisRate, b)].filter(Boolean);
+  const lines = [line('국민연금', nps, S.inc.npsRate, a), line('건강보험료(지역 세대주)', nhis, S.inc.nhisRate, b)].filter(Boolean);
   $(o.recogCalc).innerHTML = lines.length
     ? lines.join('<br>') + `<br>${a && b ? '둘 중 큰 금액 ' : ''}${korMan(big)} × 인정비율 <b>${S.inc.recogPct}%</b> = <b>${korMan(raw)}</b>` + (raw > v ? `<br>${korMan(raw)} → 인정소득 상한 <b>${korMan(S.inc.mixCap)}</b> 적용` : '') + `<br><span style="color:var(--brand-ink);font-weight:700">실제 적용 인정소득 ${korMan(v)}</span>` + recogTip()
     : '국민연금 또는 건강보험료 월 납부액을 넣으면 연소득이 자동 계산됩니다.' + recogTip();
@@ -1934,7 +1934,7 @@ function recalc() {
 /* ---------- 설정 다이얼로그 ---------- */
 const SETTINGS = [
   ['기타부채', [['debt.otherRate', '기타부채 추정금리 (DTI)', '%']]],
-  ['소득', [['inc.cardRate', '신용카드 사용요율 (신고소득)', '%'], ['inc.cardPct', '신고소득 인정비율', '%'], ['inc.cardCap', '신고소득 상한', '만원'], ['inc.npsRate', '국민연금 환산율 (인정소득)', '%'], ['inc.nhisRate', '건강보험 환산율 (인정소득)', '%'], ['inc.recogPct', '인정소득 인정비율', '%'], ['inc.mixCap', '인정·신고소득 포함 시 합계 상한', '만원']]],
+  ['소득', [['inc.cardRate', '신용카드 사용요율 (신고소득)', '%'], ['inc.cardPct', '신고소득 인정비율', '%'], ['inc.cardCap', '신고소득 상한', '만원'], ['inc.npsRate', '국민연금 환산율 (인정소득)', '%'], ['inc.nhisRate', '건강보험 환산율 (인정소득 · 지역가입자 보험료율)', '%'], ['inc.recogPct', '인정소득 인정비율', '%'], ['inc.mixCap', '인정·신고소득 포함 시 합계 상한', '만원']]],
   ['LTV 비율', [['ltv.metro', '수도권', '%'], ['ltv.reg', '규제지역', '%'], ['ltv.local', '지방', '%'], ['ltv.first', '생애최초 (수도권·규제지역)', '%'], ['ltv.firstLocal', '생애최초 (지방)', '%'], ['ltv.seomin', '서민·실수요자 (규제지역)', '%'], ['ltv.multiLocal', '다주택 추가구입 (지방 · 수도권·규제는 0%)', '%']]],
   ['서민·실수요자 요건', [['seomin.price', '주택가격(담보가액) 이하', '만원'], ['seomin.income', '부부합산 소득 이하', '만원']]],
   ['스트레스 가산금리 (주담대)', [['stress.variable', '변동금리', '%p'], ['stress.mixed', '혼합형', '%p'], ['stress.periodic', '5년 주기형', '%p']]],
