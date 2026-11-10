@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10T01:27:50.166Z",
+ "updated": "2026-11-10T01:28:08.128Z",
  "data": {
   "mort": {
    "variable": {
@@ -524,7 +524,8 @@
     },
     {
      "name": "MCG 가입가능",
-     "on": false
+     "on": false,
+     "warn": true
     }
    ],
    "ibk": [
