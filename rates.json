@@ -1,10 +1,10 @@
 {
- "updated": "2026-11-09T00:11:10.385Z",
+ "updated": "2026-11-10T01:26:49.125Z",
  "data": {
   "mort": {
    "variable": {
     "sample": false,
-    "asof": "2026-11-09",
+    "asof": "2026-11-10",
     "banks": {
      "kb": {
       "rate": 4.89,
@@ -19,14 +19,15 @@
       "term": 12
      },
      "shinhan": {
-      "rate": 4.93,
+      "rate": 4.83,
       "fee": 0.69,
       "idx": "bond",
       "term": 6
      },
      "hana": {
+      "rate": 5.36,
       "fee": 0.78,
-      "idx": "cofixNew",
+      "idx": "cofixNewBal",
       "term": 6,
       "stop": true
      },
@@ -43,7 +44,7 @@
       "term": 6
      },
      "xmvrp9uh3": {
-      "rate": 5.07,
+      "rate": 5.08,
       "fee": 0.4,
       "idx": "cofixNew",
       "term": 6
@@ -83,33 +84,34 @@
    },
    "periodic": {
     "sample": false,
-    "asof": "2026-11-09",
+    "asof": "2026-11-10",
     "banks": {
      "kb": {
       "rate": 5.14,
       "fee": 0.75
      },
      "woori": {
-      "rate": 5.29,
+      "rate": 5.26,
       "fee": 0.93
      },
      "shinhan": {
-      "rate": 4.92,
+      "rate": 4.89,
       "fee": 0.69
      },
      "hana": {
+      "rate": 4.97,
       "stop": true
      },
      "ibk": {
-      "rate": 5.14,
+      "rate": 5.15,
       "fee": 0.74
      },
      "nh": {
-      "rate": 5.14,
+      "rate": 5.09,
       "fee": 0.93
      },
      "xmvrp9uh3": {
-      "rate": 5.24,
+      "rate": 5.22,
       "fee": 0.4
      }
     }
@@ -453,6 +455,11 @@
      "name": "MCI,MCG 가입불가",
      "on": false,
      "warn": true
+    },
+    {
+     "name": "온라인 등기 추가 할인",
+     "rate": 0.1,
+     "on": false
     }
    ],
    "hana": [
@@ -478,7 +485,9 @@
      "rate": 0.2
     },
     {
-     "name": "MCI,MCG 가입 가능"
+     "name": "MCI 가입 가능(혼합형만 가능) 0.05% 가산",
+     "on": false,
+     "warn": true
     }
    ],
    "nh": [
