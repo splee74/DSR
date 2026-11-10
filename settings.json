@@ -20,8 +20,8 @@
  },
  "stressLocal": {
   "variable": 0.75,
-  "mixed": 0.6,
-  "periodic": 0.3
+  "mixed": 0.45,
+  "periodic": 0.225
  },
  "term": {
   "capMax": 30
@@ -85,7 +85,13 @@
    "reg": 70,
    "local": 70
   },
-  "multiCut": 10
+  "multiCut": 10,
+  "refiLtv": {
+   "spec": 40,
+   "r627": 70,
+   "r1015": 70,
+   "metro": 70
+  }
  },
  "exc": {
   "term": 40,
