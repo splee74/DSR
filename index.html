@@ -1039,7 +1039,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v116';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v117';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1663,7 +1663,8 @@ function equityCalc() {
   const baseLtv = refi ? S.equity.refiLtv[refiArea]
     : exc ? S.equity.preLtv[region] : eNowLtv(region);
   const ltv = Math.max(0, baseLtv - (house === 'multi' ? S.equity.multiCut : 0));
-  const blocked = !exc && !refi && capArea && house === 'multi';
+  // 다주택: 대환은 지역 무관 불가 · 가계일반자금은 수도권·규제지역 불가
+  const blocked = house === 'multi' && (refi || (!exc && capArea));
   return { region, house, purpose, evict, refi, refiArea, refiBal, mode, exc, capArea, dep, next, src, srcIn, srcLoan, other, own, need, baseLtv, ltv, blocked,
     price: v('#ePrice'), senior: v('#eSenior'), L: v('#eAmt'), rate: num($('#eRate').value), years: +$('#eYears').value,
     rtype: $('input[name=eRtype]:checked').value, method: $('input[name=eMethod]:checked').value };
@@ -1673,7 +1674,7 @@ function syncEquityInputs(e) {
   $('#eEvictBox').hidden = !e.evict;
   $('#eRefiBox').hidden = !e.refi;
   $$('[data-refi-ltv]').forEach(el => el.textContent = `LTV ${S.equity.refiLtv[el.dataset.refiLtv]}%`);
-  $('#eRefiNote').innerHTML = !e.refi ? '' : `<b>${REFI_AREA[e.refiArea]}</b> 대환 → <b>LTV ${e.baseLtv}%</b>${e.house === 'multi' ? ` · 다주택 −${S.equity.multiCut}%p → <b>${e.ltv}%</b>` : ''}를 적용합니다.<br>
+  $('#eRefiNote').innerHTML = !e.refi ? '' : e.house === 'multi' ? '<span style="color:var(--bad);font-weight:700">⛔ 대환은 1주택자만 가능합니다 (다주택 취급 불가)</span>' : `<b>${REFI_AREA[e.refiArea]}</b> 대환 → <b>LTV ${e.baseLtv}%</b>를 적용합니다 · <b>1주택자만</b> 가능<br>
     · 대환은 <b>기존 대출 잔액(${korMan(e.refiBal)})을 넘을 수 없습니다</b> (증액 불가) · 물건당 1억 상한은 적용하지 않습니다<br>
     · 대환으로 갚을 대출은 <b>이 주택 기존 담보대출(선순위)</b> 칸에 넣지 마세요. ② 기존 대출에 있으면 지워야 DSR이 두 번 계산되지 않습니다`;
   $('#eNextBox').hidden = e.mode !== 'next';
@@ -1689,7 +1690,7 @@ function syncEquityInputs(e) {
        소요자금 = 보증금 <b>${korMan(e.dep)}</b> − 보유자금 <b>${korMan(e.own)}</b> = <b class="hl">${korMan(e.need)}</b>${e.need === 0 ? ' <span style="color:var(--bad)">(보유자금으로 충분 → 퇴거자금 한도 0)</span>' : ''}`;
   $('#eRuleNote').innerHTML = `· <b>가계일반자금</b>: 수도권·규제지역은 <b>1주택자만</b>, 물건당 최대 <b>${korMan(S.equity.cap)}</b> (지방은 금액 상한 없음)<br>
     · <b>전세퇴거자금</b>: 2025.6.27 이전 구입(계약) + 세입자 6.27 이전 입주 → 1억 초과 가능, 6.27 이전 LTV (수도권 ${S.equity.preLtv.metro}% · 강남·서초·송파·용산 ${S.equity.preLtv.spec}% · 그 외 규제지역 ${S.equity.preLtv.reg}% · 지방 ${S.equity.preLtv.local}%)<br>
-    · <b>대환</b>: 기존 대출 잔액 한도 내 · LTV는 규제 구분별 (기존 규제지역 ${S.equity.refiLtv.spec}% · 6.27 지정 ${S.equity.refiLtv.r627}% · 10.15 지정 ${S.equity.refiLtv.r1015}% · 수도권 ${S.equity.refiLtv.metro}%)<br>
+    · <b>대환</b>: <b>1주택자만</b> · 기존 대출 잔액 한도 내 · LTV는 규제 구분별 (기존 규제지역 ${S.equity.refiLtv.spec}% · 6.27 지정 ${S.equity.refiLtv.r627}% · 10.15 지정 ${S.equity.refiLtv.r1015}% · 수도권 ${S.equity.refiLtv.metro}%)<br>
     · <b>다주택</b>: LTV <b>−${S.equity.multiCut}%p</b><br>
     · 주택가격 구간별 금액 상한(15억 이하 6억 등)은 구입자금 규제라 적용하지 않습니다<br>
     · 이 주택의 기존 담보대출은 LTV 계산용입니다. DSR에 넣으려면 <b>② 기존 대출</b>에도 입력하세요`;
@@ -1698,6 +1699,11 @@ function renderEquity() {
   const e = equityCalc(), inc = income(), ex = existingSum();
   syncEquityInputs(e);
   const head = reportHead('상담 결과 보고서', `주담대(자담) 한도 분석 · ${e.refi ? '대환' : e.evict ? '전세퇴거자금' : '가계일반자금'}`);
+  if (e.blocked && e.refi) {
+    MB = { k: '주담대(자담)', v: '불가', st: 'bad', m: '—' };
+    return `${head}<div class="rp-body"><div class="block">⛔<strong>다주택자는 대환 불가</strong>
+      <p>주담대(자담) 대환은 <b>1주택자만</b> 취급합니다.</p></div></div>${reportFoot()}`;
+  }
   if (e.blocked) {
     MB = { k: '주담대(자담)', v: '불가', st: 'bad', m: '—' };
     return `${head}<div class="rp-body"><div class="block">⛔<strong>다주택자는 ${EREG[e.region]} 가계일반자금 불가</strong>
