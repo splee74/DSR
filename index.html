@@ -1039,7 +1039,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v118';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v119';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1054,7 +1054,7 @@ const DEFAULTS = {
   cap:    { on: { metro: true, reg: true, local: false }, t1: 150000, c1: 60000, t2: 250000, c2: 40000, c3: 20000 },
   deem:   { credit: 5, nonhouse: 10, office: 8, midpay: 25, guar: 10, secur: 8 },
   jeonse: { ratio: 80, dti: 40, dsr: 40, capOne: 20000, capMember: 50000, capSgi: 50000, capHug: 40000 },   // capSgi·capHug: 보증기관별 최대 한도
-  inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 9.5, nhisRate: 7.19, recogPct: 95, mixCap: 5000 },   // mixCap: 인정·신고소득이 들어간 소득 합계 상한
+  inc:    { cardRate: 40.9, cardPct: 90, cardCap: 5000, npsRate: 4.75, nhisRate: 3.595, recogPct: 95, mixCap: 5000 },   // mixCap: 인정·신고소득이 들어간 소득 합계 상한
   debt:   { otherRate: 5.52 },
   // 주담대(자담): 수도권·규제지역 가계일반자금 물건당 상한 · 6.27 이전 조건 LTV · 다주택 LTV 차감
   equity: { excDti: 60, cap: 10000, preLtv: { metro: 70, spec: 40, reg: 70, local: 70 }, multiCut: 10,
@@ -1934,7 +1934,7 @@ function recalc() {
 /* ---------- 설정 다이얼로그 ---------- */
 const SETTINGS = [
   ['기타부채', [['debt.otherRate', '기타부채 추정금리 (DTI)', '%']]],
-  ['소득', [['inc.cardRate', '신용카드 사용요율 (신고소득)', '%'], ['inc.cardPct', '신고소득 인정비율', '%'], ['inc.cardCap', '신고소득 상한', '만원'], ['inc.npsRate', '국민연금 환산율 (인정소득)', '%'], ['inc.nhisRate', '건강보험 환산율 (인정소득 · 지역가입자 보험료율)', '%'], ['inc.recogPct', '인정소득 인정비율', '%'], ['inc.mixCap', '인정·신고소득 포함 시 합계 상한', '만원']]],
+  ['소득', [['inc.cardRate', '신용카드 사용요율 (신고소득)', '%'], ['inc.cardPct', '신고소득 인정비율', '%'], ['inc.cardCap', '신고소득 상한', '만원'], ['inc.npsRate', '국민연금 환산율 (인정소득 · 직장가입자 본인부담 요율)', '%'], ['inc.nhisRate', '건강보험 환산율 (인정소득 · 직장가입자 본인부담 요율)', '%'], ['inc.recogPct', '인정소득 인정비율', '%'], ['inc.mixCap', '인정·신고소득 포함 시 합계 상한', '만원']]],
   ['LTV 비율', [['ltv.metro', '수도권', '%'], ['ltv.reg', '규제지역', '%'], ['ltv.local', '지방', '%'], ['ltv.first', '생애최초 (수도권·규제지역)', '%'], ['ltv.firstLocal', '생애최초 (지방)', '%'], ['ltv.seomin', '서민·실수요자 (규제지역)', '%'], ['ltv.multiLocal', '다주택 추가구입 (지방 · 수도권·규제는 0%)', '%']]],
   ['서민·실수요자 요건', [['seomin.price', '주택가격(담보가액) 이하', '만원'], ['seomin.income', '부부합산 소득 이하', '만원']]],
   ['스트레스 가산금리 (주담대)', [['stress.variable', '변동금리', '%p'], ['stress.mixed', '혼합형', '%p'], ['stress.periodic', '5년 주기형', '%p']]],
