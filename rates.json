@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10T01:26:49.125Z",
+ "updated": "2026-11-10T01:27:04.497Z",
  "data": {
   "mort": {
    "variable": {
@@ -28,8 +28,7 @@
       "rate": 5.36,
       "fee": 0.78,
       "idx": "cofixNewBal",
-      "term": 6,
-      "stop": true
+      "term": 6
      },
      "ibk": {
       "rate": 4.8,
@@ -99,8 +98,7 @@
       "fee": 0.69
      },
      "hana": {
-      "rate": 4.97,
-      "stop": true
+      "rate": 4.97
      },
      "ibk": {
       "rate": 5.15,
