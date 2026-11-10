@@ -376,11 +376,6 @@ dialog{border-radius:10px}
 .top .actions{margin-left:auto;width:auto;display:flex;gap:6px;align-self:center}
 .top .actions button{width:38px;height:38px;min-height:0;padding:0;border-radius:50%;font-size:11px;font-weight:700;line-height:1.1;display:grid;place-items:center;white-space:nowrap;letter-spacing:-.5px}
 .top .actions #btnFeedback{background:var(--brand);border-color:var(--brand);color:#fff}
-.top .actions #btnManual{background:var(--brand);border-color:var(--brand);color:#fff}
-/* 사용법 · SCAN: 초록으로 채우고 반짝반짝 (움직임 줄이기 설정이면 멈춤) */
-@keyframes twinkle{0%,100%{opacity:1;filter:brightness(1);box-shadow:0 0 0 0 #03c75a99}50%{opacity:.62;filter:brightness(1.18);box-shadow:0 0 0 5px #03c75a00}}
-.twinkle{animation:twinkle 1.2s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){.twinkle{animation:none}}
 .top .actions #btnSettings,.top .actions #btnNotice{font-size:16px}
 .top .actions #btnReset.armed{background:var(--bad);border-color:var(--bad);color:#fff;font-size:10px}
 .tabbar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -510,7 +505,7 @@ dialog{border-radius:10px}
     </div>
     <div class="actions">
       <span class="cdate-top" id="cdateTop"></span>
-      <button type="button" id="btnManual" class="twinkle" title="사용 설명서 PDF 내려받기">사용법</button>
+      <button type="button" id="btnManual" title="사용 설명서 PDF 내려받기">사용법</button>
       <button type="button" id="btnFeedback" title="오류신고·의견">오류<br>신고</button>
       <button type="button" id="btnReset" title="입력 내용 모두 지우기">초기화</button>
       <button type="button" id="btnSettings" hidden title="규제설정" aria-label="규제설정">⚙</button>
@@ -526,7 +521,7 @@ dialog{border-radius:10px}
         <button type="button" data-tab="jeonse">전세자금대출</button>
       </nav>
       <a class="policy-link" href="bank.html">은행금리비교</a>
-      <a class="policy-link hot twinkle" id="lnkIdscan" href="idscan.html">SCAN</a>
+      <a class="policy-link" id="lnkIdscan" href="idscan.html">SCAN</a>
       <a class="policy-link" href="policy.html">정책자금</a>
       <a class="policy-link" href="rules.html">규정집</a>
     </div>
@@ -1024,7 +1019,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v113';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v114';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
