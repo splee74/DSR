@@ -1,10 +1,10 @@
 {
- "updated": "2026-11-10T01:28:08.128Z",
+ "updated": "2026-11-11T00:33:36.113Z",
  "data": {
   "mort": {
    "variable": {
     "sample": false,
-    "asof": "2026-11-10",
+    "asof": "2026-11-11",
     "banks": {
      "kb": {
       "rate": 4.89,
@@ -25,7 +25,7 @@
       "term": 6
      },
      "hana": {
-      "rate": 5.36,
+      "rate": 5.37,
       "fee": 0.78,
       "idx": "cofixNewBal",
       "term": 6
@@ -43,7 +43,7 @@
       "term": 6
      },
      "xmvrp9uh3": {
-      "rate": 5.08,
+      "rate": 5.23,
       "fee": 0.4,
       "idx": "cofixNew",
       "term": 6
@@ -83,34 +83,34 @@
    },
    "periodic": {
     "sample": false,
-    "asof": "2026-11-10",
+    "asof": "2026-11-11",
     "banks": {
      "kb": {
       "rate": 5.14,
       "fee": 0.75
      },
      "woori": {
-      "rate": 5.26,
+      "rate": 5.25,
       "fee": 0.93
      },
      "shinhan": {
-      "rate": 4.89,
+      "rate": 4.78,
       "fee": 0.69
      },
      "hana": {
-      "rate": 4.97,
+      "rate": 4.96,
       "fee": 0.78
      },
      "ibk": {
-      "rate": 5.15,
+      "rate": 5.14,
       "fee": 0.74
      },
      "nh": {
-      "rate": 5.09,
+      "rate": 5.06,
       "fee": 0.93
      },
      "xmvrp9uh3": {
-      "rate": 5.22,
+      "rate": 5.2,
       "fee": 0.4
      }
     }
@@ -457,8 +457,7 @@
     },
     {
      "name": "온라인 등기 추가 할인",
-     "rate": 0.1,
-     "on": false
+     "rate": 0.1
     }
    ],
    "hana": [
