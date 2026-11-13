@@ -1039,7 +1039,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v122';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v123';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1138,7 +1138,7 @@ const fx = v => (+v).toFixed(1);
 /* ---------- 상환 계산 ---------- */
 // DSR 연간 원리금
 //  원리금균등: 최초 1년간 내는 금액
-//  원금균등  : 만기까지 총 원금+이자 ÷ 대출기간(년)
+//  원금균등  : 만기까지 총 원금+이자 ÷ 대출기간(년)  ← 신규 대출만. 기존 주담대는 loanCalc 참고
 const equalPay = (L, r, n) => r ? L * r / (1 - Math.pow(1 + r, -n)) : L / n;
 function annualPay(L, ratePct, years, method) {
   const N = Math.max(1, Math.round(years * 12)), r = ratePct / 100 / 12;
@@ -1170,8 +1170,11 @@ function loanCalc(l) {
   const dtiDesc = otherRate() ? `추정금리 ${otherRate().toFixed(2)}%` : '실제 금리';
   switch (l.type) {
     case 'mort': {
-      const y = num(l.years) || 1, a = annualPay(amt, rate, y, l.method);
-      return { dsr: a, dti: a, desc: (l.method === 'equal' ? '원리금균등' : '원금균등 · 총 원리금÷기간'), dtiDesc: '원리금' };
+      // 기존 주담대 원금균등: 지금 실제로 내는 금액 기준 → 잔액÷잔여기간(연 원금) + 연 이자
+      //  (신규 대출의 '총 원리금÷기간' 방식과 다름)
+      const y = num(l.years) || 1;
+      const a = l.method === 'equal' ? annualPay(amt, rate, y, 'equal') : amt / y + interest;
+      return { dsr: a, dti: a, desc: (l.method === 'equal' ? '원리금균등' : '원금균등 · 잔액÷잔여기간 + 연 이자'), dtiDesc: '원리금' };
     }
     case 'credit': case 'minus':
       return { dsr: amt / S.deem.credit + interest, dti: dtiInt, dtiDesc, desc: `${l.type === 'minus' ? '한도' : '원금'}÷${S.deem.credit}년 + 이자` };
