@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-13T00:42:47.527Z",
+ "updated": "2026-11-13T08:10:14.703Z",
  "data": {
   "mort": {
    "variable": {
@@ -522,7 +522,7 @@
      "name": "대출금액 3억원 기준임"
     },
     {
-     "name": "MCG 가입가능",
+     "name": "MCG 가입가능 MCI가입불가",
      "on": false,
      "warn": true
     }
