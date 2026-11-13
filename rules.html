@@ -380,10 +380,40 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
   <h3>소득 산정</h3>
   <ul class="pts">
     <li><b>증빙소득</b> 우선: 근로소득원천징수영수증, 소득금액증명원 등</li>
-    <li>부부 합산: <b>증빙소득끼리만</b> 금액 제한 없이 합산. 인정·신고소득이 하나라도 들어가면 <b>합계 최대 5,000만원</b>, <b>인정소득 + 인정소득</b>은 합산 불가 (상담 기준)</li>
+    <li>부부 합산: <b>증빙소득끼리</b>는 금액 제한 없이 합산. 신고소득이 들어가면 <b>합계 최대 5,000만원</b>, <b>인정소득</b>은 어떤 소득과도 합산 불가 (아래 표 참고)</li>
     <li>증빙이 어려우면 <b>인정소득</b>(국민연금·건강보험료 납부액) 또는 <b>신고소득</b>(신용카드 사용액 등)</li>
     <li>요건을 갖추면 <b>장래소득</b> 증가분을 반영할 수 있으며, 인정 범위는 금융회사 심사 기준을 따릅니다.</li>
   </ul>
+
+  <h3>소득 합산 방법 <span class="tag">여신심사 모범규준</span></h3>
+  <p>소득 종류가 서로 다를 때 더할 수 있는지를 정리한 표입니다. <b>인정소득은 어떤 소득과도 합산할 수 없습니다.</b></p>
+  <p class="note">① 차주 본인의 소득끼리 합산</p>
+  <div class="tw"><table>
+    <thead><tr><th>소득 1 ＼ 소득 2</th><th>증빙소득</th><th>인정소득</th><th>신고소득</th></tr></thead>
+    <tbody>
+      <tr><th>증빙소득</th><td class="hl">가능</td><td class="zero">불가</td><td>일부 가능 <small>(주1)</small></td></tr>
+      <tr><th>인정소득</th><td class="zero">불가</td><td class="zero">불가</td><td class="zero">불가</td></tr>
+      <tr><th>신고소득</th><td class="zero">불가</td><td class="zero">불가</td><td>일부 가능 <small>(주2)</small></td></tr>
+    </tbody>
+  </table></div>
+  <ul class="pts">
+    <li><b>주1)</b> 금융소득 분리과세 대상자는 증빙소득에 신고소득 중 <b>금융소득</b>을 합산할 수 있습니다. 다만 증빙소득에서 사적연금의 연금소득을 인정받았다면 신고소득 중 연금소득 입금액은 합산할 수 없습니다.</li>
+    <li><b>주2)</b> <b>임대소득과 금융소득</b>은 합산할 수 있습니다. 합산한 연소득은 <b>DTI 산출 시 5,000만원</b>, <b>DSR 산출 시 7,000만원</b>을 넘을 수 없습니다.</li>
+  </ul>
+  <p class="note" style="margin-top:14px">② 차주 소득에 배우자 소득 합산</p>
+  <div class="tw"><table>
+    <thead><tr><th>차주 ＼ 배우자</th><th>증빙소득</th><th>인정소득</th><th>신고소득 <small>(주1)</small></th></tr></thead>
+    <tbody>
+      <tr><th>증빙소득</th><td class="hl">가능</td><td class="zero">불가</td><td class="hl">가능 <small>(주2)</small></td></tr>
+      <tr><th>인정소득</th><td class="zero">불가</td><td class="zero">불가</td><td class="zero">불가</td></tr>
+      <tr><th>신고소득 <small>(주1)</small></th><td class="hl">가능 <small>(주2)</small></td><td class="zero">불가</td><td class="hl">가능 <small>(주2)</small></td></tr>
+    </tbody>
+  </table></div>
+  <ul class="pts">
+    <li><b>주1)</b> 신고소득이 들어간 합산 연소득은 <b>5,000만원</b>을 넘을 수 없습니다. DSR 산출 시 차주와 배우자가 <b>각각 2가지 이상의 소득</b>을 제출해 합산하면 <b>7,000만원</b>까지 인정할 수 있습니다.</li>
+    <li><b>주2)</b> 최저생계비는 합산할 수 없습니다.</li>
+  </ul>
+  <p class="note" style="margin-top:10px">출처: 여신심사 선진화를 위한 모범규준. 계산기는 배우자 합산 표(②)대로 계산합니다. 소득 종류별 세부 항목(금융·임대·연금소득)과 DSR 7,000만원 예외는 계산기에 반영하지 않았습니다. 실제 인정 여부는 금융회사 심사 기준을 따릅니다.</p>
 </section>
 
 <section class="card" id="common">
@@ -466,6 +496,7 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
       <tr><th>기타 담보대출 인정만기</th><td>원칙 10년 · 오피스텔 8년</td><td>비주택 10년 · 오피스텔 8년</td><td><span class="tag">일치</span></td></tr>
       <tr><th>DSR 적용 기준</th><td>총대출 1억원 초과 차주</td><td>금액과 상관없이 계산</td><td><span class="tag chk">상담 기준</span></td></tr>
       <tr><th>다주택 전세대출</th><td>불가</td><td>불가</td><td><span class="tag">일치</span></td></tr>
+      <tr><th>부부 소득 합산</th><td>인정소득 합산 불가 · 신고소득 포함 5,000만원 (DSR 예외 7,000만원)</td><td>인정소득 합산 불가 · 신고소득 포함 5,000만원</td><td><span class="tag chk">7천만원 예외 미반영</span></td></tr>
     </tbody>
   </table></div>
 </section>

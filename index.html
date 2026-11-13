@@ -1039,7 +1039,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v123';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v125';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1452,17 +1452,19 @@ function renderIncomeSum() {
     if (f.any) fut = `<span class="fut">장래 예상소득 반영 시 합계 ${korMan(income(true))}</span>`;
   }
   const r = incomeRule(me, sp);
-  const rule = r.blocked ? '<span class="fut" style="color:var(--bad)">인정소득 + 인정소득은 합산할 수 없어 본인 소득만 적용합니다</span>'
+  const rule = r.blocked ? '<span class="fut" style="color:var(--bad)">인정소득은 다른 소득과 합산할 수 없어 본인 소득만 적용합니다</span>'
     : r.capped ? `<span class="fut" style="color:var(--bad)">인정·신고소득이 포함되어 합계 상한 ${korMan(S.inc.mixCap)} 적용 (합계 ${korMan(r.raw)})</span>`
     : r.mixed ? `<span class="fut">인정·신고소득 포함 · 합계 최대 ${korMan(S.inc.mixCap)}</span>` : '';
   box.innerHTML = `<div class="inc-sum"><span>부부 합산 소득 (본인 ${r.me} ${korMan(me)} + 배우자 ${r.sp} ${korMan(sp)})</span><strong>${korMan(r.v)}</strong>${rule}${fut}</div>`;
 }
 const spouseInc = () => $('#spouseOn').checked ? num($('#spouse').value) : 0;
-// 소득 유형: 증빙+증빙만 합계 제한 없음 · 인정·신고소득이 하나라도 들어가면 합계 최대 mixCap · 인정+인정은 배우자 합산 불가
+// 소득 합산 (여신심사 모범규준)
+//  증빙+증빙: 제한 없음 · 신고소득 포함: 합계 최대 mixCap
+//  인정소득은 어떤 소득과도 합산 불가 → 본인·배우자 중 한쪽이라도 인정소득이면 배우자 소득 합산 안 함
 function incTypes() {
   const me = $('input[name=incType]:checked').value, on = $('#spouseOn').checked;
   const sp = on ? $('input[name=spType]:checked').value : null;
-  const blocked = me === '인정소득' && sp === '인정소득';
+  const blocked = !!sp && (me === '인정소득' || sp === '인정소득');
   const mixed = me !== '증빙소득' || (!!sp && !blocked && sp !== '증빙소득');
   return { me, sp, blocked, mixed };
 }
@@ -1485,7 +1487,7 @@ function incomeText(useFuture) {
   if (f && f.sp && f.sp.apply) ex.push(`배우자 장래소득 +${f.sp.rate.toFixed(1)}%`);
   const r = f ? incomeRule(f.me.apply ? f.me.fut : f.me.base, f.sp ? (f.sp.apply ? f.sp.fut : f.sp.base) : 0)
     : incomeRule(num($('#income').value), spouseInc());
-  if (r.blocked) ex.push('배우자 인정소득 합산 불가');
+  if (r.blocked) ex.push('인정소득 포함 · 배우자 합산 불가');
   else if (r.capped) ex.push(`상한 ${korMan(S.inc.mixCap)} 적용`);
   return `${korMan(income(useFuture))} <span style="color:var(--muted);font-weight:400">(${t}${sp && !r.blocked ? ' + 배우자 ' + r.sp : ''}${ex.length ? ' · ' + ex.join(' · ') : ''})</span>`;
 }
@@ -1836,7 +1838,7 @@ function renderJeonse() {
     : { label: oneLocal ? 'DSR (지방 1주택자 미적용)' : 'DSR (무주택자 미적용)', v: Infinity, text: '해당 없음' };
   // 보증기관별 최대 한도 (SGI 5억 · HUG 4억) · HUG는 증빙소득만 (배우자 합산 시 배우자도)
   const guar = $('input[name=jGuar]:checked').value, gName = guar.toUpperCase(), gCap = guar === 'hug' ? S.jeonse.capHug : S.jeonse.capSgi;
-  const it = incTypes(), nonProof = [it.me !== '증빙소득' ? '본인 ' + it.me : '', it.sp && it.sp !== '증빙소득' ? '배우자 ' + it.sp : ''].filter(Boolean);
+  const it = incTypes(), nonProof = [it.me !== '증빙소득' ? '본인 ' + it.me : '', it.sp && !it.blocked && it.sp !== '증빙소득' ? '배우자 ' + it.sp : ''].filter(Boolean);
   if (guar === 'hug' && nonProof.length) {
     MB = { k: 'HUG 보증', v: '불가', st: 'bad', m: '—' };
     return `${head}<div class="rp-body"><div class="block">⛔<strong>HUG 보증은 증빙소득만 가능</strong>
