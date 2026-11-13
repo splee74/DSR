@@ -203,6 +203,14 @@ dialog::backdrop{background:#0006}
 .mx tr.avg td .cell{cursor:default}
 .mx-note{margin:8px 0 0;font-size:12px;color:var(--muted)}
 .mx-note:empty{display:none}
+/* 금리유형 보이기/숨기기 버튼 · 안내 문구 */
+.tsel{display:inline-flex;gap:6px;margin-left:auto}
+.tsel:empty{display:none}
+.tsel button{font:inherit;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid var(--line-strong);background:transparent;color:var(--muted);cursor:pointer}
+.tsel button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.tsel button[aria-pressed="false"]{text-decoration:line-through}
+.mx-warn{margin:-6px 0 12px;font-size:13px;font-weight:700;color:var(--up);line-height:1.5}
+.mx .cell em.term{font-style:normal;font-weight:800;color:var(--up)}
 .detail-h{margin:6px 0 -4px;font-size:16px;font-weight:800}
 .detail-h span{color:var(--ink)}
 @media (max-width:640px){.mx{font-size:13px}.mx .cell strong{font-size:14px}.mx thead th:first-child,.mx td:first-child{padding:10px 6px}.mx .low strong::after{display:block;width:max-content;margin:2px auto 0}}
@@ -372,7 +380,8 @@ body{padding-bottom:72px}
   </section>
 
   <section class="card">
-    <h2>금리유형별 한눈에 보기 <small>실질적용금리 · 유형을 누르면 아래 상세 내용이 그 유형으로 바뀝니다</small></h2>
+    <h2>금리유형별 한눈에 보기 <small>실질적용금리 · 유형을 누르면 아래 상세 내용이 그 유형으로 바뀝니다</small><span class="tsel" id="typeSel" role="group" aria-label="표에 보일 금리유형"></span></h2>
+    <p class="mx-warn">표시된 금리는 실질적으로 실행가능한 금리입니다. 은행별 추가 할인 조건이 충족되면 더 낮아질 수 있습니다.</p>
     <div class="mxw"><table class="mx" id="matrix"></table></div>
     <p class="mx-note" id="mxNote"></p>
   </section>
@@ -698,6 +707,11 @@ const isAdmin = () => !ONLINE || !!token();
 
 /* ── 화면 ── */
 let curType = 'variable';
+// 한눈에 보기 표에서 숨긴 금리유형 (주택담보대출만 · 이 기기에 기억)
+const HKEY = 'bankHideTypes';
+const HIDE = new Set((() => { try { return JSON.parse(localStorage.getItem(HKEY)) || []; } catch (e) { return []; } })());
+const canHide = prod => !keysFor(prod).some(t => TYPE[t].grp);
+const visKeys = prod => { const ks = keysFor(prod); if (!canHide(prod)) return ks; const v = ks.filter(t => !HIDE.has(t)); return v.length ? v : ks; };
 const prodNow = () => document.querySelector('input[name=prod]:checked').value;
 const prefChips = v => (v.prefs || []).length ? `<div class="prefs">${v.prefs.map(p => prefOn(p) ? `<span class="pchip${p.warn ? ' warn' : ''}">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>` : `<span class="pchip off${p.warn ? ' warn' : ''}">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>`).join('')}</div>` : '–';
 const chg3 = c => Math.abs(c) < 0.0005 ? '<span class="chg same">– 0.000</span>' : c < 0 ? `<span class="chg down">▼ ${Math.abs(c).toFixed(3)}</span>` : `<span class="chg up">▲ ${c.toFixed(3)}</span>`;
@@ -718,7 +732,8 @@ function renderBase() {
 function renderMatrix() {
   const prod = prodNow();
   const cells = {}, low = {};
-  const TKEYS = keysFor(prod);
+  const TKEYS = visKeys(prod);
+  $('#typeSel').innerHTML = canHide(prod) ? keysFor(prod).map(t => `<button type="button" data-tog="${t}" aria-pressed="${TKEYS.includes(t)}">${TSHORT[t] || TYPE[t].label}</button>`).join('') : '';
   TKEYS.forEach(t => {
     cells[t] = BANKS.map(b => { const v = bankV(prod, t, b.id); return { b, v, e: eff(v, t) }; });
     const rs = cells[t].map(c => c.e && c.e.r).filter(has); low[t] = rs.length ? Math.min(...rs) : null;
@@ -735,7 +750,7 @@ function renderMatrix() {
     const c = cells[t][i], sel = t === curType ? 'sel' : '';
     if (c.v.stop) return `<td class="${sel}"><button type="button" class="cell stop" data-type="${t}"><strong>취급중단</strong></button></td>`;
     if (!c.e) return `<td class="${sel}"><button type="button" class="cell none" data-type="${t}">–</button></td>`;
-    const line1 = TYPE[t].fixed ? (has(c.v.spread) ? `가산 +${c.v.spread.toFixed(2)}` : '') : baseName(c.v, t);
+    const line1 = TYPE[t].fixed ? (has(c.v.spread) ? `가산 +${c.v.spread.toFixed(2)}` : '') : `${IDX[c.v.idx || 'cofixNew'].name} <em class="term">${c.v.term || 6}개월</em>`;
     return `<td class="${sel} ${c.e.r === low[t] ? 'low' : ''}"><button type="button" class="cell" data-type="${t}"><strong>${pct(c.e.r)}</strong><span>${line1}${c.e.auto ? ' · 자동' : ''}</span>${has(c.v.fee) ? `<span class="fee">중도상환 ${c.v.fee.toFixed(2)}%</span>` : ''}</button></td>`;
   }).join('')}</tr>`).join('');
   $('#matrix').innerHTML = head + '<tbody>' + body + '</tbody>';
@@ -759,6 +774,7 @@ function renderPrefBoard() {
 
 function render() {
   $('#bankCount').textContent = BANKS.length;
+  { const vk = visKeys(prodNow()); if (!vk.includes(curType)) curType = vk[0]; }   // 숨긴 유형을 보고 있었으면 보이는 첫 유형으로
   renderBase(); renderMatrix(); renderPrefBoard();
   const prod = prodNow(), t = curType, set = DATA[prod][t];
   const all = BANKS.map(b => { const v = bankV(prod, t, b.id), e = eff(v, t); return { ...b, ...v, e, rate: e ? e.r : null, bs: baseOf(v, t), chg: e && has(v.prev) ? e.r - v.prev : null }; });
@@ -797,6 +813,13 @@ function render() {
   const pays = list.map(x => { const r = x.rate / 1200, n = yrs * 12; return { x, m: way === 'bullet' ? L * r : (r ? L * r / (1 - Math.pow(1 + r, -n)) : L / n) }; }).sort((a, b) => a.m - b.m);
   $('#pay').innerHTML = pays.map((p, i) => `<div class="${i === 0 ? 'best' : ''}"><small>${p.x.name}</small><strong>${won(p.m)}</strong><em>${i === 0 ? '가장 적음' : `+${won(p.m - pays[0].m)}/월`}</em></div>`).join('');
 }
+$('#typeSel').addEventListener('click', e => {
+  const b = e.target.closest('[data-tog]'); if (!b) return;
+  const t = b.dataset.tog, vis = visKeys(prodNow());
+  if (vis.includes(t)) { if (vis.length === 1) { toast('금리유형은 하나 이상 보여야 합니다.'); return; } HIDE.add(t); } else HIDE.delete(t);
+  try { localStorage.setItem(HKEY, JSON.stringify([...HIDE])); } catch (err) {}
+  render();
+});
 $('#matrix').addEventListener('click', e => { const b = e.target.closest('[data-type]'); if (b) { curType = b.dataset.type; render(); } });
 
 /* ── 기준금리 6개월 추이 (표 + 선 그래프) ── */
