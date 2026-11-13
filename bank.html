@@ -63,6 +63,7 @@ main{padding-block:20px 8px;display:flex;flex-direction:column;gap:16px}
 .sum small{display:block;font-size:12.5px;color:var(--sub)}
 .sum strong{display:block;font-size:22px;font-weight:800;letter-spacing:-.6px;margin:2px 0}
 .sum.best strong{color:var(--ink)}
+.sum.best strong .sum-r{color:var(--text);margin-left:6px;white-space:nowrap}
 .sum em{font-style:normal;font-size:12.5px;color:var(--muted)}
 
 /* 금리 범위 막대 */
@@ -792,7 +793,7 @@ function render() {
   const best = list[0], withMin = list.filter(x => has(x.min)), bestMin = withMin.length ? withMin.reduce((a, b) => (b.min < a.min ? b : a)) : null;
   const mean = list.reduce((s, x) => s + x.rate, 0) / list.length, chgs = list.filter(x => x.chg !== null);
   $('#summary').innerHTML = `
-    <div class="sum best"><small>실질적용금리 가장 낮은 은행</small><strong>${best.name}</strong><em>${pct(best.rate)} · ${list.length}개 은행 평균보다 ${(mean - best.rate).toFixed(2)}%p 낮음</em></div>
+    <div class="sum best"><small>실질적용금리 가장 낮은 은행</small><strong>${best.name} <span class="sum-r">${pct(best.rate)}</span></strong><em>${list.length}개 은행 평균보다 ${(mean - best.rate).toFixed(2)}%p 낮음</em></div>
     <div class="sum"><small>최저 금리 가장 낮은 은행</small><strong>${bestMin ? bestMin.name : '–'}</strong><em>${bestMin ? `최저 ${pct(bestMin.min)}` : '최저 금리 미입력'}</em></div>
     <div class="sum"><small>${list.length}개 은행 평균</small><strong>${pct(mean)}</strong><em>${TYPE[t].fixed ? `기준금리 ${TYPE[t].baseName} ${pct(BASE[TYPE[t].base].rate)}` : '기준금리는 은행별로 다름'}${chgs.length ? ` · 전월 대비 ${chgTxt(chgs.reduce((s, x) => s + x.chg, 0) / chgs.length)}%p` : ''}</em></div>`;
 
