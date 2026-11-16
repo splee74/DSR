@@ -174,8 +174,8 @@ dialog::backdrop{background:#0006}
 /* ── 한눈에 보기 표 ── */
 .mxw{overflow-x:auto}
 .mx{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:0}
-.mx.wide{min-width:720px}
-.mx.wide th.grp{border-left:1px solid var(--line)}
+/* 칸이 4개 이상일 때만 최소 폭을 칸 수에 맞춰 줌 (3개 이하는 화면 폭에 맞춤) */
+.mx.grouped th.grp{border-left:1px solid var(--line)}
 .mx th,.mx td{padding:0;border-bottom:1px solid var(--line);text-align:center}
 .mx thead th{background:var(--soft);font-size:12.5px;color:var(--sub);font-weight:700}
 .mx thead th:first-child,.mx td:first-child{text-align:left;padding:10px 10px;white-space:nowrap}
@@ -749,7 +749,8 @@ function renderMatrix() {
   const head = grouped
     ? `<thead><tr><th rowspan="2">은행</th>${groups.map(g => `<th colspan="${TKEYS.filter(t => TYPE[t].grp === g).length}" class="grp">${g}</th>`).join('')}</tr><tr>${TKEYS.map(colTh).join('')}</tr></thead>`
     : `<thead><tr><th>은행</th>${TKEYS.map(colTh).join('')}</tr></thead>`;
-  $('#matrix').classList.toggle('wide', grouped);
+  $('#matrix').classList.toggle('grouped', grouped);
+  $('#matrix').style.minWidth = TKEYS.length > 3 ? (100 + TKEYS.length * 105) + 'px' : '';
   const body = BANKS.map((b, i) => `<tr><td class="bk"><span class="dot">${b.short}</span><b>${b.name}</b></td>${TKEYS.map(t => {
     const c = cells[t][i], sel = t === curType ? 'sel' : '';
     if (c.v.stop) return `<td class="${sel}"><button type="button" class="cell stop" data-type="${t}"><strong>취급중단</strong></button></td>`;
