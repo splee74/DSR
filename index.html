@@ -1039,7 +1039,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v127';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v128';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -2125,10 +2125,17 @@ $$('.money').forEach(formatMoney);
 renderLoans();
 // 다른 브라우저에서 넘어온 입력 내용 되살리기
 let RESTORED = false;
+const DRAFT_KEY = 'dsrDraft';
 const URLQ = new URLSearchParams(location.search), FROM_CS = URLQ.get('from') === 'cs';
 { const q = URLQ.get('s');
   if (q) { try { restoreState(JSON.parse(unb64u(q))); RESTORED = true; } catch (e) {} }
-  if (q || URLQ.has('cspro')) history.replaceState(null, '', location.pathname); }
+  if (q || URLQ.has('cspro')) history.replaceState(null, '', location.pathname);
+  // 같은 창에서 은행금리비교·규정집 등 다른 페이지에 갔다 돌아와도 입력 내용 유지
+  // (sessionStorage: 이 창(탭)을 닫으면 지워짐 · 다른 사람 기기에 고객 정보가 남지 않도록)
+  else { try { const d = sessionStorage.getItem(DRAFT_KEY); if (d) restoreState(JSON.parse(d)); } catch (e) {} } }
+function saveDraft() { try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(snapState())); } catch (e) {} }
+addEventListener('pagehide', saveDraft);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveDraft(); });
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {}); // pwa
 
 /* 공지사항: 처음 열 때 한 번 (같은 창에서 다른 페이지 갔다 와도 다시 안 뜸)
