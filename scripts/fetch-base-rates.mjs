@@ -76,16 +76,31 @@ async function bondDay(day) {
   return v;
 }
 async function bonds(day) {
-  // 평일 19:00에 오늘 값만 한 번 조회 (과거 자료는 KOFIA 엑셀로 넣어 둠). 공휴일이면 자료가 없어 건너뜀
-  // day 를 주면(빠진 날 채우기) 그날 값을 이력에 넣고, 현재 값보다 최신일 때만 현재 값도 바꿈
-  const todayDate = day || ymd(kstNow());
-  const today = await bondDay(todayDate);
-  if (!today) throw new Error(todayDate + ' 금융채 자료 없음 (공휴일 등) — 이전 값 유지');
+  // 평일 19:00 조회. GitHub 예약 실행이 늦어져 다음 날(주말 등)에 돌 수 있으므로,
+  // 마지막 저장일 다음 날부터 오늘까지 빠진 평일을 모두 조회해 채움 (최대 14일). 공휴일은 자료가 없어 건너뜀
+  // day 를 주면(빠진 날 채우기) 그날 값만 이력에 넣고, 현재 값보다 최신일 때만 현재 값도 바꿈
+  const todayDate = ymd(kstNow());
+  let days = [day];
+  if (!day) {
+    const h5 = (prev.history || {}).bond5 || [];
+    const last = [prev.bond5 && prev.bond5.date, h5.length && h5[h5.length - 1].date].filter(Boolean).sort().pop();
+    const start = new Date(Math.max(Date.parse(last || todayDate) + 86400000, Date.parse(todayDate) - 13 * 86400000));
+    days = [];
+    for (const d = start; ymd(d) <= todayDate; d.setUTCDate(d.getUTCDate() + 1)) if (d.getUTCDay() % 6 !== 0) days.push(ymd(d));
+    if (!days.length) throw new Error(todayDate + ' 새로 조회할 평일 없음 — 이전 값 유지');
+  }
   const out = {};
-  if (!day || !prev.bond5 || prev.bond5.date <= todayDate)
-    for (const k in today) if (today[k] !== undefined) out[k] = { rate: today[k], date: todayDate };
   const hist = { bond24: [...((prev.history || {}).bond24 || [])], bond5: [...((prev.history || {}).bond5 || [])] };
-  ['bond24', 'bond5'].forEach(k => { if (today[k] !== undefined && !hist[k].some(p => p.date === todayDate)) hist[k].push({ date: todayDate, rate: today[k] }); });
+  let got = 0;
+  for (const dd of days) {
+    const v = await bondDay(dd);
+    if (!v) { console.error('·', dd, '금융채 자료 없음 (공휴일 등)'); continue; }
+    got++;
+    if (!prev.bond5 || prev.bond5.date <= dd)
+      for (const k in v) if (v[k] !== undefined) out[k] = { rate: v[k], date: dd };
+    ['bond24', 'bond5'].forEach(k => { if (v[k] !== undefined && !hist[k].some(p => p.date === dd)) hist[k].push({ date: dd, rate: v[k] }); });
+  }
+  if (!got) throw new Error(days.join(', ') + ' 금융채 자료 없음 (공휴일 등) — 이전 값 유지');
   out.hist = hist;
   return out;
 }

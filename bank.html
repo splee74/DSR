@@ -205,7 +205,7 @@ dialog::backdrop{background:#0006}
 .mx-note{margin:8px 0 0;font-size:12px;color:var(--muted)}
 .mx-note:empty{display:none}
 /* 금리유형 보이기/숨기기 버튼 · 안내 문구 */
-.tsel{display:inline-flex;gap:6px;margin-left:auto}
+.tsel{display:inline-flex;flex-wrap:wrap;gap:6px;margin-left:auto}
 .tsel:empty{display:none}
 .tsel button{font:inherit;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid var(--line-strong);background:transparent;color:var(--muted);cursor:pointer}
 .tsel button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
@@ -708,11 +708,14 @@ const isAdmin = () => !ONLINE || !!token();
 
 /* ── 화면 ── */
 let curType = 'variable';
-// 한눈에 보기 표에서 숨긴 금리유형 (주택담보대출만 · 이 기기에 기억)
+// 한눈에 보기 표에서 숨긴 금리유형 (이 기기에 기억)
+// 주택담보대출: 유형 키 그대로 · 전세: 보증기관(j:HF·j:HUG·j:SGI) × 변동/고정(j:var·j:fix) 두 묶음으로 거름
 const HKEY = 'bankHideTypes';
 const HIDE = new Set((() => { try { return JSON.parse(localStorage.getItem(HKEY)) || []; } catch (e) { return []; } })());
-const canHide = prod => !keysFor(prod).some(t => TYPE[t].grp);
-const visKeys = prod => { const ks = keysFor(prod); if (!canHide(prod)) return ks; const v = ks.filter(t => !HIDE.has(t)); return v.length ? v : ks; };
+const JTOG = [['j:HF', 'HF'], ['j:HUG', 'HUG'], ['j:SGI', 'SGI'], ['j:var', '변동'], ['j:fix', '고정']];
+const togsFor = prod => keysFor(prod).some(t => TYPE[t].grp) ? JTOG : keysFor(prod).map(t => [t, TSHORT[t] || TYPE[t].label]);
+const tokOf = t => TYPE[t].grp ? ['j:' + TYPE[t].grp.replace('보증', ''), TYPE[t].fixed ? 'j:fix' : 'j:var'] : [t];
+const visKeys = prod => { const ks = keysFor(prod); const v = ks.filter(t => !tokOf(t).some(x => HIDE.has(x))); return v.length ? v : ks; };
 const prodNow = () => document.querySelector('input[name=prod]:checked').value;
 const prefChips = v => (v.prefs || []).length ? `<div class="prefs">${v.prefs.map(p => prefOn(p) ? `<span class="pchip${p.warn ? ' warn' : ''}">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>` : `<span class="pchip off${p.warn ? ' warn' : ''}">${esc(p.name)} <b>${has(p.rate) ? '−' + p.rate.toFixed(2) : ''}</b></span>`).join('')}</div>` : '–';
 const chg3 = c => Math.abs(c) < 0.0005 ? '<span class="chg same">– 0.000</span>' : c < 0 ? `<span class="chg down">▼ ${Math.abs(c).toFixed(3)}</span>` : `<span class="chg up">▲ ${c.toFixed(3)}</span>`;
@@ -734,7 +737,7 @@ function renderMatrix() {
   const prod = prodNow();
   const cells = {}, low = {};
   const TKEYS = visKeys(prod);
-  $('#typeSel').innerHTML = canHide(prod) ? keysFor(prod).map(t => `<button type="button" data-tog="${t}" aria-pressed="${TKEYS.includes(t)}">${TSHORT[t] || TYPE[t].label}</button>`).join('') : '';
+  $('#typeSel').innerHTML = togsFor(prod).map(([k, l]) => `<button type="button" data-tog="${k}" aria-pressed="${!HIDE.has(k)}">${l}</button>`).join('');
   TKEYS.forEach(t => {
     cells[t] = BANKS.map(b => { const v = bankV(prod, t, b.id); return { b, v, e: eff(v, t) }; });
     const rs = cells[t].map(c => c.e && c.e.r).filter(has); low[t] = rs.length ? Math.min(...rs) : null;
@@ -816,8 +819,12 @@ function render() {
 }
 $('#typeSel').addEventListener('click', e => {
   const b = e.target.closest('[data-tog]'); if (!b) return;
-  const t = b.dataset.tog, vis = visKeys(prodNow());
-  if (vis.includes(t)) { if (vis.length === 1) { toast('금리유형은 하나 이상 보여야 합니다.'); return; } HIDE.add(t); } else HIDE.delete(t);
+  const k = b.dataset.tog, prod = prodNow();
+  if (HIDE.has(k)) HIDE.delete(k);
+  else {
+    HIDE.add(k);
+    if (!keysFor(prod).some(t => !tokOf(t).some(x => HIDE.has(x)))) { HIDE.delete(k); toast('금리유형은 하나 이상 보여야 합니다.'); return; }
+  }
   try { localStorage.setItem(HKEY, JSON.stringify([...HIDE])); } catch (err) {}
   render();
 });
