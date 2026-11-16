@@ -415,22 +415,33 @@ dialog{border-radius:10px}
 .tab-more{position:absolute;top:1px;right:0;bottom:0;width:40px;border:0;padding:0 2px 0 14px;background:linear-gradient(90deg,transparent,var(--header-solid) 55%);color:var(--brand);font-size:13px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer}
 #futBody[hidden]{display:none}
 /* 시작 화면 */
-/* 시작 화면: splash2.jpg 한 장 (흐린 같은 그림으로 화면 남는 곳 채움) + 아래 가운데 dsr1.co.kr 은 실제 글자 */
-#splash{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#e9fbef;transition:opacity .35s ease}
-#splash .sp-bg{position:absolute;inset:-80px;background:url(splash2.jpg) center/cover no-repeat;filter:blur(48px) saturate(1.05)}
-#splash .sp-bg::after{content:"";position:absolute;inset:0;background:#ffffff59}
-/* 그림은 화면에 다 들어가게, 끝부분은 흐린 바탕에 스며들게 */
-#splash .sp-img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(100vw,calc(100vh * 941 / 1672));height:auto;max-width:none;
-  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 5%,#000 86%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 5%,#000 86%,transparent 100%)}
-@media (min-aspect-ratio:941/1672){#splash .sp-img{
-  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 5%,#000 86%,transparent 100%),linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%);-webkit-mask-composite:source-in;
-  mask-image:linear-gradient(180deg,transparent 0,#000 5%,#000 86%,transparent 100%),linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%);mask-composite:intersect}}
-#splash .sp-url{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 7vh);transform:translateX(-50%);
-  padding:.4em 1.6em;border-radius:999px;background:#fff;color:#00873c;border:2px solid #03c75a;box-shadow:0 4px 14px #0002;
-  font-family:Pretendard,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;font-size:min(5.4vw,26px);font-weight:800;letter-spacing:0;white-space:nowrap}
+/* 시작 화면: 그림 두 장 중 하나를 골라 들어감 (DSR 계산기 → 주택구입자금 · 은행금리비교 → bank.html)
+   바탕은 흐린 같은 그림, 아래 가운데 dsr1.co.kr 은 실제 글자 */
+#splash{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#e9fbef;transition:opacity .35s ease;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:min(3.2vh,22px);
+  font-family:Pretendard,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+#splash .sp-bg{position:absolute;inset:-80px;background:url(splash2.jpg) left center/50% 100% no-repeat,url(splash-bank.jpg) right center/50% 100% no-repeat;filter:blur(48px) saturate(1.05)}
+#splash .sp-bg::after{content:"";position:absolute;inset:0;background:#ffffff73}
+#splash .sp-q{position:relative;margin:0;color:#0b5d2e;font-size:min(5vw,24px);font-weight:800;letter-spacing:-.02em;text-shadow:0 1px 0 #fff}
+#splash .sp-pick{position:relative;display:flex;gap:min(2.4vw,22px);justify-content:center}
+/* 카드 한 장 폭: 화면 폭의 절반 안쪽 · 세로는 제목·주소 자리를 빼고 다 들어가게 */
+#splash .sp-card{--w:min(46.5vw,calc((100vh - 170px) * 952 / 1653),440px);width:var(--w);padding:0;border:0;border-radius:min(4vw,22px);overflow:hidden;
+  background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 6px 22px #0b5d2e33,0 0 0 2px #fff;
+  transition:transform .15s ease,box-shadow .15s ease}
+#splash .sp-card img{display:block;width:100%;height:auto;aspect-ratio:952/1653;object-fit:cover}
+#splash .sp-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px #0b5d2e47,0 0 0 3px #03c75a}
+#splash .sp-card:active{transform:scale(.97)}
+#splash .sp-card:focus-visible{outline:3px solid #ffe14d;outline-offset:3px}
+/* 세로로 긴 휴대폰: 위아래로 쌓고, 아래쪽 빈 배경을 조금 잘라 그림을 크게 */
+@media (max-aspect-ratio:3/4){
+  #splash{gap:min(2.2vh,16px)}
+  #splash .sp-pick{flex-direction:column;gap:min(2vh,14px)}
+  #splash .sp-card{--w:min(92vw,calc((100vh - 150px) / 2 * 952 / 1290),440px)}
+  #splash .sp-card img{aspect-ratio:952/1290;object-position:50% 18%}
+}
+#splash .sp-url{position:relative;padding:.4em 1.6em;border-radius:999px;background:#fff;color:#00873c;border:2px solid #03c75a;box-shadow:0 4px 14px #0002;
+  font-size:min(4.6vw,22px);font-weight:800;letter-spacing:0;white-space:nowrap}
 #splash.out{opacity:0;pointer-events:none}
-#splash{cursor:pointer;-webkit-tap-highlight-color:transparent}
-#splash:focus-visible{outline:3px solid #ffe14d;outline-offset:-6px}
 @media print{
   #splash{display:none!important}
   .mbar{display:none!important}
@@ -470,10 +481,14 @@ dialog{border-radius:10px}
 </script>
 </head>
 <body>
-<!-- 시작 화면: 앱을 열 때 · 오른쪽 아래 [시작하기]를 눌러 들어감 -->
-<div id="splash" role="button" tabindex="0" aria-label="DSR 계산기 시작 화면 · 누르면 시작합니다">
+<!-- 시작 화면: 앱을 열 때 · 그림 두 장 중 하나를 눌러 들어감 -->
+<div id="splash" role="dialog" aria-label="시작 화면 · 들어갈 곳을 고르세요">
   <div class="sp-bg" aria-hidden="true"></div>
-  <img class="sp-img" src="splash2.jpg" alt="" width="941" height="1672">
+  <p class="sp-q">어떤 서비스를 이용하시겠어요?</p>
+  <div class="sp-pick">
+    <button type="button" class="sp-card" data-go="calc" aria-label="DSR 계산기 · 주택구입자금"><img src="splash2.jpg" alt="" width="941" height="1672"></button>
+    <button type="button" class="sp-card" data-go="bank" aria-label="은행금리 비교"><img src="splash-bank.jpg" alt="" width="952" height="1653"></button>
+  </div>
   <div class="sp-url">dsr1.co.kr</div>
 </div>
 <script>
@@ -482,16 +497,17 @@ dialog{border-radius:10px}
   let skip = false;   // 같은 창에서 은행금리비교 등을 갔다 돌아올 때 · 크롬으로 넘겨 받은 경우는 생략
   try { skip = !!sessionStorage.getItem('splashSeen') || /[?&]s=/.test(location.search); sessionStorage.setItem('splashSeen', '1'); } catch (e) {}
   if (skip) { el.remove(); return; }
-  // 화면 아무 곳이나 누르면 (키보드는 Enter · Space) 계산기로
   let gone = false;
-  const go = () => {
-    if (gone) return; gone = true;
+  el.addEventListener('click', e => {
+    const card = e.target.closest('.sp-card'); if (!card || gone) return;
+    gone = true;
+    if (window.gtag) gtag('event', 'splash_pick', { to: card.dataset.go });
+    if (card.dataset.go === 'bank') { location.href = 'bank.html'; return; }   // 은행금리비교로 · 돌아오면 시작 화면 없이 계산기
+    // DSR 계산기 → 주택구입자금 탭
+    document.querySelector('.tabs button[data-tab="mort"]')?.click();
     el.classList.add('out');
     setTimeout(() => { el.remove(); document.dispatchEvent(new Event('splashdone')); }, 350);
-  };
-  el.addEventListener('click', go);
-  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
-  el.focus({ preventScroll: true });
+  });
 })();
 </script>
 
@@ -1039,7 +1055,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v128';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v129';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
