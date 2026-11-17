@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-17T00:39:39.996Z",
+ "updated": "2026-11-17T00:47:04.366Z",
  "data": {
   "mort": {
    "variable": {
@@ -119,16 +119,16 @@
   "jeonse": {
    "hfVar": {
     "sample": false,
-    "asof": "2026-11-16",
+    "asof": "2026-11-17",
     "banks": {
      "kb": {
-      "rate": 4.55,
+      "rate": 4.69,
       "fee": 0.54,
       "idx": "cofixNewBal",
       "term": 12
      },
      "woori": {
-      "rate": 4.23,
+      "rate": 4.33,
       "fee": 0.35,
       "idx": "cofixNewBal",
       "term": 12
@@ -140,7 +140,7 @@
       "term": 6
      },
      "hana": {
-      "rate": 4.7,
+      "rate": 4.72,
       "fee": 0.59,
       "idx": "cofixNewBal",
       "term": 6
@@ -150,7 +150,7 @@
       "term": 6
      },
      "nh": {
-      "rate": 4.24,
+      "rate": 4.28,
       "fee": 0.52,
       "idx": "cofixNewBal",
       "term": 3
@@ -163,7 +163,7 @@
    },
    "hfFix": {
     "sample": false,
-    "asof": "2026-11-16",
+    "asof": "2026-11-17",
     "banks": {
      "kb": {
       "rate": 4.92,
@@ -183,7 +183,7 @@
      },
      "ibk": {},
      "nh": {
-      "rate": 4.87,
+      "rate": 4.9,
       "fee": 0.93
      },
      "xmvrp9uh3": {}
@@ -191,16 +191,16 @@
    },
    "hugVar": {
     "sample": false,
-    "asof": "2026-11-16",
+    "asof": "2026-11-17",
     "banks": {
      "kb": {
-      "rate": 4.68,
+      "rate": 4.82,
       "fee": 0.54,
       "idx": "cofixNew",
       "term": 12
      },
      "woori": {
-      "rate": 4.19,
+      "rate": 4.32,
       "fee": 0.35,
       "idx": "cofixNewBal",
       "term": 12
@@ -212,19 +212,19 @@
       "term": 6
      },
      "hana": {
-      "rate": 4.82,
+      "rate": 4.84,
       "fee": 0.59,
       "idx": "cofixNew",
       "term": 6
      },
      "ibk": {
-      "rate": 4.43,
+      "rate": 4.57,
       "fee": 0.57,
       "idx": "cofixNewBal",
       "term": 3
      },
      "nh": {
-      "rate": 4.18,
+      "rate": 4.22,
       "fee": 0.52,
       "idx": "cofixNewBal",
       "term": 6
@@ -237,7 +237,7 @@
    },
    "hugFix": {
     "sample": false,
-    "asof": "2026-11-16",
+    "asof": "2026-11-17",
     "banks": {
      "kb": {
       "rate": 4.98,
@@ -256,7 +256,7 @@
      },
      "ibk": {},
      "nh": {
-      "rate": 4.81,
+      "rate": 4.84,
       "fee": 0.93
      },
      "xmvrp9uh3": {}
@@ -264,16 +264,16 @@
    },
    "sgiVar": {
     "sample": false,
-    "asof": "2026-11-16",
+    "asof": "2026-11-17",
     "banks": {
      "kb": {
-      "rate": 4.55,
+      "rate": 4.69,
       "fee": 0.54,
       "idx": "cofixNew",
       "term": 12
      },
      "woori": {
-      "rate": 4.25,
+      "rate": 4.39,
       "fee": 0.35,
       "idx": "cofixNewBal",
       "term": 12
@@ -285,19 +285,19 @@
       "term": 6
      },
      "hana": {
-      "rate": 4.98,
+      "rate": 5,
       "fee": 0.59,
       "idx": "cofixNew",
       "term": 6
      },
      "ibk": {
-      "rate": 4.55,
+      "rate": 4.69,
       "fee": 0.57,
       "idx": "cofixNewBal",
       "term": 3
      },
      "nh": {
-      "rate": 4.18,
+      "rate": 4.22,
       "fee": 0.52,
       "idx": "cofixNewBal",
       "term": 3
@@ -310,7 +310,7 @@
    },
    "sgiFix": {
     "sample": false,
-    "asof": "2026-11-16",
+    "asof": "2026-11-17",
     "banks": {
      "kb": {
       "rate": 5.28,
@@ -330,7 +330,7 @@
      },
      "ibk": {},
      "nh": {
-      "rate": 4.81,
+      "rate": 4.84,
       "fee": 0.93
      },
      "xmvrp9uh3": {}
