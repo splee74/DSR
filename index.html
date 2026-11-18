@@ -1065,7 +1065,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v130';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v131';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1089,8 +1089,8 @@ const DEFAULTS = {
   // 주택구입자금 규제 예외 단지(경과규정): 금액 상한 없음 · LTV는 위 6.27 이전 LTV · 아래 만기·스트레스
   exc:    { term: 40, stress: { variable: 1.5, mixed: 1.2, periodic: 0.6 } },
   // 거치기간: 구입자금 최대 거치(여신심사 가이드라인 · 수도권·지방 같음) · 자담 입력 최대 ·
-  //  DSR은 '대출기간 − 거치기간'으로 분할상환 산정, deemOver 초과면 만기일시상환 간주(원금 ÷ 인정만기 deemTerm년 이내 + 연 이자)
-  grace:  { buyMax: 1, equityMax: 10, deemOver: 1, deemTerm: 10 }
+  //  DSR은 '대출기간 − 거치기간'으로 분할상환 산정, 거치가 대출기간의 1/deemDiv 초과면 만기일시상환 간주(원금 ÷ 인정만기 deemTerm년 이내 + 연 이자)
+  grace:  { buyMax: 1, equityMax: 10, deemDiv: 3, deemTerm: 10 }
 };
 const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
 const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
@@ -1177,9 +1177,10 @@ function annualPay(L, ratePct, years, method) {
 // 거치기간 (년): 대출기간보다 1년 이상 짧게
 const graceOf = (grace, years) => Math.max(0, Math.min(+grace || 0, years - 1));
 // 거치가 있는 신규 주담대의 DSR 연 원리금
-//  · 거치 ≤ deemOver(1년): 거치기간을 대출기간에서 빼고 남은 기간으로 분할상환해 산정
-//  · 거치 > deemOver: 만기일시상환으로 간주 → 원금 ÷ min(대출기간, 인정만기 10년) + 연 이자
-const graceDeemed = (grace, years) => graceOf(grace, years) > num(S.grace.deemOver);
+//  · 거치 ≤ 대출기간의 1/3: 거치기간을 대출기간에서 빼고 남은 기간으로 분할상환해 산정
+//  · 거치 > 대출기간의 1/3: 만기일시상환으로 간주 → 원금 ÷ min(대출기간, 인정만기 10년) + 연 이자
+const deemDiv = () => num(S.grace.deemDiv) || 3;
+const graceDeemed = (grace, years) => graceOf(grace, years) > years / deemDiv();
 function dsrPay(L, ratePct, years, method, grace) {
   const g = graceOf(grace, years);
   if (graceDeemed(g, years)) return L / Math.min(years, num(S.grace.deemTerm) || 10) + L * ratePct / 100;
@@ -1190,7 +1191,7 @@ function graceText(grace, years) {
   const g = graceOf(grace, years);
   if (!g) return '';
   return graceDeemed(g, years)
-    ? `거치 ${g}년 (${S.grace.deemOver}년 초과) → <b>만기일시상환 간주</b> · 원금 ÷ ${Math.min(years, num(S.grace.deemTerm) || 10)}년 + 연 이자`
+    ? `거치 ${g}년 (대출기간 ${years}년의 1/${deemDiv()} 초과) → <b>만기일시상환 간주</b> · 원금 ÷ ${Math.min(years, num(S.grace.deemTerm) || 10)}년 + 연 이자`
     : `거치 ${g}년 → 대출기간에서 빼고 <b>${years - g}년 분할상환</b> 기준`;
 }
 // 월별 상환 스케줄 (실제 금리) · 거치가 있으면 거치 첫 3개월 + 상환 시작 후 3개월
@@ -1758,7 +1759,7 @@ function syncEquityInputs(e) {
     · <b>전세퇴거자금</b>: 2025.6.27 이전 구입(계약) + 세입자 6.27 이전 입주 → 1억 초과 가능, 6.27 이전 LTV (수도권 ${S.equity.preLtv.metro}% · 강남·서초·송파·용산 ${S.equity.preLtv.spec}% · 그 외 규제지역 ${S.equity.preLtv.reg}% · 지방 ${S.equity.preLtv.local}%)<br>
     · <b>대환</b>: <b>1주택자만</b> · 기존 대출 잔액 한도 내 · LTV는 규제 구분별 (기존 규제지역 ${S.equity.refiLtv.spec}% · 6.27 지정 ${S.equity.refiLtv.r627}% · 10.15 지정 ${S.equity.refiLtv.r1015}% · 수도권 ${S.equity.refiLtv.metro}%)<br>
     · <b>다주택</b>: LTV <b>−${S.equity.multiCut}%p</b><br>
-    · <b>거치기간</b>: 대출기간에 포함 · DSR은 거치기간을 뺀 기간으로 분할상환 산정 · <b>${S.grace.deemOver}년 초과</b>면 만기일시상환으로 간주(원금 ÷ 최대 ${S.grace.deemTerm}년 + 연 이자) · LTV·DTI 60% 초과 고부담 대출 등은 은행이 거치 1년 이내 분할상환을 요구할 수 있음<br>
+    · <b>거치기간</b>: 대출기간에 포함 · 최대 <b>${S.grace.equityMax}년</b> · DSR은 거치기간을 뺀 기간으로 분할상환 산정 · 거치가 <b>대출기간의 1/${deemDiv()} 초과</b>면 만기일시상환으로 간주(원금 ÷ 최대 ${S.grace.deemTerm}년 + 연 이자)<br>
     · 주택가격 구간별 금액 상한(15억 이하 6억 등)은 구입자금 규제라 적용하지 않습니다<br>
     · 이 주택의 기존 담보대출은 LTV 계산용입니다. DSR에 넣으려면 <b>② 기존 대출</b>에도 입력하세요`;
 }
@@ -1985,7 +1986,7 @@ function recalc() {
   fillGrace($('#eGrace'), Math.max(0, Math.min(num(S.grace.equityMax), +$('#eYears').value - 1)));
   const mg = +$('#mGrace').value, eg = +$('#eGrace').value, ey = +$('#eYears').value, my = +$('#mYears').value;
   $('#mGraceHint').innerHTML = mg ? `DSR: ${my - mg}년 분할상환 기준` : `구입자금은 최대 ${S.grace.buyMax}년 (수도권·지방 같음)`;
-  $('#eGraceHint').innerHTML = !eg ? `${S.grace.deemOver}년 초과 시 DSR은 일시상환 간주`
+  $('#eGraceHint').innerHTML = !eg ? `최대 ${S.grace.equityMax}년 · 대출기간의 1/${deemDiv()} 초과 시 DSR은 일시상환 간주`
     : graceDeemed(eg, ey) ? `<span style="color:var(--bad)">DSR: 일시상환 간주 (원금÷${Math.min(ey, num(S.grace.deemTerm) || 10)}년 + 이자)</span>`
     : `DSR: ${ey - eg}년 분할상환 기준`;
   $('#mMultiLbl').textContent = `수도권·규제 LTV 0% · 지방 ${S.ltv.multiLocal}%`;
@@ -2024,7 +2025,7 @@ const SETTINGS = [
   ['주담대(자담)', [['equity.cap', '가계일반자금 물건당 상한 (수도권·규제지역)', '만원'], ['equity.excDti', '6.27 이전 전세퇴거 예외 DTI 한도', '%'], ['equity.multiCut', '다주택 LTV 차감', '%p'],
     ['equity.preLtv.metro', '6.27 이전 LTV · 수도권', '%'], ['equity.preLtv.spec', '6.27 이전 LTV · 강남·서초·송파·용산', '%'], ['equity.preLtv.reg', '6.27 이전 LTV · 그 외 규제지역', '%'], ['equity.preLtv.local', '6.27 이전 LTV · 지방', '%'],
     ['equity.refiLtv.spec', '대환 LTV · 기존 규제지역 (강남·서초·송파·용산)', '%'], ['equity.refiLtv.r627', '대환 LTV · 6.27 지정 규제지역', '%'], ['equity.refiLtv.r1015', '대환 LTV · 10.15 지정 규제지역', '%'], ['equity.refiLtv.metro', '대환 LTV · 수도권', '%']]],
-  ['거치기간', [['grace.buyMax', '주택구입자금 최대 거치', '년'], ['grace.equityMax', '주담대(자담) 입력 최대 거치', '년'], ['grace.deemOver', '이 기간 초과 시 만기일시상환 간주', '년'], ['grace.deemTerm', '일시상환 간주 시 인정만기 (최대)', '년']]],
+  ['거치기간', [['grace.buyMax', '주택구입자금 최대 거치', '년'], ['grace.equityMax', '주담대(자담) 입력 최대 거치', '년'], ['grace.deemDiv', '거치가 대출기간의 1/N 초과 시 일시상환 간주 (N)', '분의 1'], ['grace.deemTerm', '일시상환 간주 시 인정만기 (최대)', '년']]],
   ['규제 예외 단지 (주택구입자금)', [['exc.term', '최대 만기', '년'], ['exc.stress.variable', '스트레스 · 변동금리', '%p'], ['exc.stress.mixed', '스트레스 · 혼합형', '%p'], ['exc.stress.periodic', '스트레스 · 5년 주기형', '%p']]],
   ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (DSR 적용 대상)', '%'], ['stress.jeonse', '스트레스 가산 (DSR 적용 대상)', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원'], ['jeonse.capMember', '세대원 유주택 최대 한도', '만원'], ['jeonse.capSgi', 'SGI 보증 최대 한도', '만원'], ['jeonse.capHug', 'HUG 보증 최대 한도', '만원']]]
 ];
