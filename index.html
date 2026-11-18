@@ -711,6 +711,11 @@ dialog{border-radius:10px}
           <label for="mYears">대출기간</label>
           <div class="inp"><select id="mYears"></select></div>
         </div>
+        <div class="field">
+          <label for="mGrace">거치기간 <small style="color:var(--muted);font-weight:400">(이자만 내는 기간)</small></label>
+          <div class="inp"><select id="mGrace"><option value="0">없음 (0년)</option><option value="1">1년</option></select></div>
+          <div class="hint" id="mGraceHint"></div>
+        </div>
         <div class="field full">
           <span class="flabel">금리유형 (스트레스 DSR 가산금리)</span>
           <div class="seg" id="segRtype"></div>
@@ -843,6 +848,11 @@ dialog{border-radius:10px}
         <div class="field">
           <label for="eYears">대출기간</label>
           <div class="inp"><select id="eYears"></select></div>
+        </div>
+        <div class="field">
+          <label for="eGrace">거치기간 <small style="color:var(--muted);font-weight:400">(이자만 내는 기간)</small></label>
+          <div class="inp"><select id="eGrace"><option value="0">없음 (0년)</option></select></div>
+          <div class="hint" id="eGraceHint"></div>
         </div>
         <div class="field full">
           <span class="flabel">금리유형 (스트레스 DSR 가산금리)</span>
@@ -1055,7 +1065,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v129';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v130';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -1077,7 +1087,10 @@ const DEFAULTS = {
             // 대환: 주택의 규제 구분별 LTV (기존 규제지역 = 강남·서초·송파·용산)
             refiLtv: { spec: 40, r627: 70, r1015: 70, metro: 70 } },
   // 주택구입자금 규제 예외 단지(경과규정): 금액 상한 없음 · LTV는 위 6.27 이전 LTV · 아래 만기·스트레스
-  exc:    { term: 40, stress: { variable: 1.5, mixed: 1.2, periodic: 0.6 } }
+  exc:    { term: 40, stress: { variable: 1.5, mixed: 1.2, periodic: 0.6 } },
+  // 거치기간: 구입자금 최대 거치(여신심사 가이드라인 · 수도권·지방 같음) · 자담 입력 최대 ·
+  //  DSR은 '대출기간 − 거치기간'으로 분할상환 산정, deemOver 초과면 만기일시상환 간주(원금 ÷ 인정만기 deemTerm년 이내 + 연 이자)
+  grace:  { buyMax: 1, equityMax: 10, deemOver: 1, deemTerm: 10 }
 };
 const REGIONS = { metro: '수도권', reg: '규제지역', local: '지방' };
 const RTYPES  = { variable: '변동금리', mixed: '혼합형', periodic: '5년 주기형' };
@@ -1161,17 +1174,46 @@ function annualPay(L, ratePct, years, method) {
   if (method === 'equal') return equalPay(L, r, N) * Math.min(12, N);
   return (L + L * r * (N + 1) / 2) / (N / 12);
 }
-// 월별 상환 스케줄 (실제 금리)
-function schedule(L, ratePct, years, method, months) {
-  const N = Math.max(1, Math.round(years * 12)), r = ratePct / 100 / 12, P = equalPay(L, r, N);
+// 거치기간 (년): 대출기간보다 1년 이상 짧게
+const graceOf = (grace, years) => Math.max(0, Math.min(+grace || 0, years - 1));
+// 거치가 있는 신규 주담대의 DSR 연 원리금
+//  · 거치 ≤ deemOver(1년): 거치기간을 대출기간에서 빼고 남은 기간으로 분할상환해 산정
+//  · 거치 > deemOver: 만기일시상환으로 간주 → 원금 ÷ min(대출기간, 인정만기 10년) + 연 이자
+const graceDeemed = (grace, years) => graceOf(grace, years) > num(S.grace.deemOver);
+function dsrPay(L, ratePct, years, method, grace) {
+  const g = graceOf(grace, years);
+  if (graceDeemed(g, years)) return L / Math.min(years, num(S.grace.deemTerm) || 10) + L * ratePct / 100;
+  return annualPay(L, ratePct, years - g, method);
+}
+// 보고서용 산정 방식 설명
+function graceText(grace, years) {
+  const g = graceOf(grace, years);
+  if (!g) return '';
+  return graceDeemed(g, years)
+    ? `거치 ${g}년 (${S.grace.deemOver}년 초과) → <b>만기일시상환 간주</b> · 원금 ÷ ${Math.min(years, num(S.grace.deemTerm) || 10)}년 + 연 이자`
+    : `거치 ${g}년 → 대출기간에서 빼고 <b>${years - g}년 분할상환</b> 기준`;
+}
+// 월별 상환 스케줄 (실제 금리) · 거치가 있으면 거치 첫 3개월 + 상환 시작 후 3개월
+function schedule(L, ratePct, years, method, months, grace = 0) {
+  const N = Math.max(1, Math.round(years * 12)), r = ratePct / 100 / 12;
+  const G = Math.min(Math.round(graceOf(grace, years) * 12), N - 1), M = N - G, P = equalPay(L, r, M);
+  const want = G ? [1, 2, 3, G + 1, G + 2, G + 3].filter(m => m <= N) : null;
+  const last = G ? Math.min(N, G + 3) : Math.min(months, N);
   const rows = [];
   let bal = L;
-  for (let m = 1; m <= Math.min(months, N); m++) {
-    const int = bal * r, prin = method === 'equal' ? P - int : L / N;
+  for (let m = 1; m <= last; m++) {
+    const int = bal * r, prin = m <= G ? 0 : method === 'equal' ? P - int : L / M;
     bal -= prin;
-    rows.push({ m, prin, int, total: prin + int, bal: Math.max(0, bal) });
+    if (!want || want.includes(m)) rows.push({ m, prin, int, total: prin + int, bal: Math.max(0, bal), grace: m <= G });
   }
   return rows;
+}
+const schRow = s => `<tr><td>${s.m}개월${s.grace ? ' <small style="color:var(--muted)">거치</small>' : ''}</td><td>${won(s.prin)}</td><td>${won(s.int)}</td><td><b>${won(s.total)}</b></td><td>${won(s.bal)}</td></tr>`;
+// 거치기간 선택 상자 (0년 ~ max년)
+function fillGrace(sel, max) {
+  const cur = Math.min(+sel.value || 0, max);
+  if (sel.options.length !== max + 1) sel.innerHTML = Array.from({ length: max + 1 }, (_, i) => `<option value="${i}">${i ? i + '년' : '없음 (0년)'}</option>`).join('');
+  sel.value = cur;
 }
 
 /* ---------- 기존 대출 ---------- */
@@ -1526,14 +1568,15 @@ function renderMort() {
   const method = $('input[name=mMethod]:checked').value, mName = method === 'equal' ? '원리금균등' : '원금균등';
   const L = num($('#mAmt').value), price = num($('#mPrice').value), rate = num($('#mRate').value);
   const years = +$('#mYears').value, first = $('#firstHome').checked;
+  const grace = graceOf($('#mGrace').value, years), gText = graceText(grace, years);
   // 규제 예외 단지(경과규정): 수도권·규제지역만 · 금액 상한 없음 · 규제 전 LTV · 규제 전 스트레스 · 만기 40년
   const exc = $('#mExc').checked && region !== 'local';
   const excKey = region === 'reg' ? $('input[name=mExcReg]:checked').value : 'metro';
   const stressAll = k => exc ? S.exc.stress[k] : stressOf(k, region === 'local');
   const add = stressAll(rtype), sRate = rate + add;
 
-  const newA = annualPay(L, rate, years, method);
-  const newS = annualPay(L, sRate, years, method);
+  const newA = dsrPay(L, rate, years, method, grace);
+  const newS = dsrPay(L, sRate, years, method, grace);
   const SDSR = inc ? (newS + ex.dsr) / inc * 100 : NaN;
   const DTI  = inc ? (newA + ex.dti) / inc * 100 : NaN;
   const LTV  = price ? L / price * 100 : NaN;
@@ -1570,7 +1613,7 @@ function renderMort() {
   const ltvName = `${exc && region === 'reg' ? EREG[excKey] : REGIONS[region]}${ltvTags.length ? ' · ' + ltvTags.join(' · ') : ''}`;
 
   // 최대 가능 금액 (연 원리금은 대출금액에 비례 → 1원당 연 원리금으로 역산)
-  const unitS = annualPay(1, sRate, years, method);
+  const unitS = dsrPay(1, sRate, years, method, grace);
   const dsrMax = lim => inc ? Math.max(0, (inc * lim / 100 - ex.dsr) / unitS) : 0;
   let cap = Infinity, capLabel = `금액 상한 (${REGIONS[region]} 해당 없음)`;
   if (exc) capLabel = '금액 상한 (규제 예외 단지 해당 없음)';
@@ -1600,7 +1643,7 @@ function renderMort() {
     if (f.sp && f.sp.apply) t.push(`배우자 <b>${korMan(f.sp.fut)}</b>(${f.sp.manual ? '직접 입력' : `만 ${f.sp.age}세`} · +${f.sp.rate.toFixed(1)}%)`);
     return t.length ? ` <br>※ 장래 예상소득 ${t.join(', ')}을 반영한 결과입니다.` : ''; })();
 
-  const sch = schedule(L, rate, years, method, 6);
+  const sch = schedule(L, rate, years, method, 6, grace);
 
   return `${reportHead('상담 결과 보고서', '주택구입자금 한도 분석')}
   <div class="rp-body">
@@ -1619,7 +1662,7 @@ function renderMort() {
       ['주택가격 (KB시세)', korMan(price)],
       ['대출 희망금액', korMan(L)],
       ['금리 (실제)', `${rate.toFixed(2)}% · ${RTYPES[rtype]}`],
-      ['대출기간 · 상환', `${years}년 · ${mName}`],
+      ['대출기간 · 상환', `${years}년 · ${mName}${grace ? ` · 거치 ${grace}년` : ''}`],
       ['기존 대출', exText(ex)]
     ]))}
 
@@ -1641,14 +1684,15 @@ function renderMort() {
       <dl class="kv">
         <dt>DSR 산정 연 원리금 (신규)</dt><dd>${korMan(newS)}</dd>
         <dt>기존 대출 연 원리금</dt><dd>${korMan(ex.dsr)}</dd>
-        ${method === 'equal' ? '' : '<dt>산정 방식</dt><dd>원금균등 · 총 원리금 ÷ 대출기간</dd>'}
+        ${method === 'equal' ? '' : `<dt>산정 방식</dt><dd>원금균등 · 총 원리금 ÷ ${grace ? '상환기간' : '대출기간'}</dd>`}
+        ${gText ? `<dt>거치기간</dt><dd>${gText}</dd>` : ''}
       </dl>
       <p class="small">금리 입력란은 실제 적용 금리이며, 스트레스 금리는 DSR 한도 산정에만 반영됩니다.</p>`)}
 
     ${sec(4, '월 상환 예정표', `<div class="tw"><table>
       <tr><th>회차</th><th>원금</th><th>이자</th><th>합계</th><th>대출잔액</th></tr>
-      ${sch.map(s => `<tr><td>${s.m}개월</td><td>${won(s.prin)}</td><td>${won(s.int)}</td><td><b>${won(s.total)}</b></td><td>${won(s.bal)}</td></tr>`).join('')}
-    </table></div>`, `실제 금리 ${rate.toFixed(2)}% · ${mName}`)}
+      ${sch.map(schRow).join('')}
+    </table></div>`, `실제 금리 ${rate.toFixed(2)}% · ${mName}${grace ? ` · 거치 ${grace}년` : ''}`)}
   </div>
   ${reportFoot()}`;
 }
@@ -1688,6 +1732,7 @@ function equityCalc() {
   const blocked = house === 'multi' && (refi || (!exc && capArea));
   return { region, house, purpose, evict, refi, refiArea, refiBal, mode, exc, capArea, dep, next, src, srcIn, srcLoan, other, own, need, baseLtv, ltv, blocked,
     price: v('#ePrice'), senior: v('#eSenior'), L: v('#eAmt'), rate: num($('#eRate').value), years: +$('#eYears').value,
+    grace: graceOf($('#eGrace').value, +$('#eYears').value),
     rtype: $('input[name=eRtype]:checked').value, method: $('input[name=eMethod]:checked').value };
 }
 const REFI_AREA = { spec: '기존 규제지역 (강남·서초·송파·용산)', r627: '6.27 지정 규제지역', r1015: '10.15 지정 규제지역', metro: '수도권' };
@@ -1713,6 +1758,7 @@ function syncEquityInputs(e) {
     · <b>전세퇴거자금</b>: 2025.6.27 이전 구입(계약) + 세입자 6.27 이전 입주 → 1억 초과 가능, 6.27 이전 LTV (수도권 ${S.equity.preLtv.metro}% · 강남·서초·송파·용산 ${S.equity.preLtv.spec}% · 그 외 규제지역 ${S.equity.preLtv.reg}% · 지방 ${S.equity.preLtv.local}%)<br>
     · <b>대환</b>: <b>1주택자만</b> · 기존 대출 잔액 한도 내 · LTV는 규제 구분별 (기존 규제지역 ${S.equity.refiLtv.spec}% · 6.27 지정 ${S.equity.refiLtv.r627}% · 10.15 지정 ${S.equity.refiLtv.r1015}% · 수도권 ${S.equity.refiLtv.metro}%)<br>
     · <b>다주택</b>: LTV <b>−${S.equity.multiCut}%p</b><br>
+    · <b>거치기간</b>: 대출기간에 포함 · DSR은 거치기간을 뺀 기간으로 분할상환 산정 · <b>${S.grace.deemOver}년 초과</b>면 만기일시상환으로 간주(원금 ÷ 최대 ${S.grace.deemTerm}년 + 연 이자) · LTV·DTI 60% 초과 고부담 대출 등은 은행이 거치 1년 이내 분할상환을 요구할 수 있음<br>
     · 주택가격 구간별 금액 상한(15억 이하 6억 등)은 구입자금 규제라 적용하지 않습니다<br>
     · 이 주택의 기존 담보대출은 LTV 계산용입니다. DSR에 넣으려면 <b>② 기존 대출</b>에도 입력하세요`;
 }
@@ -1731,14 +1777,14 @@ function renderEquity() {
       <p>수도권·규제지역의 가계일반자금(생활안정자금)은 1주택자만 가능합니다.<br>
       2025.6.27 이전 구입(계약)·세입자 입주 조건의 <b>전세퇴거자금</b>이면 LTV −${S.equity.multiCut}%p로 진행할 수 있습니다.</p></div></div>${reportFoot()}`;
   }
-  const { price, senior, L, rate, years, rtype, method } = e;
-  const mName = method === 'equal' ? '원리금균등' : '원금균등';
+  const { price, senior, L, rate, years, rtype, method, grace } = e;
+  const mName = method === 'equal' ? '원리금균등' : '원금균등', gText = graceText(grace, years);
   const add = stressOf(rtype, e.region === 'local'), sRate = rate + add;
-  const newS = annualPay(L, sRate, years, method), newA = annualPay(L, rate, years, method);
+  const newS = dsrPay(L, sRate, years, method, grace), newA = annualPay(L, rate, years - grace, method);
   const SDSR = inc ? (newS + ex.dsr) / inc * 100 : NaN;
   const prior = senior + e.next;                                   // LTV 계산 시 먼저 빼는 금액 (유지 대출 + 후속세입자 보증금)
   const LTV = price ? (L + prior) / price * 100 : NaN;
-  const unitS = annualPay(1, sRate, years, method);
+  const unitS = dsrPay(1, sRate, years, method, grace);
   const dsrMax = lim => inc ? Math.max(0, (inc * lim / 100 - ex.dsr) / unitS) : 0;
   const ltvName = `${e.refi ? `대환 · ${REFI_AREA[e.refiArea]}` : EREG[e.region]}${!e.refi && e.exc ? ' · 6.27 이전' : ''}${e.house === 'multi' ? ` · 다주택 −${S.equity.multiCut}%p` : ''}`;
   const cLtv = { label: `LTV ${e.ltv}% (${ltvName})${prior ? ` − 선순위 ${korMan(prior)}` : ''}`, v: Math.max(0, price * e.ltv / 100 - prior), short: 'LTV' };
@@ -1749,7 +1795,7 @@ function renderEquity() {
   const cD1 = { label: `스트레스 DSR ${S.dsr.bank1}% (1금융권)`, v: dsrMax(S.dsr.bank1), short: `스트레스 DSR ${S.dsr.bank1}%` };
   const cD2 = { label: `스트레스 DSR ${S.dsr.bank2}% (2금융권)`, v: dsrMax(S.dsr.bank2), short: `스트레스 DSR ${S.dsr.bank2}%` };
   // 6.27 이전 전세퇴거 예외는 DTI 범위(기본 60%)에서 한도 산정 (은행 안내 기준)
-  const unitA = annualPay(1, rate, years, method);
+  const unitA = dsrPay(1, rate, years, method, grace);
   const cDtiX = { label: `DTI ${S.equity.excDti}% (6.27 이전 전세퇴거 예외)`, v: inc ? Math.max(0, (inc * S.equity.excDti / 100 - ex.dti) / unitA) : 0, short: `DTI ${S.equity.excDti}%` };
   const cRefi = { label: '대환 대상 기존 대출 잔액 (증액 불가)', v: e.refiBal, short: '대환 대상 잔액' };
   const base = e.refi ? [cLtv, cRefi] : e.evict ? (e.exc ? [cLtv, cCap, cNeed, cDtiX] : [cLtv, cCap, cNeed]) : [cLtv, cCap];
@@ -1762,7 +1808,7 @@ function renderEquity() {
   const summary = !ready ? '연소득과 주택가격을 입력하면 분석 결과가 표시됩니다.'
     : `희망 대출금액 <b>${korMan(L)}</b> 기준 스트레스 DSR은 <span class="hl">${pct(SDSR)}</span>로 ${phrase}.
        1금융권 기준 최대 <span class="hl">${korMan(f1.v)}</span>, 2금융권 기준 최대 <b>${korMan(f2.v)}</b>까지 가능하며, 한도를 결정하는 요인은 <b>${f1.short}</b>입니다.`;
-  const sch = schedule(L, rate, years, method, 6);
+  const sch = schedule(L, rate, years, method, 6, grace);
   const needRows = !e.evict ? [] : e.mode === 'next' ? [['내보내는 세입자 보증금', korMan(e.dep)], ['후속세입자 보증금', korMan(e.next)], ['소요자금 (차액)', `<b>${korMan(e.need)}</b>`]]
     : e.mode === 'none' ? [['내보내는 세입자 보증금', korMan(e.dep)], ['소요자금 (보증금 전액)', `<b>${korMan(e.need)}</b>`]]
     : [['내보내는 세입자 보증금', korMan(e.dep)], [`보유자금 (${ESRC[e.src][0]})`, `${ESRC[e.src][1]} ${korMan(e.srcIn)} − ${ESRC[e.src][2]} ${korMan(e.srcLoan)}${e.other ? ` + 기타 ${korMan(e.other)}` : ''} = <b>${korMan(e.own)}</b>`],
@@ -1787,7 +1833,7 @@ function renderEquity() {
       ...(senior ? [['유지할 선순위 대출', korMan(senior)]] : []),
       ['대출 희망금액', korMan(L)],
       ['금리 (실제)', `${rate.toFixed(2)}% · ${RTYPES[rtype]}`],
-      ['대출기간 · 상환', `${years}년 · ${mName}`],
+      ['대출기간 · 상환', `${years}년 · ${mName}${grace ? ` · 거치 ${grace}년` : ''}`],
       ['기존 대출', exText(ex)]
     ]))}
 
@@ -1810,14 +1856,15 @@ function renderEquity() {
       </div>
       <dl class="kv">
         <dt>DSR 산정 연 원리금 (신규)</dt><dd>${korMan(newS)}</dd>
-        <dt>실제 연 원리금 (신규)</dt><dd>${korMan(newA)}</dd>
+        <dt>실제 연 원리금 (신규${grace ? ' · 거치 후' : ''})</dt><dd>${korMan(newA)}</dd>
         <dt>기존 대출 연 원리금</dt><dd>${korMan(ex.dsr)}</dd>
+        ${gText ? `<dt>거치기간</dt><dd>${gText}</dd>` : ''}
       </dl>`)}
 
     ${sec(++n, '월 상환 예정표', `<div class="tw"><table>
       <tr><th>회차</th><th>원금</th><th>이자</th><th>합계</th><th>대출잔액</th></tr>
-      ${sch.map(x => `<tr><td>${x.m}개월</td><td>${won(x.prin)}</td><td>${won(x.int)}</td><td><b>${won(x.total)}</b></td><td>${won(x.bal)}</td></tr>`).join('')}
-    </table></div>`, `실제 금리 ${rate.toFixed(2)}% · ${mName}`)}
+      ${sch.map(schRow).join('')}
+    </table></div>`, `실제 금리 ${rate.toFixed(2)}% · ${mName}${grace ? ` · 거치 ${grace}년` : ''}`)}
   </div>
   ${reportFoot()}`;
 }
@@ -1933,6 +1980,14 @@ function recalc() {
   $('#mExc').disabled = mLocal; if (mLocal) $('#mExc').checked = false;
   syncYears($('#mYears'), mLocal, $('#mExc').checked);
   syncYears($('#eYears'), $('input[name=eRegion]:checked')?.value === 'local');
+  // 거치기간: 구입자금은 최대 1년(수도권·지방 같음) · 자담은 최대 equityMax년 · 둘 다 대출기간보다 짧게
+  fillGrace($('#mGrace'), Math.max(0, Math.min(num(S.grace.buyMax), +$('#mYears').value - 1)));
+  fillGrace($('#eGrace'), Math.max(0, Math.min(num(S.grace.equityMax), +$('#eYears').value - 1)));
+  const mg = +$('#mGrace').value, eg = +$('#eGrace').value, ey = +$('#eYears').value, my = +$('#mYears').value;
+  $('#mGraceHint').innerHTML = mg ? `DSR: ${my - mg}년 분할상환 기준` : `구입자금은 최대 ${S.grace.buyMax}년 (수도권·지방 같음)`;
+  $('#eGraceHint').innerHTML = !eg ? `${S.grace.deemOver}년 초과 시 DSR은 일시상환 간주`
+    : graceDeemed(eg, ey) ? `<span style="color:var(--bad)">DSR: 일시상환 간주 (원금÷${Math.min(ey, num(S.grace.deemTerm) || 10)}년 + 이자)</span>`
+    : `DSR: ${ey - eg}년 분할상환 기준`;
   $('#mMultiLbl').textContent = `수도권·규제 LTV 0% · 지방 ${S.ltv.multiLocal}%`;
   const multi = $('input[name=mHouse]:checked').value === 'multi';
   ['#firstHome', '#seomin'].forEach(s => { $(s).disabled = multi; if (multi) $(s).checked = false; });
@@ -1969,6 +2024,7 @@ const SETTINGS = [
   ['주담대(자담)', [['equity.cap', '가계일반자금 물건당 상한 (수도권·규제지역)', '만원'], ['equity.excDti', '6.27 이전 전세퇴거 예외 DTI 한도', '%'], ['equity.multiCut', '다주택 LTV 차감', '%p'],
     ['equity.preLtv.metro', '6.27 이전 LTV · 수도권', '%'], ['equity.preLtv.spec', '6.27 이전 LTV · 강남·서초·송파·용산', '%'], ['equity.preLtv.reg', '6.27 이전 LTV · 그 외 규제지역', '%'], ['equity.preLtv.local', '6.27 이전 LTV · 지방', '%'],
     ['equity.refiLtv.spec', '대환 LTV · 기존 규제지역 (강남·서초·송파·용산)', '%'], ['equity.refiLtv.r627', '대환 LTV · 6.27 지정 규제지역', '%'], ['equity.refiLtv.r1015', '대환 LTV · 10.15 지정 규제지역', '%'], ['equity.refiLtv.metro', '대환 LTV · 수도권', '%']]],
+  ['거치기간', [['grace.buyMax', '주택구입자금 최대 거치', '년'], ['grace.equityMax', '주담대(자담) 입력 최대 거치', '년'], ['grace.deemOver', '이 기간 초과 시 만기일시상환 간주', '년'], ['grace.deemTerm', '일시상환 간주 시 인정만기 (최대)', '년']]],
   ['규제 예외 단지 (주택구입자금)', [['exc.term', '최대 만기', '년'], ['exc.stress.variable', '스트레스 · 변동금리', '%p'], ['exc.stress.mixed', '스트레스 · 혼합형', '%p'], ['exc.stress.periodic', '스트레스 · 5년 주기형', '%p']]],
   ['전세자금대출', [['jeonse.dsr', 'DSR 기준 (DSR 적용 대상)', '%'], ['stress.jeonse', '스트레스 가산 (DSR 적용 대상)', '%p'], ['jeonse.dti', 'DTI 한도', '%'], ['jeonse.ratio', '보증금 대비 한도', '%'], ['jeonse.capOne', '1주택자 최대 한도', '만원'], ['jeonse.capMember', '세대원 유주택 최대 한도', '만원'], ['jeonse.capSgi', 'SGI 보증 최대 한도', '만원'], ['jeonse.capHug', 'HUG 보증 최대 한도', '만원']]]
 ];
@@ -2135,6 +2191,7 @@ function restoreState(st) {
 fillYears($('#mYears'), 40, 30);
 fillYears($('#jYears'), 10, 2);
 fillYears($('#eYears'), 40, 30);
+fillGrace($('#mGrace'), num(S.grace.buyMax)); fillGrace($('#eGrace'), num(S.grace.equityMax));   // 되살리기 전에 선택지 채움
 buildSegs();
 { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('#cdate').value = d.toISOString().slice(0, 10); $('#cdateTop').textContent = '상담일 ' + $('#cdate').value; }
 $$('.money').forEach(formatMoney);
