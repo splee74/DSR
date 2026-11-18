@@ -210,7 +210,7 @@ dialog::backdrop{background:#0006}
 .tsel button{font:inherit;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid var(--line-strong);background:transparent;color:var(--muted);cursor:pointer}
 .tsel button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
 .tsel button[aria-pressed="false"]{text-decoration:line-through}
-.mx-warn{margin:-6px 0 12px;font-size:13px;font-weight:700;color:var(--up);line-height:1.5}
+.mx-warn{margin:-6px 0 12px;font-size:11.5px;font-weight:400;color:var(--muted);opacity:.75;line-height:1.5}
 .mx .cell em.term{font-style:normal;font-weight:800;color:var(--up)}
 .detail-h{margin:6px 0 -4px;font-size:16px;font-weight:800}
 .detail-h span{color:var(--ink)}
@@ -382,7 +382,7 @@ body{padding-bottom:72px}
 
   <section class="card">
     <h2>금리유형별 한눈에 보기 <small>실질적용금리 · 유형을 누르면 아래 상세 내용이 그 유형으로 바뀝니다</small><span class="tsel" id="typeSel" role="group" aria-label="표에 보일 금리유형"></span></h2>
-    <p class="mx-warn">표시된 금리는 실질적으로 실행가능한 금리입니다. 은행별 추가 할인 조건이 충족되면 더 낮아질 수 있습니다.</p>
+    <p class="mx-warn">표시된 금리는 공시 자료로 계산한 참고용 예상 금리입니다. 실제 금리는 신용점수·소득·우대조건 등 개인 상황에 따라 달라지며, 특정 금융상품을 권유하지 않습니다. 은행별 추가 할인 조건이 충족되면 더 낮아질 수 있습니다.</p>
     <div class="mxw"><table class="mx" id="matrix"></table></div>
     <p class="mx-note" id="mxNote"></p>
   </section>
@@ -466,8 +466,8 @@ body{padding-bottom:72px}
 <dialog id="bankAdd" style="width:min(380px,calc(100vw - 24px))">
   <div class="ed-head"><div><h2>은행 추가</h2><span>추가한 은행은 모든 금리유형에 나옵니다</span></div><button type="button" data-baclose aria-label="닫기">×</button></div>
   <div class="ed-body">
-    <div class="field"><label for="baName">은행 이름</label><div class="inp"><input id="baName" lang="ko" placeholder="예: SC제일은행" maxlength="20" style="text-align:left"></div></div>
-    <div class="field" style="margin-top:10px"><label for="baShort">짧은 표시 (동그라미 안, 2~3글자)</label><div class="inp"><input id="baShort" lang="ko" placeholder="예: SC" maxlength="4" style="text-align:left"></div></div>
+    <div class="field"><label for="baName">은행 이름</label><div class="inp"><input id="baName" lang="ko" placeholder="예: J사" maxlength="20" style="text-align:left"></div></div>
+    <div class="field" style="margin-top:10px"><label for="baShort">짧은 표시 (동그라미 안, 2~3글자)</label><div class="inp"><input id="baShort" lang="ko" placeholder="예: J" maxlength="4" style="text-align:left"></div></div>
     <p class="note-s" id="baMsg" style="margin-top:10px"></p>
   </div>
   <div class="ed-foot"><div class="ed-btns"><button type="button" class="btn" data-baclose>취소</button><button type="button" class="btn primary" id="baOk">추가</button></div></div>
@@ -502,9 +502,9 @@ const has = v => typeof v === 'number' && isFinite(v);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const BASE_BANKS = [
-  { id: 'kb', name: 'KB국민은행', short: 'KB' }, { id: 'woori', name: '우리은행', short: '우리' },
-  { id: 'shinhan', name: '신한은행', short: '신한' }, { id: 'hana', name: '하나은행', short: '하나' },
-  { id: 'ibk', name: '기업은행', short: 'IBK' }, { id: 'nh', name: '농협은행', short: 'NH' }
+  { id: 'kb', name: 'K사', short: 'K' }, { id: 'woori', name: 'W사', short: 'W' },
+  { id: 'shinhan', name: 'S사', short: 'S' }, { id: 'hana', name: 'H사', short: 'H' },
+  { id: 'ibk', name: 'I사', short: 'I' }, { id: 'nh', name: 'N사', short: 'N' }
 ];
 // 관리자가 추가한 은행 (rates.json · 이 기기 저장에 함께 보관)
 let XBANKS = [], BANKS = [...BASE_BANKS];

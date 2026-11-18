@@ -420,7 +420,7 @@ dialog{border-radius:10px}
 #splash{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#e9fbef;transition:opacity .35s ease;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:min(3.2vh,22px);
   font-family:Pretendard,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
-#splash .sp-bg{position:absolute;inset:-80px;background:url(splash2.jpg) left center/50% 100% no-repeat,url(splash-bank.jpg) right center/50% 100% no-repeat;filter:blur(48px) saturate(1.05)}
+#splash .sp-bg{position:absolute;inset:-80px;background:url(splash2.jpg) left center/50% 100% no-repeat,url(splash-bank2.jpg) right center/50% 100% no-repeat;filter:blur(48px) saturate(1.05)}
 #splash .sp-bg::after{content:"";position:absolute;inset:0;background:#ffffff73}
 #splash .sp-q{position:relative;margin:0;color:#0b5d2e;font-size:min(5vw,24px);font-weight:800;letter-spacing:-.02em;text-shadow:0 1px 0 #fff}
 #splash .sp-pick{position:relative;display:flex;gap:min(2.4vw,22px);justify-content:center}
@@ -487,7 +487,7 @@ dialog{border-radius:10px}
   <p class="sp-q">어떤 서비스를 이용하시겠어요?</p>
   <div class="sp-pick">
     <button type="button" class="sp-card" data-go="calc" aria-label="DSR 계산기 · 주택구입자금"><img src="splash2.jpg" alt="" width="941" height="1672"></button>
-    <button type="button" class="sp-card" data-go="bank" aria-label="은행금리 비교"><img src="splash-bank.jpg" alt="" width="952" height="1653"></button>
+    <button type="button" class="sp-card" data-go="bank" aria-label="은행금리 비교"><img src="splash-bank2.jpg" alt="" width="951" height="1654"></button>
   </div>
   <div class="sp-url">dsr1.co.kr</div>
 </div>
@@ -984,8 +984,8 @@ dialog{border-radius:10px}
 <dialog id="noticeDlg" class="notice" aria-labelledby="noticeTitle">
   <div class="dlg-head"><h2 id="noticeTitle">공지사항</h2><button type="button" data-nclose aria-label="닫기">×</button></div>
   <div class="dlg-body" id="noticeBody">
-    <div class="notice-item"><b>1. 하나은행 MCI 가입 가능</b></div>
-    <div class="notice-item"><b>2. 우리은행 11월 2일부터 금리 인하</b></div>
+    <div class="notice-item"><b>1. H사 MCI 가입 가능</b></div>
+    <div class="notice-item"><b>2. W사 11월 2일부터 금리 인하</b></div>
     <div class="notice-item"><b>3. DSR 계산기 화면 위치 및 디스플레이 수정</b></div>
     <p class="notice-lead" style="margin:14px 0 0;text-align:center;font-weight:700;color:var(--text)">많은 의견 감사드립니다!!</p>
   </div>
@@ -1065,7 +1065,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v131';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v132';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
