@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T02:49:54.364Z",
+ "updated": "2026-11-19T03:07:23.038Z",
  "data": {
   "mort": {
    "variable": {
@@ -119,7 +119,7 @@
   "jeonse": {
    "hfVar": {
     "sample": false,
-    "asof": "2026-11-18",
+    "asof": "2026-11-19",
     "banks": {
      "kb": {
       "rate": 4.69,
@@ -134,13 +134,13 @@
       "term": 12
      },
      "shinhan": {
-      "rate": 4.69,
+      "rate": 4.7,
       "fee": 0.43,
       "idx": "bond",
       "term": 6
      },
      "hana": {
-      "rate": 4.73,
+      "rate": 4.76,
       "fee": 0.59,
       "idx": "cofixNewBal",
       "term": 6
@@ -150,10 +150,10 @@
       "term": 6
      },
      "nh": {
-      "rate": 4.28,
+      "rate": 4.62,
       "fee": 0.52,
       "idx": "cofixNewBal",
-      "term": 3
+      "term": 6
      },
      "xmvrp9uh3": {
       "idx": "cofixNew",
@@ -163,7 +163,7 @@
    },
    "hfFix": {
     "sample": false,
-    "asof": "2026-11-18",
+    "asof": "2026-11-19",
     "banks": {
      "kb": {
       "rate": 4.92,
@@ -178,12 +178,12 @@
       "fee": 0.85
      },
      "hana": {
-      "rate": 4.87,
+      "rate": 4.88,
       "fee": 0.59
      },
      "ibk": {},
      "nh": {
-      "rate": 4.9,
+      "rate": 4.89,
       "fee": 0.93
      },
      "xmvrp9uh3": {}
@@ -191,7 +191,7 @@
    },
    "hugVar": {
     "sample": false,
-    "asof": "2026-11-18",
+    "asof": "2026-11-19",
     "banks": {
      "kb": {
       "rate": 4.82,
@@ -206,13 +206,13 @@
       "term": 12
      },
      "shinhan": {
-      "rate": 4.68,
+      "rate": 4.69,
       "fee": 0.43,
       "idx": "bond",
       "term": 6
      },
      "hana": {
-      "rate": 4.85,
+      "rate": 4.88,
       "fee": 0.59,
       "idx": "cofixNew",
       "term": 6
@@ -224,7 +224,7 @@
       "term": 3
      },
      "nh": {
-      "rate": 4.22,
+      "rate": 4.56,
       "fee": 0.52,
       "idx": "cofixNewBal",
       "term": 6
@@ -237,7 +237,7 @@
    },
    "hugFix": {
     "sample": false,
-    "asof": "2026-11-18",
+    "asof": "2026-11-19",
     "banks": {
      "kb": {
       "rate": 4.98,
@@ -256,7 +256,7 @@
      },
      "ibk": {},
      "nh": {
-      "rate": 4.84,
+      "rate": 4.83,
       "fee": 0.93
      },
      "xmvrp9uh3": {}
@@ -264,7 +264,7 @@
    },
    "sgiVar": {
     "sample": false,
-    "asof": "2026-11-18",
+    "asof": "2026-11-19",
     "banks": {
      "kb": {
       "rate": 4.69,
@@ -279,13 +279,13 @@
       "term": 12
      },
      "shinhan": {
-      "rate": 4.8,
+      "rate": 4.81,
       "fee": 0.43,
       "idx": "bond",
       "term": 6
      },
      "hana": {
-      "rate": 5.01,
+      "rate": 5.04,
       "fee": 0.59,
       "idx": "cofixNew",
       "term": 6
@@ -297,10 +297,10 @@
       "term": 3
      },
      "nh": {
-      "rate": 4.22,
+      "rate": 4.56,
       "fee": 0.52,
       "idx": "cofixNewBal",
-      "term": 3
+      "term": 6
      },
      "xmvrp9uh3": {
       "idx": "cofixNew",
@@ -310,7 +310,7 @@
    },
    "sgiFix": {
     "sample": false,
-    "asof": "2026-11-18",
+    "asof": "2026-11-19",
     "banks": {
      "kb": {
       "rate": 5.28,
@@ -325,12 +325,12 @@
       "fee": 0.85
      },
      "hana": {
-      "rate": 5.14,
+      "rate": 5.15,
       "fee": 0.59
      },
      "ibk": {},
      "nh": {
-      "rate": 4.84,
+      "rate": 4.83,
       "fee": 0.93
      },
      "xmvrp9uh3": {}
@@ -638,6 +638,11 @@
     },
     {
      "name": "대출금액 2억원 기준임"
+    },
+    {
+     "name": "단기코픽스3개월 변동 저렴하나 취급이 어려움(역마진)",
+     "on": false,
+     "warn": true
     }
    ],
    "kb": [
