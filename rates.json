@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T02:35:38.757Z",
+ "updated": "2026-11-19T02:48:27.727Z",
  "data": {
   "mort": {
    "variable": {
@@ -779,7 +779,8 @@
    "periodic": {
     "ibk": 0.7,
     "kb": 1.1,
-    "woori": 1.2
+    "woori": 1.2,
+    "hana": 1.1
    }
   },
   "jeonse": {
