@@ -1,8 +1,10 @@
 // 기준금리 자동 수집 → base-rates.json (현재 값 + 최근 이력)
 //  · 신규 COFIX / 신잔액 COFIX : 은행연합회 소비자포털 COFIX 연도별 엑셀(월별 공시)
+//  · 단기 COFIX : 은행연합회 소비자포털 단기 COFIX 연도별 엑셀(매주 수요일 공시)
 //  · 금융채 3개월·6개월·1년·2년·5년 : 금융투자협회 채권정보센터(KOFIA BIS) 채권시가평가수익률
 //                 금융채 I(은행채) · 무보증 · AAA · 평가사 평균
-// GitHub Actions에서 실행:  node fetch-base-rates.mjs cofix | bond | all(직접 실행)
+// GitHub Actions에서 실행:  node fetch-base-rates.mjs cofix | short | bond | all(직접 실행)
+//  · short : 매주 수요일 15:01 단기 COFIX 조회 (bond 실행 때도 함께 확인해 공휴일로 밀린 공시를 채움)
 //  · cofix : 매월 15~21일 15:01 실행되지만, 실제 조회는 "15일 이후 첫 영업일" 하루만
 //  · bond  : 평일 19:00, 오늘 값만 한 번 조회
 //  · fill 2026-10-30 : 빠진 날 하루만 다시 조회 (.github/bond-fill-date 파일을 바꿔 올리면 자동 실행)
@@ -58,6 +60,27 @@ async function cofix() {
   };
 }
 
+/* ── 단기 COFIX: 주별 공시 (올해 엑셀, 부족하면 작년 엑셀까지 · 최근 30주 보관) ── */
+async function cofixShort() {
+  const y = kstNow().getUTCFullYear(), map = new Map();
+  ((prev.history || {}).cofixShort || []).forEach(p => map.set(p.date, p.rate));
+  const year = async yy => {
+    const r = await fetch(`https://portal.kfb.or.kr/fingoods/cofix_w_excel.php?BasicYear=${yy}`, { headers: { ...UA, Referer: 'https://portal.kfb.or.kr/fingoods/cofix.php' } });
+    if (!r.ok) throw new Error('단기 COFIX 엑셀 HTTP ' + r.status);
+    let n = 0;
+    for (const row of readSheet(Buffer.from(await r.arrayBuffer()))) {
+      const m = String(row[0] || '').match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/), v = parseFloat(row[2]);
+      if (m && v > 0.3 && v < 15) { map.set(`${m[1]}-${pad(m[2])}-${pad(m[3])}`, v); n++; }   // 열: 공시일 | 대상기간 | 단기 COFIX
+    }
+    return n;
+  };
+  if (await year(y) < 30) await year(y - 1);
+  const ok = [...map].map(([date, rate]) => ({ date, rate })).sort((a, b) => a.date.localeCompare(b.date)).slice(-30);
+  if (!ok.length) throw new Error('단기 COFIX 엑셀에서 값을 찾지 못함');
+  const last = ok[ok.length - 1];
+  return { cofixShort: { rate: last.rate, date: last.date }, hist: { cofixShort: ok } };
+}
+
 /* ── 금융채: 특정 날짜의 시가평가 (휴일이면 null) ── */
 async function bondDay(day) {
   const body = `<?xml version="1.0" encoding="utf-8"?><message><proframeHeader><pfmAppName>BIS-KOFIABOND</pfmAppName><pfmSvcName>BISBndSrtPrcSrchSO</pfmSvcName><pfmFnName>selectDay</pfmFnName></proframeHeader><systemHeader></systemHeader><BISBndSrtPrcDayDTO><standardDt>${day.replace(/-/g, '')}</standardDt><reportCompCd>A20000</reportCompCd><applyGbCd>C02</applyGbCd><val1>A10002</val1><val2>A10003</val2><val3>A10004</val3><val4>A10005</val4><val5>A10006</val5></BISBndSrtPrcDayDTO></message>`;
@@ -108,18 +131,18 @@ async function bonds(day) {
 const next = { ...prev }, errors = [], history = { ...(prev.history || {}) };
 const FILL = process.argv[3];
 if (MODE === 'fill' && !/^\d{4}-\d\d-\d\d$/.test(FILL || '')) { console.error('사용법: node fetch-base-rates.mjs fill 2026-10-30'); process.exit(1); }
-const jobs = { cofix: [cofix], bond: [() => bonds()], all: [cofix, () => bonds()], fill: [() => bonds(FILL)] }[MODE];
-if (!jobs) { console.error('사용법: node fetch-base-rates.mjs cofix | bond | all | fill 날짜'); process.exit(1); }
+const jobs = { cofix: [cofix], short: [cofixShort], bond: [() => bonds(), cofixShort], all: [cofix, cofixShort, () => bonds()], fill: [() => bonds(FILL)] }[MODE];
+if (!jobs) { console.error('사용법: node fetch-base-rates.mjs cofix | short | bond | all | fill 날짜'); process.exit(1); }
 for (const job of jobs) {
   try { const { hist, ...vals } = await job(); Object.assign(next, vals); Object.assign(history, hist); }
   catch (e) { errors.push(e.message); console.error('⚠', e.message); }
 }
-if (!next.cofixNew && !next.bond5) { console.error('수집 실패 — 파일을 바꾸지 않음'); process.exit(1); }
+if (!next.cofixNew && !next.bond5 && !next.cofixShort) { console.error('수집 실패 — 파일을 바꾸지 않음'); process.exit(1); }
 // 이력 정리: 날짜순, 최근 KEEP_DAYS일만
 const cut = ymd(new Date(kstNow().getTime() - KEEP_DAYS * 86400000));
 for (const k in history) history[k] = history[k].filter(p => p.date >= cut || k.startsWith('cofix')).sort((a, b) => a.date.localeCompare(b.date));
 next.history = history;
-const keys = ['cofixNew', 'cofixNewBal', 'bond3', 'bond6', 'bond12', 'bond24', 'bond5', 'history'];
+const keys = ['cofixNew', 'cofixNewBal', 'cofixShort', 'bond3', 'bond6', 'bond12', 'bond24', 'bond5', 'history'];
 const changed = keys.some(k => JSON.stringify(next[k]) !== JSON.stringify(prev[k]));
 if (changed || !prev.updated) {
   next.updated = kstNow().toISOString().replace('Z', '+09:00');

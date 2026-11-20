@@ -1065,7 +1065,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v132';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v134';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -2328,10 +2328,17 @@ async function makePdf() {
   pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', m + iw * (1 - k) / 2, m, iw * k, h * k);
   return pdf.output('blob');
 }
+// 파일 이름은 만들 때마다 다르게 (만든 시각 시분초 붙임): 이름이 같으면 휴대폰(다운로드 폴더·카카오톡)이
+// 앞서 저장한 같은 이름의 파일(이전 고객 결과지)을 대신 보내는 일이 있음
+let lastPdfName = '';
 const pdfName = () => {
   const kind = { mort: '주택구입자금', equity: '주담대자담', jeonse: '전세자금대출' }[tab] || '결과지';
   const who = ($('#custName').value.trim() || '고객').replace(/[\\/:*?"<>|\s]/g, '');
-  return `${kind}_결과지_${who}_${$('#cdate').value || ''}.pdf`;
+  const n = new Date(), p = x => String(x).padStart(2, '0');
+  let name = `${kind}_결과지_${who}_${$('#cdate').value || ''}_${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;
+  if (name === lastPdfName.replace(/-\d+$/, '')) name += '-' + (+(lastPdfName.match(/-(\d+)$/)?.[1] || 1) + 1);
+  lastPdfName = name;
+  return name + '.pdf';
 };
 let pdfFile = null;
 // 기기 구분: 삼성 인터넷은 PDF 파일 공유를 막음 · PC 카카오톡은 공유 목록에 없음
