@@ -6,7 +6,7 @@
 // GitHub Actions에서 실행:  node fetch-base-rates.mjs cofix | short | bond | all(직접 실행)
 //  · short : 매주 수요일 15:01 단기 COFIX 조회 (bond 실행 때도 함께 확인해 공휴일로 밀린 공시를 채움)
 //  · cofix : 매월 15~21일 15:01 실행되지만, 실제 조회는 "15일 이후 첫 영업일" 하루만
-//  · bond  : 평일 19:00, 오늘 값만 한 번 조회
+//  · bond  : 하루 4번(평일 19:05·23:05, 화~토 09:05·11:05) 조회, 빠진 평일 자동 채움
 //  · fill 2026-10-30 : 빠진 날 하루만 다시 조회 (.github/bond-fill-date 파일을 바꿔 올리면 자동 실행)
 // 실패한 값은 이전 값을 유지.
 import fs from 'node:fs';
