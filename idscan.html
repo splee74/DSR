@@ -193,7 +193,10 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
     <div class="sheet-wrap"><canvas class="sheet" id="sheet" width="827" height="1170" aria-label="A4 신분증 사본 미리보기"></canvas></div>
     <p class="out-note" id="outNote">앞면을 찍으면 여기에 A4 사본이 만들어집니다.</p>
     <div class="row" style="margin-top:10px">
-      <button type="button" class="btn primary grow" id="btnShare" disabled>공유</button>
+      <button type="button" class="btn primary grow" id="btnShare" disabled>이미지 공유</button>
+      <button type="button" class="btn primary grow" id="btnSharePdf" disabled>PDF 공유</button>
+    </div>
+    <div class="row" style="margin-top:6px">
       <button type="button" class="btn grow" id="btnPdf" disabled>PDF 저장</button>
       <button type="button" class="btn grow" id="btnJpg" disabled>이미지 저장</button>
     </div>
@@ -699,7 +702,7 @@ function drawSheet() {
   const has = !!S.front, cv = $('#sheet'), x = cv.getContext('2d');
   x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height);
   if (has) x.drawImage(buildSheet(), 0, 0, cv.width, cv.height);
-  ['#btnShare', '#btnPdf', '#btnJpg', '#btnCard', '#btnCardPdf'].forEach(id => $(id).disabled = !has);
+  ['#btnShare', '#btnSharePdf', '#btnPdf', '#btnJpg', '#btnCard', '#btnCardPdf'].forEach(id => $(id).disabled = !has);
   $('#outNote').textContent = has
     ? `A4 한 장 · ${S.back ? '앞면과 뒷면' : '앞면'} · ${S.size === 1 ? '실제 크기(85.6 × 54mm)' : '1.5배 크기'}`
     : '앞면을 찍으면 여기에 A4 사본이 만들어집니다.';
@@ -742,13 +745,16 @@ $('#btnCardPdf').onclick = () => run(async () => {
 });
 // 카드만 저장: 둥근 모서리 바깥이 투명한 PNG (다른 문서에 붙이기 좋게)
 $('#btnCard').onclick = () => run(async () => { download(new File([await toBlob(finalCard('front'), 'image/png')], `신분증_앞면_${stamp()}.png`, { type: 'image/png' })); say('앞면 카드 이미지를 저장했습니다. (모서리 바깥은 투명)'); });
-$('#btnShare').onclick = () => run(async () => {
-  const f = await sheetFile('jpg');
+// 공유: 이미지(JPG) 또는 PDF 파일을 공유 창(카톡 등)으로 · 공유가 안 되는 브라우저는 저장으로 대신
+async function shareSheet(kind) {
+  const f = await sheetFile(kind), what = kind === 'pdf' ? 'PDF' : '이미지';
   if (navigator.canShare && navigator.canShare({ files: [f] })) {
     try { await navigator.share({ files: [f] }); say('공유했습니다.'); }
-    catch (e) { if (e.name !== 'AbortError') { download(f); say('공유가 안 되어 이미지로 저장했습니다. 저장된 파일을 카톡으로 보내 주세요.'); } }
-  } else { download(f); say('이 브라우저는 바로 공유가 안 되어 이미지로 저장했습니다. 저장된 파일을 카톡으로 보내 주세요.'); }
-});
+    catch (e) { if (e.name !== 'AbortError') { download(f); say(`공유가 안 되어 ${what}로 저장했습니다. 저장된 파일을 카톡으로 보내 주세요.`); } }
+  } else { download(f); say(`이 브라우저는 ${what} 바로 공유가 안 되어 ${what}로 저장했습니다. 저장된 파일을 카톡으로 보내 주세요.`); }
+}
+$('#btnShare').onclick = () => run(() => shareSheet('jpg'));
+$('#btnSharePdf').onclick = () => run(() => shareSheet('pdf'));
 // 명함: 앞면(·뒷면) JPG
 async function bizFiles() {
   const d = new Date(), t = `${stamp()}_${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
