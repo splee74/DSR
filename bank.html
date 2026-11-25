@@ -149,7 +149,52 @@ dialog::backdrop{background:#0006}
 .ebk.add{padding:5px 12px;border-style:dashed;border-color:var(--brand);color:var(--ink);background:transparent}
 .bdel{margin-left:10px;border:1px solid #e5484d55;background:transparent;color:#e5484d;border-radius:6px;font:inherit;font-size:12px;font-weight:700;padding:2px 8px;cursor:pointer}
 @media (max-width:640px){.ed-banks{flex-wrap:nowrap;overflow-x:auto;padding:0 14px 10px;scrollbar-width:none}.ed-banks::-webkit-scrollbar{display:none}}
-@media (max-width:640px){.ed-stick .ed-top{grid-template-columns:1fr 1fr!important;gap:8px 10px;padding:10px 14px}.ed-stick .ed-top .field:nth-child(2){grid-column:1/-1;order:3}.ed-stick .ed-top .field:nth-child(2) label{display:none}.ed-stick .ed-top .ed-base{min-height:0;padding:6px 10px;font-size:12px}.ed-head{padding:10px 14px}}
+@media (max-width:640px){.ed-stick .ed-top{grid-template-columns:1fr!important;gap:8px;padding:10px 14px}.ed-head{padding:10px 14px}}
+#ed{width:min(1000px,calc(100vw - 24px))}
+.ed-prod{display:flex;gap:2px;border:1px solid var(--line);border-radius:999px;padding:3px;min-height:44px;align-items:stretch}
+.ed-prod button{flex:1;border:0;background:none;color:var(--sub);border-radius:999px;padding:6px 10px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+.ed-prod button.on{background:var(--brand);color:#fff}
+.ed-tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+.ed-t{width:100%;min-width:0;border-collapse:collapse;font-size:13px}
+.ed-t th{background:var(--soft);color:var(--sub);font-weight:600;font-size:12px;text-align:left;padding:7px 8px;white-space:nowrap}
+.ed-t td{border-top:1px solid var(--line);padding:6px 8px;vertical-align:top;text-align:left}
+.ed-t tr.gs td{border-top:2px solid var(--line)}
+.ed-t .inp{min-height:38px;padding:0 8px}
+.ed-t td:nth-child(2) .inp{width:112px}
+.ed-t td:nth-child(4) .inp,.ed-t td:nth-child(5) .inp{width:92px}
+.ed-t input::placeholder{color:var(--faint);font-weight:400;font-size:12px}
+.ed-t .ty{font-weight:800;white-space:nowrap;padding-top:15px}
+.ed-t .tg{display:inline-block;min-width:38px;font-size:11.5px;font-weight:800}
+.tg.hf{color:#2563eb}.tg.hug{color:#0d9488}.tg.sgi{color:#d97706}
+.ed-pick{display:flex;gap:6px}.ed-pick .inp{flex:1;min-width:104px}
+.ed-auto{display:inline-block;padding-top:10px;font-size:12.5px;color:var(--muted);white-space:nowrap}.ed-auto b{color:var(--ink)}
+.ecalc{font-size:11.5px;color:var(--muted);margin-top:3px;white-space:nowrap;min-height:15px}.ecalc b{color:var(--ink)}.ecalc .st{color:#e5484d}.ecalc .chg{font-size:11px}
+.ed-t .ck{padding-top:14px}.ed-t .stopchk{margin-top:0}
+.ed-t tr.stopped .stopchk{color:#e5484d}
+.ed-t tr.stopped td:not(.ty):not(.ck):not(.mo){opacity:.4}
+.emore{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:6px;width:30px;height:30px;margin-top:4px;cursor:pointer}
+.emore.has{color:var(--ink);border-color:var(--ink)}
+.ed-t tr.ed-det td{border-top:0;background:var(--soft);padding:8px 8px 10px}
+.ed-detg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.ed-detg label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--sub);font-weight:500}
+.ed-bank .ed-prefs{margin-top:10px}
+.ed-bank{min-width:0}
+@media (max-width:640px){
+  .ed-tbl{border:0;overflow:visible}
+  .ed-t thead{display:none}
+  .ed-t,.ed-t tbody{display:block}
+  .ed-t tr.er{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px}
+  .ed-pick .inp{min-width:0}
+  .ed-t tr.er td{display:block;border:0;padding:0}
+  .ed-t tr.er td[data-l]::before{content:attr(data-l);display:block;font-size:11.5px;color:var(--muted);margin-bottom:3px}
+  .ed-t tr.er .ty,.ed-t tr.er .bs{grid-column:1/-1}
+  .ed-t tr.er .ty{padding-right:40px}
+  .ed-t tr.er .mo{position:absolute;top:6px;right:8px}
+  .ed-t tr.er .emore{margin-top:0}
+  .ed-t td .inp{width:auto!important}
+  .ed-t tr.ed-det{display:block}.ed-t tr.ed-det td{display:block;border-radius:0 0 8px 8px}
+  .ed-detg{grid-template-columns:1fr 1fr}
+}
 .ed-head{position:relative;z-index:1;background:var(--card);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .ed-head h2{margin:0;font-size:17px;font-weight:800}
 .ed-head span{font-size:13px;color:var(--ink);font-weight:600}
@@ -194,7 +239,6 @@ dialog::backdrop{background:#0006}
 .stopchk{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer}
 .stopchk input{width:16px;height:16px;margin:0;accent-color:#e5484d}
 .ed-bank.stopped .stopchk{color:#e5484d}
-.ed-bank.stopped .ed-calc{color:#e5484d;background:#e5484d14}
 .mx .sel{background:var(--weak)}
 .mx thead th.sel{background:var(--brand);color:#fff}
 .mx thead th.sel small{color:#ffffffcc}
@@ -427,15 +471,14 @@ body{padding-bottom:72px}
 <dialog id="ed">
   <div class="ed-stick">
   <div class="ed-head"><div><h2>✎ 금리 입력</h2><span id="edTitle"></span></div><button type="button" data-edclose aria-label="닫기">×</button></div>
-    <div class="ed-top" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-      <div class="field"><label for="edType">금리 유형</label><div class="inp"><select id="edType"></select></div></div>
-      <div class="field"><label>기준금리</label><div class="inp ed-base" id="edBaseInfo"></div></div>
-      <div class="field"><label for="edAsof">기준일</label><div class="inp"><input id="edAsof" type="date" style="text-align:left"></div></div>
+    <div class="ed-top" style="grid-template-columns:minmax(0,1fr) 200px">
+      <div class="field"><label>상품</label><div class="ed-prod" id="edProd" role="tablist" aria-label="상품 선택"><button type="button" role="tab" data-prod="mort">주택담보대출</button><button type="button" role="tab" data-prod="jeonse">전세자금대출</button></div></div>
+      <div class="field"><label for="edAsof">기준일 <small style="color:var(--muted);font-weight:400">금리가 바뀐 유형에만</small></label><div class="inp"><input id="edAsof" type="date" style="text-align:left"></div></div>
     </div>
     <div class="ed-banks" id="edBanks" role="tablist" aria-label="은행 선택"></div>
   </div>
   <div class="ed-body">
-    <p class="note-s" style="margin-bottom:12px"><b>가산금리</b>와 <b>우대금리 항목</b>만 넣으면 실질적용금리가 <b>기준금리 + 가산금리 − 우대금리 합계</b>로 자동 계산됩니다. 기준금리는 매일 자동으로 바뀌어 반영됩니다. 은행이 안내한 실질적용금리를 그대로 쓰려면 <b>실질적용금리</b> 칸에 직접 넣으세요(직접 입력이 우선).</p>
+    <p class="note-s" style="margin-bottom:12px"><b>가산금리</b>와 <b>우대금리 항목</b>만 넣으면 실질적용금리가 <b>기준금리 + 가산금리 − 우대금리 합계</b>로 자동 계산됩니다. 기준금리는 매일 자동으로 바뀌어 반영됩니다. 은행이 안내한 실질적용금리를 그대로 쓰려면 <b>실질적용금리</b> 칸에 직접 넣으세요(직접 입력이 우선). 칸에서 <b>Enter</b>를 누르면 아래 유형의 같은 칸으로 내려갑니다. 최저·최고·전월 금리는 각 줄의 <b>▸</b> 안에 있습니다.</p>
     <div id="edBody"></div>
     <datalist id="prefNames"></datalist>
   </div>
@@ -921,97 +964,126 @@ function today() { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTime
 const prefRow = (b, p = {}) => `<div class="prow${p.on === false ? ' off' : ''}${p.warn ? ' warn' : ''}"><div class="pchk"><label class="pon" title="체크하면 금리 계산에 적용"><input type="checkbox" data-pon="${b}" ${p.on === false ? '' : 'checked'}><span>적용</span></label><label class="pwarn" title="체크하면 분홍색으로 표시"><input type="checkbox" data-pwarn="${b}" ${p.warn ? 'checked' : ''}><span>주의</span></label></div><div class="inp"><input class="name" data-pn="${b}" value="${esc(p.name || '')}" placeholder="우대 항목 (예: 급여이체)" lang="ko" inputmode="text" list="prefNames" autocomplete="off"></div>
   <div class="inp"><input data-pr="${b}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(p.rate) ? p.rate : ''}" placeholder="0.00"><span class="u">%p</span></div>
   <button type="button" class="del" data-pdel aria-label="삭제">×</button></div>`;
-function edType() { return $('#edType').value; }
+const edKeys = () => keysFor(prodNow());
 // 우대 항목 이름 목록: 자주 쓰는 항목 + 지금까지 입력한 항목
 const PREF_PRESETS = ["급여이체", "신용카드 실적", "자동이체", "공과금 자동이체", "청약통장 보유", "적립식 예금", "주거래 고객", "모바일·비대면 신청", "전자계약", "신혼부부", "다자녀", "생애최초", "우수 신용", "아파트 관리비 이체", "연금 수령", "퇴직연금 가입"];
 function fillPrefNames() {
   const used = new Set(); for (const p in PREFS) for (const id in PREFS[p]) (PREFS[p][id] || []).forEach(x => x.name && used.add(x.name));
   $("#prefNames").innerHTML = [...new Set([...used, ...PREF_PRESETS])].map(n => `<option value="${esc(n)}"></option>`).join("");
 }
-function fillEditor(set, blankOnSample) {
-  fillPrefNames();
-  const t = edType(), fixed = TYPE[t].fixed;
-  $('#edTitle').textContent = `${PRODS[prodNow()]} · ${TYPE[t].label}`;
-  $('#edBaseInfo').innerHTML = fixed ? `${TYPE[t].baseName} <b>${pct(BASE[TYPE[t].base].rate)}</b> <span>(${BASE[TYPE[t].base].date} 기준 · 자동)</span>` : '<span>은행마다 아래에서 기준금리 종류와 변동주기를 고르세요</span>';
-  $('#edAsof').value = set.asof || today(); delete $('#edAsof').dataset.touched;
+// 은행 하나 = 표 한 개, 금리 유형 하나 = 한 줄 (자주 넣는 칸만 줄에, 나머지는 ▸ 안에)
+const DETF = [['base', '기준금리 직접', '%', '비우면 자동'], ['min', '최저 금리', '%', ''], ['max', '최고 금리', '%', ''], ['prev', '전월 실질적용금리', '%', '']];
+const GRPC = { 'HF보증': 'hf', 'HUG보증': 'hug', 'SGI보증': 'sgi' };
+const numIn = (b, t, k, val, ph = '', u = '%') => `<div class="inp"><input id="ed-${b}-${t}-${k}" data-b="${b}" data-t="${t}" data-k="${k}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(val) ? val : ''}" placeholder="${ph}"><span class="u">${u}</span></div>`;
+function typeRow(b, t, v, first) {
+  const T = TYPE[t], prod = prodNow(), pm = pmaxOf(prod, t, b);
   const opt = (val, cur, label) => `<option value="${val}" ${String(val) === String(cur) ? 'selected' : ''}>${label}</option>`;
+  const base = T.fixed ? `<span class="ed-auto">${T.baseName} <b>${pct(BASE[T.base].rate)}</b> · 자동</span>`
+    : `<div class="ed-pick"><div class="inp"><select id="ed-${b}-${t}-idx" data-sel="${b}" data-t="${t}" data-k="idx" aria-label="기준금리 종류">${Object.entries(IDX).map(([k, x]) => opt(k, v.idx || 'cofixNew', x.name)).join('')}</select></div>
+       <div class="inp"><select id="ed-${b}-${t}-term" data-sel="${b}" data-t="${t}" data-k="term" aria-label="변동주기">${TERMS.map(m => opt(m, v.term || 6, m + '개월')).join('')}</select></div></div>`;
+  const lbl = T.grp ? `<span class="tg ${GRPC[T.grp] || ''}">${esc(T.grp.replace('보증', ''))}</span>${esc(T.short)}` : esc(T.label);
+  const more = DETF.some(([k]) => has(v[k])) || has(pm);
+  return `<tr class="er${v.stop ? ' stopped' : ''}${first ? ' gs' : ''}" data-t="${t}">
+    <td class="ty">${lbl}</td>
+    <td data-l="실질적용금리">${numIn(b, t, 'rate', v.rate, '비우면 자동')}<div class="ecalc" id="calc-${b}-${t}"></div></td>
+    <td class="bs" data-l="기준금리 (종류 · 주기)">${base}</td>
+    <td data-l="가산금리">${numIn(b, t, 'spread', v.spread, '', '%p')}</td>
+    <td data-l="중도상환수수료">${numIn(b, t, 'fee', v.fee)}</td>
+    <td class="ck" data-l="취급중단"><label class="stopchk"><input type="checkbox" data-stop="${b}" data-t="${t}" ${v.stop ? 'checked' : ''}> 중단</label></td>
+    <td class="mo"><button type="button" class="emore${more ? ' has' : ''}" data-more aria-expanded="false" title="기준금리 직접 · 최저 · 최고 · 전월 · 최대적용가능 우대">▸</button></td></tr>
+  <tr class="ed-det" hidden><td colspan="7"><div class="ed-detg">${DETF.map(([k, l, u, ph]) => `<label>${l}${numIn(b, t, k, v[k], ph, u)}</label>`).join('')}
+    <label>최대적용가능 우대<div class="inp"><input data-pmax="${b}" data-t="${t}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(pm) ? pm : ''}"><span class="u">%p</span></div></label></div></td></tr>`;
+}
+function fillEditor(getSet = t => DATA[prodNow()][t], blankOnSample = true) {
+  fillPrefNames();
+  const prod = prodNow(), ks = edKeys(), sets = ks.map(getSet);
+  $('#edTitle').textContent = `${PRODS[prod]} · 유형 ${ks.length}개 한 번에`;
+  $$('#edProd [data-prod]').forEach(x => { const on = x.dataset.prod === prod; x.classList.toggle('on', on); x.setAttribute('aria-selected', on); });
+  $('#edAsof').value = sets.filter(s => !s.sample && s.asof).map(s => s.asof).sort().pop() || today(); delete $('#edAsof').dataset.touched;
   if (!BANKS.some(b => b.id === edBank)) edBank = BANKS[0].id;
+  const real = sets.find(s => !s.sample);
   $('#edBody').innerHTML = BANKS.map(b => {
-    const v = blankOnSample && set.sample ? {} : (set.banks[b.id] || {});
-    const pickRow = fixed ? '' : `<div class="field"><label for="ed-${b.id}-idx">기준금리 종류</label><div class="inp"><select id="ed-${b.id}-idx" data-sel="${b.id}" data-k="idx">${Object.entries(IDX).map(([k, x]) => opt(k, v.idx || 'cofixNew', x.name)).join('')}</select></div></div>
-      <div class="field"><label for="ed-${b.id}-term">변동주기</label><div class="inp"><select id="ed-${b.id}-term" data-sel="${b.id}" data-k="term">${TERMS.map(m => opt(m, v.term || 6, m + '개월')).join('')}</select></div></div>`;
-    return `<fieldset class="ed-bank ${v.stop ? 'stopped' : ''}" data-bank="${b.id}" ${b.id === edBank ? '' : 'hidden'}><legend><span class="dot">${esc(b.short)}</span>${esc(b.name)}${XBANKS.some(x => x.id === b.id) ? `<button type="button" class="bdel" data-bdel="${b.id}">은행 삭제</button>` : ''}</legend><div class="ed-grid">${pickRow}${
-      FIELDS.map(([k, lbl, u]) => `<div class="field"><label for="ed-${b.id}-${k}">${k === 'fee' ? `중도상환수수료 (${TYPE[t].label})` : lbl}</label>
-        <div class="inp"><input id="ed-${b.id}-${k}" data-b="${b.id}" data-k="${k}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(v[k]) ? v[k] : ''}" placeholder="${k === 'rate' ? '비우면 자동' : k === 'base' ? '비우면 자동' : ''}"><span class="u">${u}</span></div>${k === 'rate' ? `<label class="stopchk"><input type="checkbox" data-stop="${b.id}" ${v.stop ? 'checked' : ''}> 취급중단</label>` : ''}</div>`).join('')}
+    const rows = ks.map((t, i) => typeRow(b.id, t, blankOnSample && sets[i].sample ? {} : (sets[i].banks[b.id] || {}), i > 0 && TYPE[t].grp !== TYPE[ks[i - 1]].grp)).join('');
+    const pv = blankOnSample ? (real && real.banks[b.id]) : (sets[0].banks[b.id]);
+    return `<fieldset class="ed-bank" data-bank="${b.id}" ${b.id === edBank ? '' : 'hidden'}><legend><span class="dot">${esc(b.short)}</span>${esc(b.name)}${XBANKS.some(x => x.id === b.id) ? `<button type="button" class="bdel" data-bdel="${b.id}">은행 삭제</button>` : ''}</legend>
+      <div class="ed-tbl"><table class="ed-t"><thead><tr><th>유형</th><th>실질적용금리</th><th>기준금리 (종류 · 주기)</th><th>가산금리</th><th>중도상환수수료</th><th>취급중단</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
       <div class="ed-prefs"><div class="lab">우대금리 항목 <span>모든 금리유형 공통 · 고치면 바로 보관</span></div>
-        <div data-plist="${b.id}">${prefsOf(prodNow(), b.id, blankOnSample && set.sample ? null : v).map(p => prefRow(b.id, p)).join('')}</div>
-        <button type="button" class="addp" data-padd="${b.id}">+ 우대금리 항목 추가</button>
-        <div class="field pmax"><label for="pmax-${b.id}">최대적용가능금리 (${TYPE[t].label}) <span>이 유형만 · 은행별 우대금리에 표시</span></label><div class="inp"><input id="pmax-${b.id}" data-pmax="${b.id}" type="number" step="0.01" min="0" inputmode="decimal" value="${has(pmaxOf(prodNow(), t, b.id)) ? pmaxOf(prodNow(), t, b.id) : ''}"><span class="u">%p</span></div></div></div>
-      <div class="ed-calc" id="calc-${b.id}"></div>
-    </div></fieldset>`;
+        <div data-plist="${b.id}">${prefsOf(prod, b.id, pv || null).map(p => prefRow(b.id, p)).join('')}</div>
+        <button type="button" class="addp" data-padd="${b.id}">+ 우대금리 항목 추가</button></div>
+    </fieldset>`;
   }).join('');
   updCalc();
-  renderEdBanks();
 }
-function readBank(id) {
+// 한 칸(은행 × 유형) 읽기: 키 순서는 예전과 같게 (저장된 값과 비교할 때 순서가 같아야 함)
+function readCell(id, t) {
   const v = {};
-  $$(`#edBody input[data-b="${id}"]`).forEach(el => { if (el.value.trim() !== '') v[el.dataset.k] = parseFloat(el.value); });
-  $$(`#edBody select[data-sel="${id}"]`).forEach(el => v[el.dataset.k] = el.dataset.k === 'term' ? +el.value : el.value);
-  const st = $(`#edBody [data-stop="${id}"]`); if (st && st.checked) v.stop = true;
-  v.prefs = $$(`[data-plist="${id}"] .prow`).map(r => ({ name: r.querySelector('[data-pn]').value.trim(), rate: parseFloat(r.querySelector('[data-pr]').value), on: r.querySelector('[data-pon]').checked, warn: !!(r.querySelector('[data-pwarn]') || {}).checked }))
-    .filter(p => p.name).map(p => { const o = { name: p.name }; if (has(p.rate)) o.rate = p.rate; if (!p.on) o.on = false; if (p.warn) o.warn = true; return o; });
+  FIELDS.forEach(([k]) => { const el = $(`#ed-${id}-${t}-${k}`); if (el && el.value.trim() !== '') v[k] = parseFloat(el.value); });
+  ['idx', 'term'].forEach(k => { const el = $(`#ed-${id}-${t}-${k}`); if (el) v[k] = k === 'term' ? +el.value : el.value; });
+  const st = $(`#edBody [data-stop="${id}"][data-t="${t}"]`); if (st && st.checked) v.stop = true;
   return v;
+}
+function readPrefs(id) {
+  return $$(`[data-plist="${id}"] .prow`).map(r => ({ name: r.querySelector('[data-pn]').value.trim(), rate: parseFloat(r.querySelector('[data-pr]').value), on: r.querySelector('[data-pon]').checked, warn: !!(r.querySelector('[data-pwarn]') || {}).checked }))
+    .filter(p => p.name).map(p => { const o = { name: p.name }; if (has(p.rate)) o.rate = p.rate; if (!p.on) o.on = false; if (p.warn) o.warn = true; return o; });
 }
 // 우대금리 행을 읽어 은행 공통 목록에 바로 반영 (미리보기 모드는 이 기기에 즉시 저장)
 function syncPrefs(id) {
   const prod = prodNow();
-  PREFS[prod][id] = readBank(id).prefs;
+  PREFS[prod][id] = readPrefs(id);
   TOUCH.prefs.add(prod + '.' + id);
   if (!ONLINE) saveLocal(realData()); else dirty = true;
 }
 let dirty = false;
-// 지금 보고 있는 유형의 입력값을 메모리에 보관 (유형을 바꾸거나 닫아도 유지, 저장 시 함께 올라감)
-// 기준일: 날짜를 직접 고쳤으면 그 날짜, 아니면 금리가 바뀌었을 때 오늘 날짜 (안 바뀌었으면 원래 날짜)
-function asofFor(cur, banks) {
-  if ($('#edAsof').dataset.touched && $('#edAsof').value) return $('#edAsof').value;
+// 기준일: 금리가 바뀐 유형에만 붙임 — 날짜를 직접 고쳤으면 그 날짜, 아니면 오늘 (안 바뀐 유형은 원래 날짜)
+// force: 금리는 그대로 두고 날짜만 고친 경우 입력된 유형 전부에 그 날짜를 붙임
+function asofFor(cur, banks, force) {
+  const touched = $('#edAsof').dataset.touched && $('#edAsof').value;
   const same = cur && !cur.sample && JSON.stringify(cur.banks) === JSON.stringify(banks);
-  return same ? (cur.asof || today()) : today();
+  if (same) return force && touched ? touched : (cur.asof || today());
+  return touched || today();
+}
+// 화면의 모든 유형 입력값을 메모리에 보관 (상품을 바꾸거나 닫아도 유지, 저장 시 함께 올라감)
+function collect() {
+  const out = {};
+  edKeys().forEach(t => {
+    const banks = {}; let any = false;
+    BANKS.forEach(b => { const v = readCell(b.id, t); banks[b.id] = v; if (Object.keys(v).some(k => k !== 'idx' && k !== 'term')) any = true; });
+    if (any) out[t] = banks;
+  });
+  return out;
 }
 function stash() {
-  const prod = prodNow(), t = edType(); if (!t) return;
-  const banks = {}; let any = false;
-  BANKS.forEach(b => { const { prefs, ...v } = readBank(b.id); banks[b.id] = v; if (Object.keys(v).some(k => k !== 'idx' && k !== 'term')) any = true; });
-  const cur = DATA[prod][t];
-  if (any) { const asof = asofFor(cur, banks); if (!sameSet(cur, banks, asof)) TOUCH.types.add(prod + '.' + t); DATA[prod][t] = { sample: false, asof, banks }; dirty = true; }
+  const prod = prodNow(), all = collect();
+  for (const t in all) { const cur = DATA[prod][t], asof = asofFor(cur, all[t]); if (!sameSet(cur, all[t], asof)) { TOUCH.types.add(prod + '.' + t); DATA[prod][t] = { sample: false, asof, banks: all[t] }; dirty = true; } }
 }
 function updCalc() {
-  if ($('#edBanks').childElementCount) renderEdBanks();
-  const t = edType();
-  BANKS.forEach(b => {
-    const v = readBank(b.id), el = $('#calc-' + b.id), bs = baseOf(v, t), cap = pmaxOf(prodNow(), t, b.id), ps = prefSum(v, cap);
-    if (v.stop) el.innerHTML = '<b>취급중단</b> — 이 유형은 비교·1등·월 상환액에서 빠지고 표에 "취급중단"으로 표시됩니다';
-    else if (has(v.rate)) el.innerHTML = `실질적용금리 <b>${pct(v.rate)}</b> (직접 입력)`;
-    else if (has(v.spread)) el.innerHTML = `자동 계산: 기준(${baseName(v, t)}) ${bs.r.toFixed(2)} + 가산 ${v.spread.toFixed(2)} − 우대 ${ps.toFixed(2)}${has(cap) && prefRaw(v) > cap ? ` (최대적용가능 ${cap.toFixed(2)})` : ''} = <b>${pct(bs.r + v.spread - ps)}</b>`;
-    else el.innerHTML = '<span style="color:var(--muted)">실질적용금리 또는 가산금리를 넣으면 비교에 들어갑니다</span>';
-  });
+  const prod = prodNow();
+  BANKS.forEach(b => { const prefs = readPrefs(b.id); edKeys().forEach(t => {
+    const el = $(`#calc-${b.id}-${t}`); if (!el) return;
+    const v = { ...readCell(b.id, t), prefs }, cap = pmaxOf(prod, t, b.id);
+    el.removeAttribute('title');
+    if (v.stop) el.innerHTML = '<b class="st">취급중단</b>';
+    else if (has(v.rate)) el.innerHTML = has(v.prev) ? `전월 ${v.prev.toFixed(2)} ${chgTxt(v.rate - v.prev)}` : '직접 입력';
+    else if (has(v.spread)) { const bs = baseOf(v, t), ps = prefSum(v, cap); el.innerHTML = `자동 <b>${pct(bs.r + v.spread - ps)}</b>`; el.title = `기준(${baseName(v, t)}) ${bs.r.toFixed(2)} + 가산 ${v.spread.toFixed(2)} − 우대 ${ps.toFixed(2)}`; }
+    else el.innerHTML = '';
+  }); });
+  renderEdBanks();
 }
 function openEditor() {
-  edPrevType = curType;
   if (!isAdmin()) { openAdmin(); return; }
-  $('#edType').innerHTML = keysFor(prodNow()).map(k => `<option value="${k}" ${k === curType ? 'selected' : ''}>${TYPE[k].label}</option>`).join('');
-  const set = DATA[prodNow()][curType];
-  fillEditor(set, true);
-  $('#edMsg').textContent = set.sample ? '아직 실제 금리가 없습니다. 은행별로 입력하세요.' : '';
+  fillEditor();
+  const ks = edKeys();
+  $('#edMsg').textContent = ks.every(t => DATA[prodNow()][t].sample) ? '아직 실제 금리가 없습니다. 은행별로 입력하세요.' : '';
   $('#ed').showModal();
 }
-let edBank = 'kb', edPrevType = '';
+let edBank = 'kb';
 function bankState(id) {
-  const st = $(`#edBody [data-stop="${id}"]`); if (st && st.checked) return 'stop';
-  const v = $(`#edBody [data-bank="${id}"]`) ? readBank(id) : {};
-  return has(v.rate) || has(v.spread) ? 'ok' : '';
+  const ks = edKeys(); let ok = 0, stop = 0;
+  if ($(`#edBody [data-bank="${id}"]`)) ks.forEach(t => { const v = readCell(id, t); if (v.stop) stop++; else if (has(v.rate) || has(v.spread)) ok++; });
+  return { ok, stop, n: ks.length };
 }
 function renderEdBanks() {
-  $('#edBanks').innerHTML = BANKS.map(b => { const st = bankState(b.id); return `<button type="button" role="tab" aria-selected="${b.id === edBank}" class="ebk ${b.id === edBank ? 'on' : ''} ${st}" data-ebk="${b.id}"><span class="dot">${esc(b.short)}</span>${esc(b.name)}${st === 'ok' ? '<i title="금리 입력됨">●</i>' : st === 'stop' ? '<i title="취급중단">중단</i>' : ''}</button>`; }).join('') +
+  $('#edBanks').innerHTML = BANKS.map(b => { const s = bankState(b.id), cls = s.stop === s.n ? 'stop' : s.ok + s.stop ? 'ok' : ''; return `<button type="button" role="tab" aria-selected="${b.id === edBank}" class="ebk ${b.id === edBank ? 'on' : ''} ${cls}" data-ebk="${b.id}"><span class="dot">${esc(b.short)}</span>${esc(b.name)}${cls === 'stop' ? '<i title="모두 취급중단">중단</i>' : cls ? `<i title="입력한 유형 수">${s.ok + s.stop}/${s.n}</i>` : ''}</button>`; }).join('') +
     '<button type="button" class="ebk add" id="edBankAdd">+ 은행 추가</button>';
 }
 function pickBank(id) {
@@ -1024,6 +1096,13 @@ function pickBank(id) {
 $('#edBanks').addEventListener('click', e => {
   const b = e.target.closest('[data-ebk]'); if (b) { pickBank(b.dataset.ebk); return; }
   if (e.target.closest('#edBankAdd')) { $('#baName').value = ''; $('#baShort').value = ''; $('#baMsg').textContent = ''; $('#bankAdd').showModal(); $('#baName').focus(); }
+});
+// 상품 전환 (주택담보대출 ↔ 전세자금대출): 지금 입력값을 보관하고 바꿈
+$('#edProd').addEventListener('click', e => {
+  const b = e.target.closest('[data-prod]'); if (!b || b.dataset.prod === prodNow()) return;
+  stash();
+  const r = $(`input[name=prod][value="${b.dataset.prod}"]`); r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true }));
+  fillEditor(); $('#edMsg').textContent = edKeys().every(t => DATA[prodNow()][t].sample) ? '아직 실제 금리가 없습니다.' : '';
 });
 $$('[data-baclose]').forEach(b => b.onclick = () => $('#bankAdd').close());
 $('#baName').addEventListener('input', () => { if (!$('#baShort').dataset.touched) $('#baShort').value = $('#baName').value.replace(/은행$/, '').trim().slice(0, 2); });
@@ -1038,44 +1117,47 @@ $('#baOk').onclick = () => {
   edBank = id;
   if (!ONLINE) saveLocal(realData()); else dirty = true;
   $('#bankAdd').close(); delete $('#baShort').dataset.touched;
-  fillEditor(DATA[prodNow()][edType()], true); render();
+  fillEditor(); render();
   $('#edMsg').textContent = ONLINE ? `${name}을(를) 추가했습니다. 금리를 넣고 [저장]을 눌러야 사이트에 반영됩니다.` : `${name}을(를) 추가했습니다.`;
 };
 $('#edAsof').addEventListener('input', e => e.target.dataset.touched = '1');
-$('#edType').addEventListener('focus', () => edPrevType = edType());
-$('#edType').addEventListener('change', () => {
-  const now = edType(); if (edPrevType) { $('#edType').value = edPrevType; stash(); $('#edType').value = now; }
-  edPrevType = now; curType = now; const set = DATA[prodNow()][curType]; fillEditor(set, true); $('#edMsg').textContent = set.sample ? '아직 실제 금리가 없습니다.' : ''; render(); });
 $('#edBody').addEventListener('click', e => {
   const bd = e.target.closest('[data-bdel]');
-  if (bd) { const x = XBANKS.find(b => b.id === bd.dataset.bdel); if (x && confirm(`${x.name}을(를) 은행 목록에서 삭제할까요?`)) { stash(); setBanks(XBANKS.filter(b => b.id !== x.id)); TOUCH.banks = true; if (!ONLINE) saveLocal(realData()); else dirty = true; fillEditor(DATA[prodNow()][edType()], true); render(); $('#edMsg').textContent = ONLINE ? '삭제했습니다. [저장]을 눌러야 사이트에 반영됩니다.' : '삭제했습니다.'; } return; }
+  if (bd) { const x = XBANKS.find(b => b.id === bd.dataset.bdel); if (x && confirm(`${x.name}을(를) 은행 목록에서 삭제할까요?`)) { stash(); setBanks(XBANKS.filter(b => b.id !== x.id)); TOUCH.banks = true; if (!ONLINE) saveLocal(realData()); else dirty = true; fillEditor(); render(); $('#edMsg').textContent = ONLINE ? '삭제했습니다. [저장]을 눌러야 사이트에 반영됩니다.' : '삭제했습니다.'; } return; }
+  const mo = e.target.closest('[data-more]'); if (mo) { const d = mo.closest('tr').nextElementSibling; d.hidden = !d.hidden; mo.textContent = d.hidden ? '▸' : '▾'; mo.setAttribute('aria-expanded', !d.hidden); return; }
   const add = e.target.closest('[data-padd]'); if (add) { const b = add.dataset.padd; $(`[data-plist="${b}"]`).insertAdjacentHTML('beforeend', prefRow(b)); $(`[data-plist="${b}"] .prow:last-child input`).focus(); }
   const del = e.target.closest('[data-pdel]'); if (del) { const id = del.closest('[data-plist]').dataset.plist; del.closest('.prow').remove(); syncPrefs(id); updCalc(); }
 });
-$('#edBody').addEventListener('input', e => { if (e.target.dataset.pmax) { const id = e.target.dataset.pmax, x = parseFloat(e.target.value), m = PMAX[prodNow()], t = edType(); m[t] = m[t] || {}; if (has(x)) m[t][id] = x; else delete m[t][id]; TOUCH.pmax.add(prodNow() + '.' + t + '.' + id); if (!ONLINE) saveLocal(realData()); else dirty = true; return; } const pl = e.target.closest('[data-plist]'); if (pl) syncPrefs(pl.dataset.plist); updCalc(); });
-$('#edBody').addEventListener('change', e => { if (e.target.dataset.stop) { e.target.closest('.ed-bank').classList.toggle('stopped', e.target.checked); updCalc(); return; } if (e.target.dataset.pon) { e.target.closest('.prow').classList.toggle('off', !e.target.checked); syncPrefs(e.target.dataset.pon); updCalc(); return; } if (e.target.dataset.pwarn) { e.target.closest('.prow').classList.toggle('warn', e.target.checked); syncPrefs(e.target.dataset.pwarn); return; } if (e.target.dataset.sel) { const b = e.target.dataset.sel, base = $(`#ed-${b}-base`); base.placeholder = '비우면 자동'; updCalc(); } });
+// Enter: 아래 유형의 같은 칸으로 이동 (표를 보면서 세로로 입력)
+$('#edBody').addEventListener('keydown', e => {
+  const el = e.target; if (e.key !== 'Enter' || el.tagName !== 'INPUT' || !el.dataset.k || !el.dataset.t) return;
+  e.preventDefault();
+  const all = $$(`#edBody fieldset[data-bank="${el.dataset.b}"] input[data-k="${el.dataset.k}"]`).filter(x => !x.closest('tr[hidden]'));
+  const nx = all[all.indexOf(el) + 1]; if (nx) { nx.focus(); nx.select(); } else el.blur();
+});
+$('#edBody').addEventListener('input', e => { if (e.target.dataset.pmax) { const id = e.target.dataset.pmax, t = e.target.dataset.t, x = parseFloat(e.target.value), m = PMAX[prodNow()]; m[t] = m[t] || {}; if (has(x)) m[t][id] = x; else delete m[t][id]; TOUCH.pmax.add(prodNow() + '.' + t + '.' + id); if (!ONLINE) saveLocal(realData()); else dirty = true; updCalc(); return; } const pl = e.target.closest('[data-plist]'); if (pl) syncPrefs(pl.dataset.plist); updCalc(); });
+$('#edBody').addEventListener('change', e => { if (e.target.dataset.stop) { e.target.closest('tr').classList.toggle('stopped', e.target.checked); updCalc(); return; } if (e.target.dataset.pon) { e.target.closest('.prow').classList.toggle('off', !e.target.checked); syncPrefs(e.target.dataset.pon); updCalc(); return; } if (e.target.dataset.pwarn) { e.target.closest('.prow').classList.toggle('warn', e.target.checked); syncPrefs(e.target.dataset.pwarn); return; } if (e.target.dataset.sel) updCalc(); });
 $('#btnEdit').onclick = openEditor;
 $$('[data-edclose]').forEach(b => b.onclick = () => { stash(); $('#ed').close(); render(); if (dirty && ONLINE) toast('입력한 내용은 화면에 보관했습니다. 모두에게 보이려면 [저장]을 누르세요.'); });
-$('#edRoll').onclick = () => { const t = edType(); BANKS.forEach(b => { const e = eff(readBank(b.id), t, pmaxOf(prodNow(), t, b.id)); if (e) { $(`#ed-${b.id}-prev`).value = e.r.toFixed(2); const r = $(`#ed-${b.id}-rate`); if (r.value !== '') r.value = ''; } }); updCalc(); $('#edMsg').textContent = '지금 실질적용금리를 전월 칸으로 옮겼습니다. 이번 달 금리를 입력하고 저장하세요.'; };
+$('#edRoll').onclick = () => { const prod = prodNow(); BANKS.forEach(b => { const prefs = readPrefs(b.id); edKeys().forEach(t => { const e = eff({ ...readCell(b.id, t), prefs }, t, pmaxOf(prod, t, b.id)); if (e) { $(`#ed-${b.id}-${t}-prev`).value = e.r.toFixed(2); const r = $(`#ed-${b.id}-${t}-rate`); if (r.value !== '') r.value = ''; } }); }); updCalc(); $('#edMsg').textContent = '모든 은행·유형의 지금 실질적용금리를 전월 칸(▸ 안)으로 옮겼습니다. 이번 달 금리를 입력하고 저장하세요.'; };
 $('#edSample').onclick = () => {
-  const keep = {}; BANKS.forEach(b => keep[b.id] = readBank(b.id).prefs);
-  fillEditor(sampleSet(prodNow(), edType()), false);
+  const keep = {}; BANKS.forEach(b => keep[b.id] = readPrefs(b.id));
+  fillEditor(t => sampleSet(prodNow(), t), false);
   BANKS.forEach(b => { if (PREFS[prodNow()][b.id] !== undefined) $(`[data-plist="${b.id}"]`).innerHTML = keep[b.id].map(p => prefRow(b.id, p)).join(''); });
   updCalc(); $('#edMsg').textContent = '예시 금리를 채웠습니다(입력한 우대금리는 그대로). 실제 금리로 고친 뒤 저장하세요.';
 };
-$('#edClear').onclick = () => { $$('#edBody input[data-b]').forEach(el => el.value = ''); updCalc(); $('#edMsg').textContent = '금리 칸을 비웠습니다. 우대금리 항목·최대적용가능금리는 그대로입니다.'; };
+$('#edClear').onclick = () => { const b = BANKS.find(x => x.id === edBank); $$(`#edBody input[data-b="${edBank}"]`).forEach(el => el.value = ''); updCalc(); $('#edMsg').textContent = `${b ? b.name : ''} 금리 칸을 비웠습니다. 우대금리 항목·최대적용가능 우대는 그대로입니다.`; };
 $('#edSave').onclick = async () => {
-  const prod = prodNow(), t = edType(), banks = {};
-  BANKS.forEach(b => banks[b.id] = readBank(b.id));
-  if (!Object.values(banks).some(v => eff(v, t) || v.stop)) { $('#edMsg').textContent = '실질적용금리·가산금리를 입력하거나 취급중단을 한 곳 이상 체크해야 저장됩니다.'; return; }
-  const prevSet = DATA[prod][t];
-  BANKS.forEach(b => { PREFS[prod][b.id] = banks[b.id].prefs; delete banks[b.id].prefs; });
-  const asof = asofFor(prevSet, banks), key = prod + '.' + t, wasTouched = TOUCH.types.has(key);
-  if (!sameSet(prevSet, banks, asof)) TOUCH.types.add(key);
-  DATA[prod][t] = { sample: false, asof, banks };
+  const prod = prodNow(), all = collect(), prefs = {};
+  BANKS.forEach(b => prefs[b.id] = readPrefs(b.id));
+  if (!Object.keys(all).some(t => BANKS.some(b => eff({ ...all[t][b.id], prefs: prefs[b.id] }, t) || all[t][b.id].stop))) { $('#edMsg').textContent = '실질적용금리·가산금리를 입력하거나 취급중단을 한 곳 이상 체크해야 저장됩니다.'; return; }
+  BANKS.forEach(b => PREFS[prod][b.id] = prefs[b.id]);
+  const force = Object.keys(all).every(t => { const c = DATA[prod][t]; return c && !c.sample && JSON.stringify(c.banks) === JSON.stringify(all[t]); });
+  const prev = {}, wasTouched = new Set(TOUCH.types);
+  for (const t in all) { const cur = DATA[prod][t], asof = asofFor(cur, all[t], force); prev[t] = cur; if (!sameSet(cur, all[t], asof)) TOUCH.types.add(prod + '.' + t); DATA[prod][t] = { sample: false, asof, banks: all[t] }; }
   const btn = $('#edSave'); btn.disabled = true; btn.textContent = '저장 중…';
-  try { const msg = await publish(); dirty = false; curType = t; $('#ed').close(); render(); toast(msg); }
-  catch (err) { DATA[prod][t] = prevSet; if (!wasTouched) TOUCH.types.delete(key); $('#edMsg').textContent = err.message; }
+  try { const msg = await publish(); dirty = false; $('#ed').close(); render(); toast(msg); }
+  catch (err) { for (const t in prev) DATA[prod][t] = prev[t]; TOUCH.types.clear(); wasTouched.forEach(k => TOUCH.types.add(k)); $('#edMsg').textContent = err.message; }
   finally { btn.disabled = false; btn.textContent = '저장'; }
 };
 
