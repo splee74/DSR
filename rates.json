@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T01:25:10.408Z",
+ "updated": "2026-11-26T06:15:40.715Z",
  "data": {
   "mort": {
    "variable": {
@@ -486,6 +486,16 @@
      "name": "MCI 가입 가능 0.05% 가산",
      "on": false,
      "warn": true
+    },
+    {
+     "name": "2자녀",
+     "rate": 0.1,
+     "on": false
+    },
+    {
+     "name": "3자녀",
+     "rate": 0.2,
+     "on": false
     }
    ],
    "nh": [
