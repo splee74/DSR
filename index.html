@@ -233,7 +233,11 @@ dialog.notice{width:min(420px,calc(100vw - 32px))}
 .evict{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--soft)}
 .evict .chk{display:flex;margin:4px 0}
 .warn-note{color:var(--bad)}
-#pdfChrome{text-decoration:none;display:inline-flex;align-items:center}
+#pdfChrome{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+/* 결과 공유 창: 버튼이 많아 두 칸 격자로 (보이는 버튼만) */
+#pdfDlg .dlg-foot{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#pdfDlg .dlg-foot>[hidden]{display:none}
+#pdfDlg .dlg-foot .btn{padding:11px 10px;white-space:nowrap}
 .pdf-msg{margin:0;font-size:14.5px;line-height:1.7;word-break:keep-all}
 .pdf-msg b{word-break:break-all}
 .notice-lead{margin:0 0 12px;color:var(--sub);font-size:14px}
@@ -469,7 +473,7 @@ dialog{border-radius:10px}
   const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ID;
   document.head.appendChild(s);
   // 눌린 버튼 이름만 기록
-  const EV = { btnPdf: 'pdf_open', pdfShare: 'pdf_kakao', pdfSave: 'pdf_save', pdfPrint: 'pdf_print', pdfChrome: 'pdf_chrome',  btnFeedback: 'feedback_open', btnVoice: 'voice_open', vApply: 'voice_apply' };
+  const EV = { btnPdf: 'pdf_open', pdfShare: 'pdf_kakao', pdfSave: 'pdf_save', pdfPrint: 'pdf_print', imgShare: 'img_share', imgSave: 'img_save', smsShare: 'sms_share', pdfChrome: 'pdf_chrome',  btnFeedback: 'feedback_open', btnVoice: 'voice_open', vApply: 'voice_apply' };
   document.addEventListener('click', e => {
     const el = e.target.closest('button, a'); if (!el) return;
     if (EV[el.id]) return gtag('event', EV[el.id]);
@@ -1045,8 +1049,11 @@ dialog{border-radius:10px}
   <div class="dlg-foot">
     <button type="button" class="btn" id="csSave" hidden>고객관리에 저장</button>
     <button type="button" class="btn" id="pdfSave">PDF 저장</button>
+    <button type="button" class="btn" id="imgSave" hidden>이미지 저장</button>
     <a class="btn primary" id="pdfChrome" href="#" hidden>크롬에서 열기</a>
-    <button type="button" class="btn primary" id="pdfShare">카톡으로 공유</button>
+    <button type="button" class="btn primary" id="pdfShare">PDF로 카톡공유</button>
+    <button type="button" class="btn primary" id="imgShare" hidden>이미지로 공유</button>
+    <button type="button" class="btn primary" id="smsShare" hidden>문자로 공유</button>
     <button type="button" class="btn primary" id="pdfPrint" hidden>결과 인쇄</button>
   </div>
 </dialog>
@@ -1065,7 +1072,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v137';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v138';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -2308,6 +2315,7 @@ const PDF_CSS = `
 #results .kv{font-size:13px}#results .kv dt,#results .kv dd{padding:5px 0}
 #results .alert{margin-top:8px;padding:6px 12px;font-size:12.5px}
 #results .rp-foot{margin-top:14px;padding:8px 22px 10px;font-size:11.5px}#results .rp-foot b{font-size:12.5px}`;
+// 결과지를 한 번 찍어서 PDF(A4 한 장)와 이미지(JPG) 둘 다 만듦
 async function makePdf() {
   for (const u of PDF_LIBS) await loadScript(u);
   // 화면 모드와 상관없이 밝은 결과지, 휴대폰에서도 A4에 맞는 폭으로
@@ -2326,7 +2334,8 @@ async function makePdf() {
   const m = 10, iw = 210 - m * 2, ih = 297 - m * 2;
   const h = canvas.height * iw / canvas.width, k = Math.min(1, ih / h);   // 길면 한 장에 맞게 축소
   pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', m + iw * (1 - k) / 2, m, iw * k, h * k);
-  return pdf.output('blob');
+  const img = await new Promise(ok => canvas.toBlob(ok, 'image/jpeg', 0.9));
+  return { pdf: pdf.output('blob'), img };
 }
 // 파일 이름은 만들 때마다 다르게 (만든 시각 시분초 붙임): 이름이 같으면 휴대폰(다운로드 폴더·카카오톡)이
 // 앞서 저장한 같은 이름의 파일(이전 고객 결과지)을 대신 보내는 일이 있음
@@ -2338,58 +2347,93 @@ const pdfName = () => {
   let name = `${kind}_결과지_${who}_${$('#cdate').value || ''}_${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}`;
   if (name === lastPdfName.replace(/-\d+$/, '')) name += '-' + (+(lastPdfName.match(/-(\d+)$/)?.[1] || 1) + 1);
   lastPdfName = name;
-  return name + '.pdf';
+  return name;
 };
-let pdfFile = null;
+let pdfFile = null, imgFile = null;
 // 기기 구분: 삼성 인터넷은 PDF 파일 공유를 막음 · PC 카카오톡은 공유 목록에 없음
 const UA = navigator.userAgent;
 const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(UA) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
 const IS_SAMSUNG = /SamsungBrowser/.test(UA);
 // 삼성 인터넷에서 같은 주소를 크롬으로 여는 링크
 const chromeLink = () => `intent://${location.host}${location.pathname}?s=${b64u(JSON.stringify(snapState()))}#Intent;scheme=https;package=com.android.chrome;end`;
+const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
+const escH = x => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const canShareFile = f => { try { return !!(f && navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) { return false; } };
 $('#btnPdf').onclick = async () => {
   const d = $('#pdfDlg'), msg = $('#pdfMsg');
-  $('#pdfShare').hidden = !IS_MOBILE; $('#pdfPrint').hidden = IS_MOBILE; $('#pdfChrome').hidden = true; $('#pdfShare').disabled = $('#pdfSave').disabled = $('#pdfPrint').disabled = true;
-  msg.textContent = '결과지를 PDF로 만드는 중입니다…';
+  const B = ['#pdfShare', '#imgShare', '#smsShare', '#pdfSave', '#imgSave', '#pdfPrint'];
+  $('#pdfShare').hidden = $('#imgShare').hidden = $('#smsShare').hidden = !IS_MOBILE; $('#imgSave').hidden = IS_MOBILE;
+  $('#pdfPrint').hidden = IS_MOBILE; $('#pdfChrome').hidden = true;
+  B.forEach(id => $(id).disabled = true);
+  msg.textContent = '결과지를 PDF·이미지로 만드는 중입니다…';
   if (!d.open) d.showModal();
   try {
-    const blob = await makePdf();
-    pdfFile = new File([blob], pdfName(), { type: 'application/pdf' });
-    const can = IS_MOBILE && !IS_SAMSUNG && !!(navigator.canShare && navigator.canShare({ files: [pdfFile] }));
-    $('#pdfShare').hidden = !can; $('#pdfShare').disabled = false; $('#pdfSave').disabled = false; $('#pdfPrint').disabled = false;
+    const { pdf: blob, img } = await makePdf();
+    const base = pdfName();
+    pdfFile = new File([blob], base + '.pdf', { type: 'application/pdf' });
+    imgFile = img ? new File([img], base + '.jpg', { type: 'image/jpeg' }) : null;
+    const can = IS_MOBILE && !IS_SAMSUNG && canShareFile(pdfFile);
+    const canImg = IS_MOBILE && canShareFile(imgFile);   // 이미지는 삼성 인터넷에서도 공유 가능
+    $('#pdfShare').hidden = !can; $('#imgShare').hidden = !canImg; $('#smsShare').hidden = !IS_MOBILE;
+    $('#imgSave').hidden = !imgFile || canImg;
+    B.forEach(id => $(id).disabled = false);
     $('#pdfChrome').hidden = !IS_SAMSUNG; $('#pdfChrome').href = chromeLink();
-    $('#pdfSave').classList.toggle('primary', IS_MOBILE && !can && !IS_SAMSUNG);
+    $('#pdfSave').classList.toggle('primary', IS_MOBILE && !can && !canImg && !IS_SAMSUNG);
     const tip = IS_SAMSUNG
-      ? '<b>삼성 인터넷</b>은 PDF 파일을 카카오톡으로 넘기는 것을 막고 있습니다.<br>· <b>[크롬에서 열기]</b>를 누르면 입력한 내용 그대로 크롬에서 열리고 PDF 창이 바로 뜹니다<br>· <b>[PDF 저장]</b> 후 알림창(또는 내 파일 → 다운로드)에서 파일을 눌러 <b>공유 → 카카오톡</b>을 고르세요.'
+      ? '<b>삼성 인터넷</b>은 PDF 파일을 카카오톡으로 넘기는 것을 막고 있습니다.<br>· <b>[이미지로 공유]</b>는 바로 카카오톡·문자로 보낼 수 있습니다<br>· PDF는 <b>[크롬에서 열기]</b>를 누르면 입력한 내용 그대로 크롬에서 열리고 PDF 창이 바로 뜹니다<br>· 또는 <b>[PDF 저장]</b> 후 알림창(또는 내 파일 → 다운로드)에서 파일을 눌러 <b>공유 → 카카오톡</b>을 고르세요.'
       : !IS_MOBILE
-      ? '<b>[결과 인쇄]</b>를 누르면 바로 인쇄할 수 있습니다.<br>카카오톡으로 보내려면 <b>[PDF 저장]</b> 후 저장된 파일을 <b>카카오톡 PC 대화창에 끌어다 놓으세요</b>.'
-      : '';
-    msg.innerHTML = `<b>${pdfFile.name.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</b> (${Math.max(1, Math.round(blob.size / 1024))}KB)<br>` + (tip || (can
-      ? '<b>[카톡으로 공유]</b>를 누른 뒤 <b>카카오톡 → 나와의 채팅</b>(또는 고객 채팅방)을 고르세요.'
-      : '이 브라우저는 파일 공유를 지원하지 않습니다. <b>[PDF 저장]</b> 후 파일을 카카오톡으로 보내 주세요.'));
+      ? '<b>[결과 인쇄]</b>를 누르면 바로 인쇄할 수 있습니다.<br>카카오톡으로 보내려면 <b>[PDF 저장]</b>이나 <b>[이미지 저장]</b> 후 저장된 파일을 <b>카카오톡 PC 대화창에 끌어다 놓으세요</b>.'
+      : (can || canImg)
+      ? '· <b>[PDF로 카톡공유]</b>·<b>[이미지로 공유]</b>를 누른 뒤 <b>카카오톡 → 나와의 채팅</b>(또는 고객 채팅방)을 고르세요. 이미지는 공유 창에서 <b>메시지</b>를 고르면 사진 문자로 갑니다.<br>· <b>[문자로 공유]</b>는 결과 요약을 글자로 문자 앱에 넣어 줍니다.'
+      : '이 브라우저는 파일 공유를 지원하지 않습니다. <b>[PDF 저장]</b>·<b>[이미지 저장]</b> 후 파일을 카카오톡으로 보내 주세요.<br>· <b>[문자로 공유]</b>는 결과 요약을 글자로 문자 앱에 넣어 줍니다.';
+    msg.innerHTML = `<b>${escH(pdfFile.name)}</b> (${Math.max(1, Math.round(blob.size / 1024))}KB)` +
+      (imgFile ? `<br><b>${escH(imgFile.name)}</b> (${Math.max(1, Math.round(imgFile.size / 1024))}KB)` : '') + '<br>' + tip;
   } catch (err) {
     msg.textContent = 'PDF를 만들지 못했습니다. 인터넷 연결을 확인한 뒤 다시 눌러 주세요.';
   }
 };
-$('#pdfShare').onclick = async () => {
-  if (!pdfFile) return;
+// 파일 공유 (PDF·이미지 공통) · 실패하면 저장 안내
+async function shareFile(f, kind) {
+  if (!f) return;
   // 파일만 보냄 (제목·문구를 함께 넣으면 일부 안드로이드 앱에서 공유가 실패함)
-  try { await navigator.share({ files: [pdfFile] }); $('#pdfDlg').close(); }
+  try { await navigator.share({ files: [f] }); $('#pdfDlg').close(); }
   catch (err) {
     if (err.name === 'AbortError') return;   // 공유 창을 그냥 닫은 경우
     const ua = navigator.userAgent;
     const br = /SamsungBrowser/.test(ua) ? '삼성 인터넷' : /KAKAOTALK/.test(ua) ? '카카오톡 안 브라우저' : /Chrome/.test(ua) ? '크롬' : /Safari/.test(ua) ? '사파리' : '브라우저';
     const app = matchMedia('(display-mode: standalone)').matches ? ' · 설치한 앱' : '';
-    $('#pdfMsg').innerHTML = `공유하지 못했습니다. <b>[PDF 저장]</b>으로 내려받아 보내 주세요.<br><small style="color:var(--muted)">오류: ${err.name} · ${String(err.message || '').slice(0, 120)} · ${br}${app}</small>`;
+    if (kind === 'img') $('#imgSave').hidden = false;
+    $('#pdfMsg').innerHTML = `공유하지 못했습니다. <b>[${kind === 'img' ? '이미지' : 'PDF'} 저장]</b>으로 내려받아 보내 주세요.<br><small style="color:var(--muted)">오류: ${escH(err.name)} · ${escH(String(err.message || '').slice(0, 120))} · ${br}${app}</small>`;
   }
-};
-$('#pdfSave').onclick = () => {
-  if (!pdfFile) return;
-  const a = document.createElement('a'), url = URL.createObjectURL(pdfFile);
-  a.href = url; a.download = pdfFile.name; document.body.appendChild(a); a.click(); a.remove();
+}
+const saveFile = f => {
+  if (!f) return;
+  const a = document.createElement('a'), url = URL.createObjectURL(f);
+  a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 };
-// PC: 만든 PDF(A4 한 장)를 숨은 창에 띄워 바로 인쇄 · 안 되면 새 탭으로 열기
+$('#pdfShare').onclick = () => shareFile(pdfFile, 'pdf');
+$('#imgShare').onclick = () => shareFile(imgFile, 'img');
+$('#pdfSave').onclick = () => saveFile(pdfFile);
+$('#imgSave').onclick = () => saveFile(imgFile);
+// 문자로 공유: 결과 요약을 글자로 만들어 휴대폰 문자 앱을 엶 (sms: 주소에는 파일을 넣을 수 없음 → 사진은 [이미지로 공유] → 메시지)
+function smsText() {
+  const tabName = $(`.tabs button[data-tab="${tab}"]`)?.textContent.trim() || '대출';
+  const who = $('#custName').value.trim(), date = $('#cdate').value;
+  const lines = [`[${tabName} 상담 결과]`];
+  if (who || date) lines.push([who && who + ' 고객님', date].filter(Boolean).join(' · '));
+  const items = csItems();
+  const cond = items.filter(r => r[0] === '상담 조건');
+  if (cond.length) { lines.push('', '■ 상담 조건'); cond.forEach(r => lines.push(`- ${r[1]}: ${r[2]}`)); }
+  const res = items.filter(r => r[0] === '결과');
+  if (res.length) { lines.push('', '■ 결과'); res.forEach(r => lines.push(`- ${r[1]}: ${r[2]}`)); }
+  lines.push('', '※ 참고용 계산이며 실제 한도·금리는 은행 심사에 따라 달라질 수 있습니다.');
+  return lines.join('\n');
+}
+$('#smsShare').onclick = () => {
+  // 아이폰은 sms:&body= · 안드로이드는 sms:?body=
+  location.href = 'sms:' + (IS_IOS ? '&' : '?') + 'body=' + encodeURIComponent(smsText());
+};
 $('#pdfPrint').onclick = () => {
   if (!pdfFile) return;
   const url = URL.createObjectURL(pdfFile);
