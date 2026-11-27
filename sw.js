@@ -1,5 +1,5 @@
 // 오프라인 실행용 캐시. index.html 등을 수정하면 VERSION 값을 올려주세요.
-const VERSION = 'dsr-v146';
+const VERSION = 'dsr-v147';
 const FILES = ['./', './index.html', './policy.html', './bank.html', './rules.html', './idscan.html', './manifest.webmanifest', './icon-192.png', './logo-head.png', './icon-512.png', './apple-touch-icon.png', './splash2.jpg', './splash-bank2.jpg', './calc/', './calc/index.html', './calc/loan.html', './calc/prepay.html', './calc/rent.html', './calc/broker.html', './calc/saving.html', './calc/acqtax.html', './calc/salary.html', './calc/area.html', './calc/apply.html', './calc/date.html', './calc/img/all-128.webp', './calc/img/scan.webp', './calc/img/i01.webp', './calc/img/i02.webp', './calc/img/i03.webp', './calc/img/i04.webp', './calc/img/i05.webp', './calc/img/i06.webp', './calc/img/i07.webp', './calc/img/i08.webp', './calc/img/i09.webp', './calc/img/i10.webp'];
 
 self.addEventListener('install', e => {

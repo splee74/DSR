@@ -452,6 +452,7 @@ dialog{border-radius:10px}
 #splash .sp-url{position:relative;padding:.4em 1.6em;border-radius:999px;background:#fff;color:#00873c;border:2px solid #03c75a;box-shadow:0 4px 14px #0002;
   font-size:min(4.6vw,22px);font-weight:800;letter-spacing:0;white-space:nowrap}
 #splash.out{opacity:0;pointer-events:none}
+#splash.hid{display:none}
 @media print{
   #splash{display:none!important}
   .mbar{display:none!important}
@@ -518,35 +519,55 @@ dialog{border-radius:10px}
 <script>
 (() => {
   const el = document.getElementById('splash');
-  let skip = false;   // 같은 창에서 은행금리비교 등을 갔다 돌아올 때 · 크롬으로 넘겨 받은 경우는 생략
-  // ?home : 계산기 모음에서 [처음으로]를 누르고 온 경우 → 시작 화면을 다시 보여 줌
-  const HOME = /[?&]home\b/.test(location.search);
-  try { skip = !HOME && (!!sessionStorage.getItem('splashSeen') || /[?&]s=/.test(location.search)); sessionStorage.setItem('splashSeen', '1'); } catch (e) {}
-  if (skip) { el.remove(); return; }
-  let gone = false;
+  // 시작 화면은 지우지 않고 숨겨 둠 → 계산기에서 휴대폰 [뒤로]를 누르면 다시 보여 줌
+  // 뒤로 가기 기록: [시작 화면(v:splash)] → [계산기(v:calc)]  (주소는 같음)
+  const st = () => (history.state && history.state.v) || '';
+  const HOME = /[?&]home\b/.test(location.search);   // [처음으로]·[돌아가기]로 온 경우
+  let seen = false;
+  try { seen = !!sessionStorage.getItem('splashSeen') || /[?&]s=/.test(location.search); sessionStorage.setItem('splashSeen', '1'); } catch (e) {}
+  const showAtLoad = HOME || !seen || st() === 'splash';
+  let gone = false, first = true;
   // 주소에서 ?home 지우기 (새로고침 때 시작 화면이 또 뜨지 않게)
-  const clearHome = () => { if (HOME) try { history.replaceState(null, '', location.pathname + location.search.replace(/[?&]home\b/, '').replace(/^&/, '?') + location.hash); } catch (e) {} };
-  window.addEventListener('pageshow', e => { if (e.persisted && el.isConnected) { gone = false; el.classList.remove('out'); } });
+  const cleanUrl = () => location.pathname + location.search.replace(/[?&]home\b/, '').replace(/^&/, '?') + location.hash;
+  // 계산기 화면 앞에 시작 화면 기록 한 칸 두기
+  const markCalc = () => {
+    if (st() === 'calc') return;
+    try { history.replaceState({ v: 'splash' }, '', cleanUrl()); history.pushState({ v: 'calc' }, '', cleanUrl()); } catch (e) {}
+  };
+  const show = () => {
+    gone = false; el.classList.remove('hid', 'out');
+    document.querySelectorAll('dialog[open]').forEach(d => { try { d.close(); } catch (e) {} });
+    window.scrollTo(0, 0);
+  };
+  const hide = (fade) => {
+    gone = true;
+    const done = () => { el.classList.add('hid'); if (first) { first = false; document.dispatchEvent(new Event('splashdone')); } };
+    if (fade) { el.classList.add('out'); setTimeout(done, 350); } else done();
+  };
+  if (showAtLoad) { if (st() !== 'splash') try { history.replaceState({ v: 'splash' }, '', location.href); } catch (e) {} }
+  else { el.classList.add('hid'); gone = true; first = false; markCalc(); }
+  // 휴대폰 [뒤로]·[앞으로]
+  window.addEventListener('popstate', () => { if (st() === 'splash') show(); else if (!gone) hide(false); });
+  // 뒤로 가기로 페이지가 그대로 되살아난 경우(bfcache): 시작 화면을 다시 누를 수 있게
+  window.addEventListener('pageshow', e => { if (e.persisted && st() !== 'calc') show(); });
   el.addEventListener('click', e => {
     // 계산기 아이콘: 뒤로 가기로 돌아오면 시작 화면이 다시 보이게 지금 주소를 ?home 으로 바꿔 둔 뒤 이동
     const ic = e.target.closest('.sp-ic');
     if (ic) {
       if (window.gtag) gtag('event', 'splash_pick', { to: 'calc_' + ic.dataset.calc });
-      try { history.replaceState(null, '', location.pathname + '?home'); } catch (e) {}
+      try { history.replaceState({ v: 'splash' }, '', location.pathname + '?home'); } catch (e) {}
       return;
     }
     const card = e.target.closest('.sp-card'); if (!card || gone) return;
     if (window.gtag) gtag('event', 'splash_pick', { to: card.dataset.go });
-    if (card.dataset.go === 'bank') {   // 여기서는 gone 을 켜지 않음 (돌아왔을 때 카드가 안 눌리던 문제)   // 은행금리비교로 · [돌아가기]/뒤로 가기로 오면 시작 화면이 다시 보이게
-      try { history.replaceState(null, '', location.pathname + '?home'); } catch (e) {}
+    if (card.dataset.go === 'bank') {   // 은행금리비교로 · [돌아가기]/뒤로 가기로 오면 시작 화면이 다시 보이게
+      try { history.replaceState({ v: 'splash' }, '', location.pathname + '?home'); } catch (e) {}
       location.href = 'bank.html'; return;
     }
-    gone = true;
-    clearHome();
     // DSR 계산기 → 주택구입자금 탭
+    markCalc();
     document.querySelector('.tabs button[data-tab="mort"]')?.click();
-    el.classList.add('out');
-    setTimeout(() => { el.remove(); document.dispatchEvent(new Event('splashdone')); }, 350);
+    hide(true);
   });
 })();
 </script>
@@ -1108,7 +1129,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v146';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v147';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -2246,7 +2267,7 @@ const DRAFT_KEY = 'dsrDraft';
 const URLQ = new URLSearchParams(location.search), FROM_CS = URLQ.get('from') === 'cs';
 { const q = URLQ.get('s');
   if (q) { try { restoreState(JSON.parse(unb64u(q))); RESTORED = true; } catch (e) {} }
-  if (q || URLQ.has('cspro')) history.replaceState(null, '', location.pathname);
+  if (q || URLQ.has('cspro')) history.replaceState(history.state, '', location.pathname);
   // 같은 창에서 은행금리비교·규정집 등 다른 페이지에 갔다 돌아와도 입력 내용 유지
   // (sessionStorage: 이 창(탭)을 닫으면 지워짐 · 다른 사람 기기에 고객 정보가 남지 않도록)
   else { try { const d = sessionStorage.getItem(DRAFT_KEY); if (d) restoreState(JSON.parse(d)); } catch (e) {} } }
@@ -2290,7 +2311,7 @@ function renderNotice(n) {
     if (seen || !NOTICE.show || (NOTICE.items && !NOTICE.items.length)) return;
     setTimeout(() => { if (!document.querySelector('dialog[open]')) d.showModal(); }, 300);
   });
-  if (!RESTORED) { if (document.getElementById('splash')) document.addEventListener('splashdone', openNotice, { once: true }); else openNotice(); }
+  if (!RESTORED) { const sp = document.getElementById('splash'); if (sp && !sp.classList.contains('hid')) document.addEventListener('splashdone', openNotice, { once: true }); else openNotice(); }
 })();
 
 /* 공지 수정 (관리자 기기만 📢 버튼이 보임) */

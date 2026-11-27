@@ -31,13 +31,14 @@ p.foot{font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.7}
 .home{margin-left:auto;display:inline-flex;align-items:center;gap:2px;padding:7px 12px 7px 8px;border-radius:999px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
 .home:hover{background:var(--brand-dark,#02b351)}
 .home+.badge{margin-left:0}
-/* 시작 화면과 같은 아이콘 · 5개씩 두 줄 */
-.icons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(8px,2.4vw,16px);max-width:640px;margin:0 auto}
-.ic-tile{display:block;border-radius:12%/9%;box-shadow:0 3px 10px #0b5d2e2e;transition:transform .15s ease;-webkit-tap-highlight-color:transparent}
-.ic-tile img{display:block;width:100%;height:auto;aspect-ratio:220/288}
-.ic-tile:hover{transform:translateY(-3px)}
-.ic-tile:active{transform:scale(.95)}
-.ic-tile:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+/* 시작 화면과 같은 아이콘 · 가로 2개씩 5줄 · 아래에 짧은 설명 */
+.icons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px clamp(12px,4vw,24px);max-width:420px;margin:0 auto}
+.ic-tile{display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
+.ic-tile img{display:block;width:100%;height:auto;aspect-ratio:220/288;border-radius:12%/9%;box-shadow:0 3px 10px #0b5d2e2e;transition:transform .15s ease}
+.ic-tile small{font-size:13px;line-height:1.45;color:var(--sub);text-align:center;word-break:keep-all}
+.ic-tile:hover img{transform:translateY(-3px)}
+.ic-tile:active img{transform:scale(.96)}
+.ic-tile:focus-visible{outline:3px solid var(--brand);outline-offset:4px;border-radius:12px}
 </style>
 </head>
 <body>
@@ -48,16 +49,16 @@ p.foot{font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.7}
 </div></header>
 <main>
   <div class="icons">
-    <a class="ic-tile" href="loan.html" aria-label="대출이자 계산기"><img src="img/i01.webp" alt="" width="220" height="288" decoding="async"></a>
-    <a class="ic-tile" href="prepay.html" aria-label="중도상환수수료 계산기"><img src="img/i02.webp" alt="" width="220" height="288" decoding="async"></a>
-    <a class="ic-tile" href="rent.html" aria-label="전월세 전환 계산기"><img src="img/i03.webp" alt="" width="220" height="288" decoding="async"></a>
-    <a class="ic-tile" href="broker.html" aria-label="중개보수 계산기"><img src="img/i04.webp" alt="" width="220" height="288" decoding="async"></a>
-    <a class="ic-tile" href="saving.html" aria-label="예·적금 이자 계산기"><img src="img/i05.webp" alt="" width="220" height="288" decoding="async"></a>
-    <a class="ic-tile" href="acqtax.html" aria-label="취득세 계산기"><img src="img/i06.webp" alt="" width="220" height="288" decoding="async"></a>
-    <a class="ic-tile" href="salary.html" aria-label="연봉 실수령액 계산기"><img src="img/i07.webp" alt="" width="220" height="288" decoding="async"></a>
-    <a class="ic-tile" href="area.html" aria-label="평수 변환 계산기"><img src="img/i08.webp" alt="" width="220" height="288" decoding="async"></a>
-    <a class="ic-tile" href="apply.html" aria-label="청약 가점 계산기"><img src="img/i09.webp" alt="" width="220" height="288" decoding="async"></a>
-    <a class="ic-tile" href="date.html" aria-label="날짜 계산 계산기"><img src="img/i10.webp" alt="" width="220" height="288" decoding="async"></a>
+    <a class="ic-tile" href="loan.html" aria-label="대출이자 계산기 · 월 상환액 · 총이자 · 상환 스케줄"><img src="img/i01.webp" alt="" width="220" height="288" decoding="async"><small>월 상환액 · 총이자 · 상환 스케줄</small></a>
+    <a class="ic-tile" href="prepay.html" aria-label="중도상환수수료 계산기 · 수수료 · 갈아타기 이득 비교"><img src="img/i02.webp" alt="" width="220" height="288" decoding="async"><small>수수료 · 갈아타기 이득 비교</small></a>
+    <a class="ic-tile" href="rent.html" aria-label="전월세 전환 계산기 · 전세↔월세 · 보증금 조정 · 전환율"><img src="img/i03.webp" alt="" width="220" height="288" decoding="async"><small>전세↔월세 · 보증금 조정 · 전환율</small></a>
+    <a class="ic-tile" href="broker.html" aria-label="중개보수 계산기 · 부동산 복비 · 법정 상한 요율"><img src="img/i04.webp" alt="" width="220" height="288" decoding="async"><small>부동산 복비 · 법정 상한 요율</small></a>
+    <a class="ic-tile" href="saving.html" aria-label="예·적금 이자 계산기 · 세후 이자 · 만기 수령액 · 목표 금액"><img src="img/i05.webp" alt="" width="220" height="288" decoding="async"><small>세후 이자 · 만기 수령액 · 목표 금액</small></a>
+    <a class="ic-tile" href="acqtax.html" aria-label="취득세 계산기 · 주택 매매 · 다주택 중과 · 생애최초"><img src="img/i06.webp" alt="" width="220" height="288" decoding="async"><small>주택 매매 · 다주택 중과 · 생애최초</small></a>
+    <a class="ic-tile" href="salary.html" aria-label="연봉 실수령액 계산기 · 4대보험 · 소득세 · 월 실수령"><img src="img/i07.webp" alt="" width="220" height="288" decoding="async"><small>4대보험 · 소득세 · 월 실수령</small></a>
+    <a class="ic-tile" href="area.html" aria-label="평수 변환 계산기 · ㎡ ↔ 평 · 전용 ↔ 공급평형"><img src="img/i08.webp" alt="" width="220" height="288" decoding="async"><small>㎡ ↔ 평 · 전용 ↔ 공급평형</small></a>
+    <a class="ic-tile" href="apply.html" aria-label="청약 가점 계산기 · 무주택 · 부양가족 · 통장 (84점)"><img src="img/i09.webp" alt="" width="220" height="288" decoding="async"><small>무주택 · 부양가족 · 통장 (84점)</small></a>
+    <a class="ic-tile" href="date.html" aria-label="날짜 계산 계산기 · D-day · 만 나이 · 임대차 만기"><img src="img/i10.webp" alt="" width="220" height="288" decoding="async"><small>D-day · 만 나이 · 임대차 만기</small></a>
   </div>
   
 </main>
