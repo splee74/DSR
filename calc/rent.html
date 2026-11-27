@@ -200,7 +200,7 @@ tr.best td:last-child::after{content:" 최소";font-size:11px;color:var(--brand-
 
 <script>
 // 한국은행 기준금리 기본값 (화면에서 고칠 수 있음) · 바뀌면 이 값만 고치면 됨
-const BOK_RATE = 3.00;
+const BOK_RATE = 3.25;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const num = v => +String(v || '').replace(/[^\d.]/g, '') || 0;
 const won = v => Math.round(v).toLocaleString('ko-KR') + '원';
