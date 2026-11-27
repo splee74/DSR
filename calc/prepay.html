@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#03c75a">
+<link rel="icon" type="image/png" href="../icon-192.png?v=2">
+<title>중도상환수수료 계산기</title>
+<!-- 미리보기: 계산기 모음 2번 · 아직 앱(index.html)에는 연결하지 않음 -->
+<style>
+:root{
+  --brand:#03c75a;--brand-dark:#02b351;--brand-ink:#008a3e;--brand-weak:#eafaf1;--brand-line:#b8ebcd;
+  --bg:#f5f6f7;--card:#fff;--line:#e3e5e8;--soft:#f5f6f7;--text:#1e1e23;--sub:#4e5258;--muted:#8b8f96;
+  --bad:#ea3d34;--badbg:#ffefee;--surface:#fff;--line-strong:#d4d5d9;--faint:#b4b6bc;--header:#fffffff0;--header-solid:#fff;
+  --bar-p:#03c75a;--bar-i:#ffb21e;--shadow:none;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.55;letter-spacing:-.2px;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;letter-spacing:inherit}
+.top{position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none}
+.top h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.4px}
+.top h1 span{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:-2px}
+.badge{margin-left:auto;font-size:12px;font-weight:600;color:var(--brand-ink);background:var(--brand-weak);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:20px;max-width:1100px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left,0px)) 40px}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:14px;padding-top:14px}}
+.card{background:var(--card);border-radius:20px;padding:22px;margin-bottom:14px;box-shadow:var(--shadow)}
+@media (max-width:560px){.card{padding:18px}}
+.card h2{margin:0 0 16px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.sticky{position:sticky;top:76px;align-self:start}
+@media (max-width:900px){.sticky{position:static}}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field>label,.flabel{font-size:13px;font-weight:500;color:var(--sub)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.inp{display:flex;align-items:center;border:1.5px solid transparent;border-radius:12px;background:var(--soft);padding:0 14px;min-height:48px;transition:.15s}
+.inp input{border:0;outline:0;flex:1;min-width:0;padding:10px 0;font:inherit;font-weight:600;background:transparent;text-align:right;color:var(--text);font-size:16px}
+.inp input::placeholder{color:var(--faint);font-weight:400;font-size:14px}
+.inp .u{color:var(--muted);font-size:13px;margin-left:6px;white-space:nowrap}
+.inp:focus-within{border-color:var(--brand-ink);background:var(--surface)}
+.hint{font-size:12px;color:var(--brand-ink);font-weight:500;text-align:right;min-height:18px;margin-top:-2px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.quick button{border:1px solid var(--line);background:var(--surface);color:var(--sub);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600}
+.quick button:hover{border-color:var(--brand-ink);color:var(--brand-ink)}
+.seg{display:flex;gap:6px}
+.seg label{flex:1 1 0;position:relative;min-width:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;text-align:center;padding:10px 4px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-weight:600;font-size:14px;line-height:1.3;color:var(--sub);transition:.15s}
+.seg span small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:2px}
+.seg input:checked+span{border-color:var(--brand-ink);background:var(--brand-weak);color:var(--brand-ink)}
+.seg input:checked+span small{color:var(--brand-ink)}
+.seg input:focus-visible+span{box-shadow:0 0 0 3px #03c75a44}
+.seg.sm span{padding:7px 4px;font-size:13px}
+.note{font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:12px;padding:10px 14px;line-height:1.7}
+/* 결과 */
+.hero{background:var(--brand-weak);border-radius:16px;padding:18px 18px 16px}
+.hero .k{font-size:13px;color:var(--brand-ink);font-weight:600}
+.hero .v{font-size:32px;font-weight:800;letter-spacing:-1px;margin:2px 0 0;color:var(--text)}
+.hero .v small{font-size:16px;font-weight:600;margin-left:2px}
+.hero .s{font-size:13px;color:var(--sub);margin-top:2px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+@media (max-width:420px){.kpis{grid-template-columns:1fr 1fr}.kpis>div:last-child{grid-column:1/-1}}
+.kpis>div{background:var(--soft);border-radius:14px;padding:12px 14px}
+.kpis .k{font-size:12px;color:var(--muted);font-weight:500}
+.kpis .v{font-size:17px;font-weight:700;margin-top:2px;word-break:keep-all}
+.bar{display:flex;height:12px;border-radius:999px;overflow:hidden;margin:16px 0 6px;background:var(--soft)}
+.bar i{display:block;height:100%}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0;background:var(--c)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12.5px;color:var(--muted);font-weight:500}
+th:first-child,td:first-child{text-align:left}
+tr.on td{color:var(--brand-ink);font-weight:700}
+tr.best td:last-child::after{content:" 최소";font-size:11px;color:var(--brand-ink);font-weight:700}
+.tw{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.sched-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.sched-head h2{margin:0}
+.sched-head .seg{width:150px}
+.sched{max-height:460px;overflow:auto}
+.sched thead th{position:sticky;top:0;background:var(--card)}
+.more{width:100%;margin-top:10px;border:1.5px dashed var(--brand-line);background:var(--brand-weak);color:var(--brand-ink);border-radius:12px;padding:10px;font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:30px 0;font-size:14px}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.7}
+.good{color:var(--brand-ink)}.badc{color:var(--bad)}
+.hero.bad{background:var(--badbg)}.hero.bad .k{color:var(--bad)}
+.dates{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.inp input[type=date]{text-align:left;font-size:15px}
+.seg.wrap{flex-wrap:wrap}.seg.wrap label{flex:1 1 60px}
+.line{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.line:last-child{border-bottom:0}
+.line span{color:var(--sub)}.line b{font-weight:700;text-align:right}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;user-select:none}
+.chk input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line-strong);background:var(--surface);margin:0;display:grid;place-items:center;cursor:pointer;flex:none}
+.chk input:checked{background:var(--brand);border-color:var(--brand-ink)}
+.chk input:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.sub-h{font-size:13px;font-weight:700;color:var(--sub);margin:4px 0 10px}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="logo">₩</div>
+  <h1>중도상환수수료 계산기<span>수수료 · 갈아타기(대환) 이득 비교</span></h1>
+  <div class="badge">미리보기</div>
+</div></header>
+
+<main class="layout">
+  <section>
+    <div class="card">
+      <h2>중도상환 조건</h2>
+      <div class="field">
+        <label for="amt">갚을 금액 (중도상환 금액)</label>
+        <div class="inp"><input id="amt" inputmode="numeric" placeholder="예: 10,000" autocomplete="off"><span class="u">만원</span></div>
+        <div class="hint" id="amtHint"></div>
+      </div>
+      <div class="field">
+        <label for="fee">중도상환수수료율</label>
+        <div class="inp"><input id="fee" inputmode="decimal" placeholder="예: 0.6" autocomplete="off"><span class="u">%</span></div>
+        <div class="quick" id="feeQuick">
+          <button type="button" data-v="0.5">0.5%</button><button type="button" data-v="0.6">0.6%</button><button type="button" data-v="0.7">0.7%</button>
+          <button type="button" data-v="1.2">1.2%</button><button type="button" data-v="1.4">1.4%</button>
+        </div>
+      </div>
+      <div class="dates">
+        <div class="field">
+          <label for="d0">대출 받은 날</label>
+          <div class="inp"><input id="d0" type="date"></div>
+        </div>
+        <div class="field">
+          <label for="d1">갚을 날</label>
+          <div class="inp"><input id="d1" type="date"></div>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <span class="flabel">수수료 부과 기간 <small style="color:var(--muted)">(이 기간이 지나면 수수료 없음)</small></span>
+        <div class="seg sm wrap" id="per">
+          <label><input type="radio" name="per" value="1"><span>1년</span></label>
+          <label><input type="radio" name="per" value="2"><span>2년</span></label>
+          <label><input type="radio" name="per" value="3" checked><span>3년</span></label>
+          <label><input type="radio" name="per" value="5"><span>5년</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>갈아타기(대환) 비교 <small style="font-size:12.5px;color:var(--muted);font-weight:500">· 선택</small></h2>
+      <label class="chk" style="margin-bottom:14px"><input type="checkbox" id="useSw" checked>새 대출로 갈아탈 때 이득 계산</label>
+      <div id="sw">
+        <div class="row2">
+          <div class="field">
+            <label for="r0">지금 금리</label>
+            <div class="inp"><input id="r0" inputmode="decimal" placeholder="5.0" autocomplete="off"><span class="u">%</span></div>
+          </div>
+          <div class="field">
+            <label for="r1">새 대출 금리</label>
+            <div class="inp"><input id="r1" inputmode="decimal" placeholder="4.0" autocomplete="off"><span class="u">%</span></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="left">남은 대출기간</label>
+          <div class="inp"><input id="left" inputmode="numeric" placeholder="25" autocomplete="off"><span class="u">년</span></div>
+        </div>
+        <div class="field">
+          <label for="etc">새 대출 부대비용 <small style="color:var(--muted)">(근저당 설정비·감정료 등 · 인지세 제외)</small></label>
+          <div class="inp"><input id="etc" inputmode="numeric" placeholder="0" autocomplete="off"><span class="u">만원</span></div>
+        </div>
+        <label class="chk"><input type="checkbox" id="stamp" checked>인지세 자동 포함 (본인 부담 50%)</label>
+        <div class="hint" id="stampHint" style="text-align:left;margin-top:6px"></div>
+      </div>
+    </div>
+    <div class="note">
+      · 계산식: <b>갚을 금액 × 수수료율 × (부과 기간 중 남은 날수 ÷ 부과 기간 전체 날수)</b><br>
+      · 2025년 1월부터 은행 중도상환수수료가 실제 비용 수준으로 낮아졌습니다(대출마다 다름). 정확한 율은 대출 약정서나 은행 앱에서 확인하세요.<br>
+      · 해마다 원금의 10% 등 <b>수수료 없이 갚을 수 있는 한도</b>가 있는 대출도 있습니다. 그 금액은 빼고 넣으세요.
+    </div>
+  </section>
+
+  <section class="sticky">
+    <div class="card">
+      <div class="empty" id="empty">갚을 금액 · 수수료율 · 날짜를 넣으면 바로 계산됩니다.</div>
+      <div id="res" hidden>
+        <div class="hero">
+          <div class="k">중도상환수수료</div>
+          <div class="v" id="feeV"></div>
+          <div class="s" id="feeS"></div>
+        </div>
+        <div class="bar" title="수수료 부과 기간 중 지난 기간"><i id="barP" style="background:var(--bar-p)"></i><i id="barI" style="background:var(--line-strong)"></i></div>
+        <div class="legend"><span style="--c:var(--bar-p)" id="lgA"></span><span style="--c:var(--line-strong)" id="lgB"></span></div>
+        <div style="margin-top:14px">
+          <div class="line"><span>수수료 없는 날</span><b id="freeDay"></b></div>
+          <div class="line"><span>한 달 늦춰 갚으면</span><b id="later"></b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="swCard" hidden>
+      <h2>갈아타면 이득일까?</h2>
+      <div class="hero" id="swHero">
+        <div class="k" id="swK"></div>
+        <div class="v" id="swV"></div>
+        <div class="s" id="swS"></div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="line"><span>월 상환액 (지금 → 새 대출)</span><b id="mPay"></b></div>
+        <div class="line"><span>남은 기간 이자 (지금 대출)</span><b id="i0"></b></div>
+        <div class="line"><span>남은 기간 이자 (새 대출)</span><b id="i1"></b></div>
+        <div class="line"><span>줄어드는 이자</span><b id="iSave" class="good"></b></div>
+        <div class="line"><span>갈아타는 비용 (수수료+인지세+부대비용)</span><b id="cost" class="badc"></b></div>
+        <div class="line"><span>본전 찾는 시점</span><b id="be"></b></div>
+      </div>
+      <p class="foot" style="text-align:left;margin-top:10px">원리금균등 상환, 남은 기간 그대로 갈아탄다고 보고 계산했습니다.</p>
+    </div>
+    <p class="foot">계산 결과는 참고용입니다. 실제 수수료는 은행의 계산 방식(일할·월할, 면제 한도 등)에 따라 다를 수 있습니다.</p>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const num = v => +String(v || '').replace(/[^\d.]/g, '') || 0;
+const won = v => Math.round(v).toLocaleString('ko-KR') + '원';
+function kor(v) {
+  v = Math.round(v); const neg = v < 0; v = Math.abs(v);
+  if (v < 10000) return (neg ? '-' : '') + v.toLocaleString('ko-KR') + '원';
+  const eok = Math.floor(v / 1e8), man = Math.floor((v % 1e8) / 1e4);
+  return (neg ? '-' : '') + [eok ? eok.toLocaleString('ko-KR') + '억' : '', man ? man.toLocaleString('ko-KR') + '만' : ''].filter(Boolean).join(' ') + '원';
+}
+const DAY = 864e5;
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const fmt = d => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const addY = (d, y) => new Date(d.getFullYear() + y, d.getMonth(), d.getDate());
+const addM = (d, m) => new Date(d.getFullYear(), d.getMonth() + m, d.getDate());
+const days = (a, b) => Math.round((b - a) / DAY);
+
+// 중도상환수수료 = 금액 × 율 × 남은날 / 전체날
+function prepayFee(P, rate, d0, d1, years) {
+  const end = addY(d0, years), total = days(d0, end), left = Math.max(0, Math.min(total, days(d1, end)));
+  return { fee: Math.floor(P * rate / 100 * left / total), left, total, end };
+}
+// 인지세(대출 약정서) · 본인 부담 50%
+function stampTax(P) {
+  const t = P <= 5e7 ? 0 : P <= 1e8 ? 7e4 : P <= 1e9 ? 15e4 : 35e4;
+  return t / 2;
+}
+// 원리금균등 월 납입액과 달마다의 이자
+function epi(P, rate, n) {
+  const r = rate / 100 / 12, pay = r ? P * r / (1 - Math.pow(1 + r, -n)) : P / n, ints = [];
+  let bal = P;
+  for (let k = 0; k < n; k++) { const i = bal * r; ints.push(i); bal -= pay - i; }
+  return { pay, ints, I: ints.reduce((a, b) => a + b, 0) };
+}
+
+function calc() {
+  const P = num($('#amt').value) * 1e4, rate = num($('#fee').value);
+  $('#amtHint').textContent = P ? kor(P) : '';
+  const v0 = $('#d0').value, v1 = $('#d1').value, years = +$('input[name=per]:checked').value;
+  const ok = P > 0 && v0 && v1 && rate >= 0 && rate < 20 && parse(v1) >= parse(v0);
+  $('#empty').hidden = ok; $('#res').hidden = !ok;
+  $('#empty').textContent = v0 && v1 && parse(v1) < parse(v0) ? '갚을 날이 대출 받은 날보다 앞입니다.' : '갚을 금액 · 수수료율 · 날짜를 넣으면 바로 계산됩니다.';
+  if (!ok) { $('#swCard').hidden = true; return; }
+  const d0 = parse(v0), d1 = parse(v1), f = prepayFee(P, rate, d0, d1, years);
+  $('#feeV').innerHTML = f.fee.toLocaleString('ko-KR') + '<small>원</small>';
+  $('#feeS').textContent = f.left ? `${kor(P)} × ${rate}% × ${f.left.toLocaleString()}일 / ${f.total.toLocaleString()}일` : `부과 기간(${years}년)이 지나 수수료가 없습니다.`;
+  const passed = (f.total - f.left) / f.total * 100;
+  $('#barP').style.width = passed + '%'; $('#barI').style.width = (100 - passed) + '%';
+  $('#lgA').textContent = `지난 기간 ${(f.total - f.left).toLocaleString()}일`; $('#lgB').textContent = `남은 기간 ${f.left.toLocaleString()}일`;
+  $('#freeDay').textContent = f.left ? `${fmt(f.end)}부터 (${f.left.toLocaleString()}일 뒤)` : '지금 바로 수수료 없음';
+  const f2 = prepayFee(P, rate, d0, addM(d1, 1), years);
+  $('#later').textContent = f.left ? `${won(f2.fee)} (${won(f.fee - f2.fee)} 줄어듦)` : '-';
+
+  // 대환 비교
+  const use = $('#useSw').checked; $('#sw').hidden = !use;
+  const r0 = num($('#r0').value), r1 = num($('#r1').value), n = Math.round(num($('#left').value) * 12);
+  const st = $('#stamp').checked ? stampTax(P) : 0;
+  $('#stampHint').textContent = $('#stamp').checked ? `인지세 본인 부담 ${won(st)}` + (st ? '' : ' (5천만원 이하 대출은 없음)') : '';
+  const swOk = use && n > 0 && n <= 600 && $('#r0').value !== '' && $('#r1').value !== '';
+  $('#swCard').hidden = !swOk; if (!swOk) return;
+  const a = epi(P, r0, n), b = epi(P, r1, n), cost = f.fee + st + num($('#etc').value) * 1e4, gain = a.I - b.I - cost;
+  let be = 0, acc = 0;
+  for (let k = 0; k < n; k++) { acc += a.ints[k] - b.ints[k]; if (acc >= cost) { be = k + 1; break; } }
+  $('#swHero').classList.toggle('bad', gain < 0);
+  $('#swK').textContent = gain >= 0 ? '갈아타면 아끼는 돈 (비용 빼고)' : '갈아타면 손해';
+  $('#swV').innerHTML = Math.abs(Math.round(gain)).toLocaleString('ko-KR') + '<small>원</small>';
+  $('#swS').textContent = gain >= 0 ? `남은 ${n}개월 동안 · 한 달 평균 ${won(gain / n)}` : '줄어드는 이자보다 갈아타는 비용이 더 큽니다.';
+  $('#mPay').textContent = `${won(a.pay)} → ${won(b.pay)}`;
+  $('#i0').textContent = kor(a.I); $('#i1').textContent = kor(b.I);
+  $('#iSave').textContent = kor(a.I - b.I); $('#cost').textContent = kor(cost);
+  $('#be').textContent = cost <= 0 ? '바로' : be ? `${be}개월째 (${fmt(addM(d1, be))}쯤)` : '남은 기간 안에 못 찾음';
+}
+const comma = e => { const el = e.target, d = el.value.replace(/[^\d]/g, '').slice(0, 9); el.value = d ? (+d).toLocaleString('ko-KR') : ''; };
+['#amt', '#etc'].forEach(s => $(s).addEventListener('input', comma));
+$$('#feeQuick button').forEach(b => b.onclick = () => { $('#fee').value = b.dataset.v; calc(); });
+$$('input').forEach(x => x.addEventListener(x.type === 'radio' || x.type === 'checkbox' || x.type === 'date' ? 'change' : 'input', calc));
+// 처음 보여줄 예시: 1년 3개월 전에 받은 1억 · 오늘 상환
+const today = new Date(); today.setHours(0, 0, 0, 0);
+$('#amt').value = '10,000'; $('#fee').value = '0.6';
+$('#d0').value = iso(addM(today, -15)); $('#d1').value = iso(today);
+$('#r0').value = '5.0'; $('#r1').value = '4.0'; $('#left').value = '25';
+calc();
+</script>
+</body>
+</html>
