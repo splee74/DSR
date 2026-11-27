@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#03c75a">
 <link rel="icon" type="image/png" href="../icon-192.png?v=2">
 <title>날짜 계산기</title>
-<!-- 미리보기: 계산기 모음 10번 · 아직 앱(index.html)에는 연결하지 않음 -->
+<!-- 계산기 모음 10번 · 아직 앱(index.html)에는 연결하지 않음 -->
 <style>
 :root{
   --brand:#03c75a;--brand-dark:#02b351;--brand-ink:#008a3e;--brand-weak:#eafaf1;--brand-line:#b8ebcd;
@@ -115,13 +115,16 @@ button:focus-visible{outline:2px solid var(--brand-ink);outline-offset:2px}
 .tl div::before{content:"";position:absolute;left:-17px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--line-strong)}
 .tl div.on::before{background:var(--brand);border-color:var(--brand-ink)}
 .tl b{display:block}.tl small{color:var(--muted)}
+.home{margin-left:auto;display:inline-flex;align-items:center;gap:2px;padding:7px 12px 7px 8px;border-radius:999px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+.home:hover{background:var(--brand-dark,#02b351)}
+.home+.badge{margin-left:0}
 </style>
 </head>
 <body>
 <header class="top"><div class="top-in">
   <a class="logo" href="index.html" aria-label="계산기 모음으로" title="계산기 모음으로" style="text-decoration:none">₩</a>
   <h1>날짜 계산기<span>D-day · 날짜 더하기 · 만 나이 · 임대차 만기</span></h1>
-  <div class="badge">미리보기</div>
+  <a class="home" href="../index.html?home" aria-label="처음 화면으로"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>처음으로</a>
 </div></header>
 
 <main class="layout">

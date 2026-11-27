@@ -375,6 +375,12 @@ dialog{border-radius:10px}
 .brand{padding-block:8px}
 .logo{width:23px;height:23px;font-size:11px;border-radius:6px}
 .logo.logo-img{width:30px;height:30px;border-radius:8px;object-fit:cover;background:#fff;box-shadow:0 0 0 1px var(--line)}
+/* 머리글 [계산기모음] : DSR 계산기 오른쪽 */
+.calc-all{display:inline-flex;align-items:center;gap:5px;margin-left:2px;padding:3px 10px 3px 3px;border:1px solid var(--brand-line);border-radius:999px;background:var(--brand-weak);color:var(--brand-ink);font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;letter-spacing:-.3px}
+.calc-all img{width:22px;height:22px;border-radius:50%;object-fit:cover;display:block}
+.calc-all:hover{border-color:var(--brand)}
+/* 휴대폰: 머리글 한 줄 유지 (상담일은 상담 정보 칸에 있으니 숨김) */
+@media (max-width:480px){.cdate-top{display:none}.brand{gap:6px}.calc-all{font-size:11px;gap:4px;padding:2px 8px 2px 2px}.calc-all img{width:20px;height:20px}}
 .brand h1{font-size:13px}
 .brand h1{font-size:11.5px;letter-spacing:-.2px}
 .top .actions{margin-left:auto;width:auto;display:flex;gap:6px;align-self:center}
@@ -427,22 +433,22 @@ dialog{border-radius:10px}
 #splash .sp-bg{position:absolute;inset:-80px;background:url(splash2.jpg) left center/50% 100% no-repeat,url(splash-bank2.jpg) right center/50% 100% no-repeat;filter:blur(48px) saturate(1.05)}
 #splash .sp-bg::after{content:"";position:absolute;inset:0;background:#ffffff73}
 #splash .sp-q{position:relative;margin:0;color:#0b5d2e;font-size:min(5vw,24px);font-weight:800;letter-spacing:-.02em;text-shadow:0 1px 0 #fff}
-#splash .sp-pick{position:relative;display:flex;gap:min(2.4vw,22px);justify-content:center}
-/* 카드 한 장 폭: 화면 폭의 절반 안쪽 · 세로는 제목·주소 자리를 빼고 다 들어가게 */
-#splash .sp-card{--w:min(46.5vw,calc((100vh - 170px) * 952 / 1653),440px);width:var(--w);padding:0;border:0;border-radius:min(4vw,22px);overflow:hidden;
+#splash .sp-pick{position:relative;display:flex;gap:var(--g);justify-content:center}
+/* 카드 한 장 폭 --w : 화면 폭의 절반 안쪽 · 세로는 제목·아이콘 두 줄·주소까지 다 들어가게 */
+#splash{--g:min(2.4vw,18px);--w:min(45.5vw,calc((100vh - 150px) / 2.65),330px)}
+#splash .sp-card{width:var(--w);padding:0;border:0;border-radius:min(4vw,20px);overflow:hidden;
   background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 6px 22px #0b5d2e33,0 0 0 2px #fff;
   transition:transform .15s ease,box-shadow .15s ease}
-#splash .sp-card img{display:block;width:100%;height:auto;aspect-ratio:952/1653;object-fit:cover}
+#splash .sp-card img{display:block;width:100%;height:auto;aspect-ratio:952/1450;object-fit:cover;object-position:50% 18%}
 #splash .sp-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px #0b5d2e47,0 0 0 3px #03c75a}
 #splash .sp-card:active{transform:scale(.97)}
-#splash .sp-card:focus-visible{outline:3px solid #ffe14d;outline-offset:3px}
-/* 세로로 긴 휴대폰: 위아래로 쌓고, 아래쪽 빈 배경을 조금 잘라 그림을 크게 */
-@media (max-aspect-ratio:3/4){
-  #splash{gap:min(2.2vh,16px)}
-  #splash .sp-pick{flex-direction:column;gap:min(2vh,14px)}
-  #splash .sp-card{--w:min(92vw,calc((100vh - 150px) / 2 * 952 / 1290),440px)}
-  #splash .sp-card img{aspect-ratio:952/1290;object-position:50% 18%}
-}
+#splash .sp-card:focus-visible,#splash .sp-ic:focus-visible{outline:3px solid #ffe14d;outline-offset:3px}
+/* 계산기 아이콘 10개 */
+#splash .sp-icons{position:relative;width:calc(var(--w) * 2 + var(--g));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:min(1.6vw,10px)}
+#splash .sp-ic{display:block;border-radius:12%/9%;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 10px #0b5d2e2e;transition:transform .15s ease}
+#splash .sp-ic img{display:block;width:100%;height:auto;aspect-ratio:220/288}
+#splash .sp-ic:hover{transform:translateY(-3px)}
+#splash .sp-ic:active{transform:scale(.95)}
 #splash .sp-url{position:relative;padding:.4em 1.6em;border-radius:999px;background:#fff;color:#00873c;border:2px solid #03c75a;box-shadow:0 4px 14px #0002;
   font-size:min(4.6vw,22px);font-weight:800;letter-spacing:0;white-space:nowrap}
 #splash.out{opacity:0;pointer-events:none}
@@ -474,6 +480,7 @@ dialog{border-radius:10px}
   document.head.appendChild(s);
   // 눌린 버튼 이름만 기록
   const EV = { btnPdf: 'pdf_open', pdfShare: 'pdf_kakao', pdfSave: 'pdf_save', pdfPrint: 'pdf_print', imgShare: 'img_share', imgSave: 'img_save', pdfChrome: 'pdf_chrome',  btnFeedback: 'feedback_open', btnVoice: 'voice_open', vApply: 'voice_apply' };
+  document.addEventListener('click', e => { if (e.target.closest('.calc-all')) gtag('event', 'calc_all_open'); }, true);
   document.addEventListener('click', e => {
     const el = e.target.closest('button, a'); if (!el) return;
     if (EV[el.id]) return gtag('event', EV[el.id]);
@@ -493,20 +500,44 @@ dialog{border-radius:10px}
     <button type="button" class="sp-card" data-go="calc" aria-label="DSR 계산기 · 주택구입자금"><img src="splash2.jpg" alt="" width="941" height="1672"></button>
     <button type="button" class="sp-card" data-go="bank" aria-label="은행금리 비교"><img src="splash-bank2.jpg" alt="" width="951" height="1654"></button>
   </div>
+  <div class="sp-icons" aria-label="계산기 모음">
+    <a class="sp-ic" href="calc/loan.html" data-calc="loan" aria-label="대출이자 계산기"><img src="calc/img/i01.webp" alt="" width="220" height="288" decoding="async"></a>
+    <a class="sp-ic" href="calc/prepay.html" data-calc="prepay" aria-label="중도상환수수료 계산기"><img src="calc/img/i02.webp" alt="" width="220" height="288" decoding="async"></a>
+    <a class="sp-ic" href="calc/rent.html" data-calc="rent" aria-label="전월세 전환 계산기"><img src="calc/img/i03.webp" alt="" width="220" height="288" decoding="async"></a>
+    <a class="sp-ic" href="calc/broker.html" data-calc="broker" aria-label="중개보수 계산기"><img src="calc/img/i04.webp" alt="" width="220" height="288" decoding="async"></a>
+    <a class="sp-ic" href="calc/saving.html" data-calc="saving" aria-label="예·적금 이자 계산기"><img src="calc/img/i05.webp" alt="" width="220" height="288" decoding="async"></a>
+    <a class="sp-ic" href="calc/acqtax.html" data-calc="acqtax" aria-label="취득세 계산기"><img src="calc/img/i06.webp" alt="" width="220" height="288" decoding="async"></a>
+    <a class="sp-ic" href="calc/salary.html" data-calc="salary" aria-label="연봉 실수령액 계산기"><img src="calc/img/i07.webp" alt="" width="220" height="288" decoding="async"></a>
+    <a class="sp-ic" href="calc/area.html" data-calc="area" aria-label="평수 변환 계산기"><img src="calc/img/i08.webp" alt="" width="220" height="288" decoding="async"></a>
+    <a class="sp-ic" href="calc/apply.html" data-calc="apply" aria-label="청약 가점 계산기"><img src="calc/img/i09.webp" alt="" width="220" height="288" decoding="async"></a>
+    <a class="sp-ic" href="calc/date.html" data-calc="date" aria-label="날짜 계산 계산기"><img src="calc/img/i10.webp" alt="" width="220" height="288" decoding="async"></a>
+  </div>
   <div class="sp-url">dsr1.co.kr</div>
 </div>
 <script>
 (() => {
   const el = document.getElementById('splash');
   let skip = false;   // 같은 창에서 은행금리비교 등을 갔다 돌아올 때 · 크롬으로 넘겨 받은 경우는 생략
-  try { skip = !!sessionStorage.getItem('splashSeen') || /[?&]s=/.test(location.search); sessionStorage.setItem('splashSeen', '1'); } catch (e) {}
+  // ?home : 계산기 모음에서 [처음으로]를 누르고 온 경우 → 시작 화면을 다시 보여 줌
+  const HOME = /[?&]home\b/.test(location.search);
+  try { skip = !HOME && (!!sessionStorage.getItem('splashSeen') || /[?&]s=/.test(location.search)); sessionStorage.setItem('splashSeen', '1'); } catch (e) {}
   if (skip) { el.remove(); return; }
   let gone = false;
+  // 주소에서 ?home 지우기 (새로고침 때 시작 화면이 또 뜨지 않게)
+  const clearHome = () => { if (HOME) try { history.replaceState(null, '', location.pathname + location.search.replace(/[?&]home\b/, '').replace(/^&/, '?') + location.hash); } catch (e) {} };
   el.addEventListener('click', e => {
+    // 계산기 아이콘: 뒤로 가기로 돌아오면 시작 화면이 다시 보이게 지금 주소를 ?home 으로 바꿔 둔 뒤 이동
+    const ic = e.target.closest('.sp-ic');
+    if (ic) {
+      if (window.gtag) gtag('event', 'splash_pick', { to: 'calc_' + ic.dataset.calc });
+      try { history.replaceState(null, '', location.pathname + '?home'); } catch (e) {}
+      return;
+    }
     const card = e.target.closest('.sp-card'); if (!card || gone) return;
     gone = true;
     if (window.gtag) gtag('event', 'splash_pick', { to: card.dataset.go });
     if (card.dataset.go === 'bank') { location.href = 'bank.html'; return; }   // 은행금리비교로 · 돌아오면 시작 화면 없이 계산기
+    clearHome();
     // DSR 계산기 → 주택구입자금 탭
     document.querySelector('.tabs button[data-tab="mort"]')?.click();
     el.classList.add('out');
@@ -522,6 +553,7 @@ dialog{border-radius:10px}
     <div class="brand">
       <img class="logo logo-img" src="logo-head.png" alt="" width="30" height="30">
       <div><h1>DSR 계산기</h1></div>
+      <a class="calc-all" href="calc/" title="대출·부동산·세금 계산기 10종"><img src="calc/img/all-128.webp" alt="" width="22" height="22">계산기모음</a>
     </div>
     <div class="actions">
       <span class="cdate-top" id="cdateTop"></span>
@@ -1071,7 +1103,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v142';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v143';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
