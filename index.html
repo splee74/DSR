@@ -367,7 +367,7 @@ tr.bind td{background:var(--brand-weak)}
 dialog{border-radius:10px}
 .dlg-head button,.btn{border-radius:6px}
 .mbar-in button{border-radius:6px}
-/* 상담저장(고객관리 연동): 카톡공유 왼쪽 · 카톡공유와 같은 초록 */
+/* 상담저장(고객관리 연동): 결과공유 왼쪽 · 결과공유와 같은 초록 */
 .mbar-in #csSaveBar:not([hidden])+#btnPdf{margin-left:0}
 @media (max-width:400px){.mbar-in{gap:10px}.mbar-in button{padding:11px 12px}}
 /* v74 머리글 · 탭 · 하단 줄 */
@@ -936,7 +936,7 @@ dialog{border-radius:10px}
   <div><span id="mbK">스트레스 DSR</span><b id="mbV">—</b></div>
   <div><span>최대 가능금액</span><b id="mbM">—</b></div>
   <button type="button" id="csSaveBar" hidden>상담저장</button>
-  <button type="button" id="btnPdf">카톡공유</button>
+  <button type="button" id="btnPdf">결과공유</button>
 </div></div>
 
 <dialog id="fbDlg">
@@ -1071,7 +1071,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v141';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v142';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
