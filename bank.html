@@ -377,6 +377,12 @@ dialog::backdrop{background:#0006}
 .home-fab:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 body{padding-bottom:72px}
 @media print{.home-fab{display:none}}
+.top-row{width:100%;display:flex;align-items:center;gap:10px}
+.top-row .back{width:auto;flex:1;min-width:0}
+.go-back{display:inline-flex;align-items:center;gap:2px;padding:7px 12px 7px 8px;border-radius:999px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+.go-back:hover{filter:brightness(.95)}
+.go-back:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+@media print{.go-back{display:none}}
 </style>
 <!-- 방문자 분석 (GA4) · 관리자 기기와 미리보기는 세지 않음 · 입력값은 보내지 않고 버튼 누른 횟수만 -->
 <script>
@@ -402,7 +408,7 @@ body{padding-bottom:72px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <a class="back" href="./">‹ DSR·DTI 계산기</a>
+  <div class="top-row"><a class="back" href="./">‹ DSR·DTI 계산기</a><a class="go-back" href="./" aria-label="이전 화면으로 돌아가기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>돌아가기</a></div>
   <div class="logo">%</div>
   <div><h1>은행별 금리 비교</h1><span>주택담보대출 · 전세자금대출 · <i id="bankCount" style="font-style:normal">6</i>개 은행</span></div>
   <div class="asof" id="asof"></div>
@@ -465,8 +471,6 @@ body{padding-bottom:72px}
 </main>
 
 <!-- 금리 입력 (관리자만) -->
-<!-- 계산기로 돌아가기 (오른쪽 아래 고정) -->
-<a class="home-fab" href="./" aria-label="DSR 계산기로 돌아가기"><span aria-hidden="true">‹</span> 돌아가기</a>
 
 <dialog id="ed">
   <div class="ed-stick">
@@ -1195,6 +1199,12 @@ document.addEventListener('change', e => {
 });
 $('#amt').addEventListener('input', e => { fmt(e.target); render(); });
 render(); load();
+</script>
+<script>
+document.querySelector('.go-back').addEventListener('click', e => {
+  let same = false; try { same = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (_) {}
+  if (same && history.length > 1) { e.preventDefault(); history.back(); }
+});
 </script>
 </body>
 </html>

@@ -443,9 +443,9 @@ dialog{border-radius:10px}
 #splash .sp-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px #0b5d2e47,0 0 0 3px #03c75a}
 #splash .sp-card:active{transform:scale(.97)}
 #splash .sp-card:focus-visible,#splash .sp-ic:focus-visible{outline:3px solid #ffe14d;outline-offset:3px}
-/* 계산기 아이콘 10개 */
-#splash .sp-icons{position:relative;width:calc(var(--w) * 2 + var(--g));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:min(1.6vw,10px)}
-#splash .sp-ic{display:block;border-radius:12%/9%;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 10px #0b5d2e2e;transition:transform .15s ease}
+/* SCAN + 계산기 아이콘 10개 : 한 줄에 6개 (윗줄 6 · 아랫줄 5 가운데) */
+#splash .sp-icons{--ig:min(1.6vw,10px);position:relative;width:calc(var(--w) * 2 + var(--g));display:flex;flex-wrap:wrap;justify-content:center;gap:var(--ig)}
+#splash .sp-ic{display:block;width:calc((100% - var(--ig) * 5) / 6);border-radius:12%/9%;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 10px #0b5d2e2e;transition:transform .15s ease}
 #splash .sp-ic img{display:block;width:100%;height:auto;aspect-ratio:220/288}
 #splash .sp-ic:hover{transform:translateY(-3px)}
 #splash .sp-ic:active{transform:scale(.95)}
@@ -500,7 +500,8 @@ dialog{border-radius:10px}
     <button type="button" class="sp-card" data-go="calc" aria-label="DSR 계산기 · 주택구입자금"><img src="splash2.jpg" alt="" width="941" height="1672"></button>
     <button type="button" class="sp-card" data-go="bank" aria-label="은행금리 비교"><img src="splash-bank2.jpg" alt="" width="951" height="1654"></button>
   </div>
-  <div class="sp-icons" aria-label="계산기 모음">
+  <div class="sp-icons" aria-label="SCAN · 계산기 모음">
+    <a class="sp-ic" href="idscan.html" data-calc="scan" aria-label="SCAN · 신분증 명함 스캔"><img src="calc/img/scan.webp" alt="" width="220" height="288" decoding="async"></a>
     <a class="sp-ic" href="calc/loan.html" data-calc="loan" aria-label="대출이자 계산기"><img src="calc/img/i01.webp" alt="" width="220" height="288" decoding="async"></a>
     <a class="sp-ic" href="calc/prepay.html" data-calc="prepay" aria-label="중도상환수수료 계산기"><img src="calc/img/i02.webp" alt="" width="220" height="288" decoding="async"></a>
     <a class="sp-ic" href="calc/rent.html" data-calc="rent" aria-label="전월세 전환 계산기"><img src="calc/img/i03.webp" alt="" width="220" height="288" decoding="async"></a>
@@ -536,7 +537,10 @@ dialog{border-radius:10px}
     const card = e.target.closest('.sp-card'); if (!card || gone) return;
     gone = true;
     if (window.gtag) gtag('event', 'splash_pick', { to: card.dataset.go });
-    if (card.dataset.go === 'bank') { location.href = 'bank.html'; return; }   // 은행금리비교로 · 돌아오면 시작 화면 없이 계산기
+    if (card.dataset.go === 'bank') {   // 은행금리비교로 · [돌아가기]/뒤로 가기로 오면 시작 화면이 다시 보이게
+      try { history.replaceState(null, '', location.pathname + '?home'); } catch (e) {}
+      location.href = 'bank.html'; return;
+    }
     clearHome();
     // DSR 계산기 → 주택구입자금 탭
     document.querySelector('.tabs button[data-tab="mort"]')?.click();
@@ -1103,7 +1107,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v143';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v144';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */

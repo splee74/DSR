@@ -105,11 +105,17 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
 /* 계산기로 돌아가기 */
 .home-fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:50;display:inline-flex;align-items:center;gap:4px;padding:12px 18px;border-radius:999px;background:var(--brand);color:#fff;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 4px 14px #0003}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.top-row{width:100%;display:flex;align-items:center;gap:10px}
+.top-row .back{width:auto;flex:1;min-width:0}
+.go-back{display:inline-flex;align-items:center;gap:2px;padding:7px 12px 7px 8px;border-radius:999px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+.go-back:hover{filter:brightness(.95)}
+.go-back:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+@media print{.go-back{display:none}}
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <a class="back" href="./">‹ DSR·DTI 계산기</a>
+  <div class="top-row"><a class="back" href="./">‹ DSR·DTI 계산기</a><a class="go-back" href="./" aria-label="이전 화면으로 돌아가기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>돌아가기</a></div>
   <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5.5 16c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4M14 10h4.5M14 13.5h3"/></svg></div>
   <div><h1>SCAN</h1><span class="sub">신분증 · 명함을 사진 한 장으로 반듯하게</span></div>
 </div></header>
@@ -223,7 +229,6 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
   </section>
 </main>
 
-<a class="home-fab" href="./">‹ 계산기</a>
 
 <!-- 모서리 맞추기 -->
 <div class="editor" id="editor" hidden role="dialog" aria-modal="true" aria-label="신분증 모서리 맞추기">
@@ -809,6 +814,12 @@ function say(t, bad, toast) {
 // 화면을 떠나면 사진을 메모리에서 지움
 addEventListener('pagehide', () => { S.front = S.back = null; S.saved = {}; });
 { let m = 'id'; try { m = localStorage.getItem('scanMode') || 'id'; } catch (e) {} setMode(m); }
+</script>
+<script>
+document.querySelector('.go-back').addEventListener('click', e => {
+  let same = false; try { same = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (_) {}
+  if (same && history.length > 1) { e.preventDefault(); history.back(); }
+});
 </script>
 </body>
 </html>
