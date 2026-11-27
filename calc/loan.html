@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#03c75a">
+<link rel="icon" type="image/png" href="../icon-192.png?v=2">
+<title>대출이자 계산기</title>
+<!-- 미리보기: 계산기 모음 1번 · 아직 앱(index.html)에는 연결하지 않음 -->
+<style>
+:root{
+  --brand:#03c75a;--brand-dark:#02b351;--brand-ink:#008a3e;--brand-weak:#eafaf1;--brand-line:#b8ebcd;
+  --bg:#f5f6f7;--card:#fff;--line:#e3e5e8;--soft:#f5f6f7;--text:#1e1e23;--sub:#4e5258;--muted:#8b8f96;
+  --bad:#ea3d34;--badbg:#ffefee;--surface:#fff;--line-strong:#d4d5d9;--faint:#b4b6bc;--header:#fffffff0;--header-solid:#fff;
+  --bar-p:#03c75a;--bar-i:#ffb21e;--shadow:none;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.55;letter-spacing:-.2px;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;letter-spacing:inherit}
+.top{position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none}
+.top h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.4px}
+.top h1 span{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:-2px}
+.badge{margin-left:auto;font-size:12px;font-weight:600;color:var(--brand-ink);background:var(--brand-weak);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:20px;max-width:1100px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left,0px)) 40px}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:14px;padding-top:14px}}
+.card{background:var(--card);border-radius:20px;padding:22px;margin-bottom:14px;box-shadow:var(--shadow)}
+@media (max-width:560px){.card{padding:18px}}
+.card h2{margin:0 0 16px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.sticky{position:sticky;top:76px;align-self:start}
+@media (max-width:900px){.sticky{position:static}}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field>label,.flabel{font-size:13px;font-weight:500;color:var(--sub)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.inp{display:flex;align-items:center;border:1.5px solid transparent;border-radius:12px;background:var(--soft);padding:0 14px;min-height:48px;transition:.15s}
+.inp input{border:0;outline:0;flex:1;min-width:0;padding:10px 0;font:inherit;font-weight:600;background:transparent;text-align:right;color:var(--text);font-size:16px}
+.inp input::placeholder{color:var(--faint);font-weight:400;font-size:14px}
+.inp .u{color:var(--muted);font-size:13px;margin-left:6px;white-space:nowrap}
+.inp:focus-within{border-color:var(--brand-ink);background:var(--surface)}
+.hint{font-size:12px;color:var(--brand-ink);font-weight:500;text-align:right;min-height:18px;margin-top:-2px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.quick button{border:1px solid var(--line);background:var(--surface);color:var(--sub);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600}
+.quick button:hover{border-color:var(--brand-ink);color:var(--brand-ink)}
+.seg{display:flex;gap:6px}
+.seg label{flex:1 1 0;position:relative;min-width:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;text-align:center;padding:10px 4px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-weight:600;font-size:14px;line-height:1.3;color:var(--sub);transition:.15s}
+.seg span small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:2px}
+.seg input:checked+span{border-color:var(--brand-ink);background:var(--brand-weak);color:var(--brand-ink)}
+.seg input:checked+span small{color:var(--brand-ink)}
+.seg input:focus-visible+span{box-shadow:0 0 0 3px #03c75a44}
+.seg.sm span{padding:7px 4px;font-size:13px}
+.note{font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:12px;padding:10px 14px;line-height:1.7}
+/* 결과 */
+.hero{background:var(--brand-weak);border-radius:16px;padding:18px 18px 16px}
+.hero .k{font-size:13px;color:var(--brand-ink);font-weight:600}
+.hero .v{font-size:32px;font-weight:800;letter-spacing:-1px;margin:2px 0 0;color:var(--text)}
+.hero .v small{font-size:16px;font-weight:600;margin-left:2px}
+.hero .s{font-size:13px;color:var(--sub);margin-top:2px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+@media (max-width:420px){.kpis{grid-template-columns:1fr 1fr}.kpis>div:last-child{grid-column:1/-1}}
+.kpis>div{background:var(--soft);border-radius:14px;padding:12px 14px}
+.kpis .k{font-size:12px;color:var(--muted);font-weight:500}
+.kpis .v{font-size:17px;font-weight:700;margin-top:2px;word-break:keep-all}
+.bar{display:flex;height:12px;border-radius:999px;overflow:hidden;margin:16px 0 6px;background:var(--soft)}
+.bar i{display:block;height:100%}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0;background:var(--c)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12.5px;color:var(--muted);font-weight:500}
+th:first-child,td:first-child{text-align:left}
+tr.on td{color:var(--brand-ink);font-weight:700}
+tr.best td:last-child::after{content:" 최소";font-size:11px;color:var(--brand-ink);font-weight:700}
+.tw{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.sched-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.sched-head h2{margin:0}
+.sched-head .seg{width:150px}
+.sched{max-height:460px;overflow:auto}
+.sched thead th{position:sticky;top:0;background:var(--card)}
+.more{width:100%;margin-top:10px;border:1.5px dashed var(--brand-line);background:var(--brand-weak);color:var(--brand-ink);border-radius:12px;padding:10px;font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:30px 0;font-size:14px}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.7}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="logo">₩</div>
+  <h1>대출이자 계산기<span>월 상환액 · 총이자 · 상환 스케줄</span></h1>
+  <div class="badge">미리보기</div>
+</div></header>
+
+<main class="layout">
+  <section>
+    <div class="card">
+      <h2>대출 조건</h2>
+      <div class="field">
+        <label for="amt">대출금액</label>
+        <div class="inp"><input id="amt" inputmode="numeric" placeholder="예: 30,000" autocomplete="off"><span class="u">만원</span></div>
+        <div class="hint" id="amtHint"></div>
+        <div class="quick" data-for="amt">
+          <button type="button" data-add="1000">+1천만</button><button type="button" data-add="5000">+5천만</button>
+          <button type="button" data-add="10000">+1억</button><button type="button" data-add="0">지우기</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="rate">연 금리</label>
+        <div class="inp"><input id="rate" inputmode="decimal" placeholder="예: 4.2" autocomplete="off"><span class="u">%</span></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="term">대출기간</label>
+          <div class="inp"><input id="term" inputmode="numeric" placeholder="30" autocomplete="off"><span class="u" id="termU">년</span></div>
+        </div>
+        <div class="field">
+          <span class="flabel">기간 단위</span>
+          <div class="seg sm">
+            <label><input type="radio" name="unit" value="y" checked><span>년</span></label>
+            <label><input type="radio" name="unit" value="m"><span>개월</span></label>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="grace">거치기간 <small style="color:var(--muted)">(이자만 내는 기간 · 선택)</small></label>
+        <div class="inp"><input id="grace" inputmode="numeric" placeholder="0" autocomplete="off"><span class="u">개월</span></div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <span class="flabel">상환방식</span>
+        <div class="seg" id="method">
+          <label><input type="radio" name="m" value="epi" checked><span>원리금균등<small>매달 같은 금액</small></span></label>
+          <label><input type="radio" name="m" value="ep"><span>원금균등<small>이자 점점 줄어듦</small></span></label>
+          <label><input type="radio" name="m" value="bullet"><span>만기일시<small>이자만, 끝에 원금</small></span></label>
+        </div>
+      </div>
+    </div>
+    <div class="note">
+      · <b>원리금균등</b>: 원금+이자를 매달 같은 금액으로 냅니다. 주택담보대출에 가장 많이 씁니다.<br>
+      · <b>원금균등</b>: 원금을 똑같이 나눠 갚아 처음 부담은 크지만 총이자는 가장 적습니다.<br>
+      · <b>만기일시</b>: 매달 이자만 내고 만기에 원금을 한 번에 갚습니다. 전세대출·신용대출에 많이 씁니다.
+    </div>
+  </section>
+
+  <section class="sticky">
+    <div class="card" id="resCard">
+      <div class="empty" id="empty">대출금액 · 금리 · 기간을 넣으면 바로 계산됩니다.</div>
+      <div id="res" hidden>
+        <div class="hero">
+          <div class="k" id="heroK">매달 내는 돈</div>
+          <div class="v" id="heroV"></div>
+          <div class="s" id="heroS"></div>
+        </div>
+        <div class="kpis">
+          <div><div class="k">총 이자</div><div class="v" id="kInt"></div></div>
+          <div><div class="k">총 상환액</div><div class="v" id="kTot"></div></div>
+          <div><div class="k">원금 대비 이자</div><div class="v" id="kPct"></div></div>
+        </div>
+        <div class="bar"><i id="barP" style="background:var(--bar-p)"></i><i id="barI" style="background:var(--bar-i)"></i></div>
+        <div class="legend"><span style="--c:var(--bar-p)" id="lgP"></span><span style="--c:var(--bar-i)" id="lgI"></span></div>
+      </div>
+    </div>
+
+    <div class="card" id="cmpCard" hidden>
+      <h2>상환방식별 비교</h2>
+      <div class="tw"><table>
+        <thead><tr><th>방식</th><th>첫 달 납입</th><th>마지막 달</th><th>총 이자</th></tr></thead>
+        <tbody id="cmp"></tbody>
+      </table></div>
+    </div>
+
+    <div class="card" id="schCard" hidden>
+      <div class="sched-head">
+        <h2>상환 스케줄</h2>
+        <div class="seg sm">
+          <label><input type="radio" name="view" value="y" checked><span>연도별</span></label>
+          <label><input type="radio" name="view" value="m"><span>월별</span></label>
+        </div>
+      </div>
+      <div class="tw sched"><table>
+        <thead><tr><th id="colN">연차</th><th>원금</th><th>이자</th><th>납입액</th><th>남은 원금</th></tr></thead>
+        <tbody id="sch"></tbody>
+      </table></div>
+      <button type="button" class="more" id="more" hidden>더 보기</button>
+    </div>
+    <p class="foot">계산 결과는 참고용입니다. 실제 상환액은 은행의 이자 계산 방식(일할 계산 등)에 따라 조금 다를 수 있습니다.</p>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const num = v => +String(v || '').replace(/[^\d.]/g, '') || 0;
+const won = v => Math.round(v).toLocaleString('ko-KR') + '원';
+// 원 → "1억 2,345만원" (만원 아래는 버림) · 1만원 미만은 원 단위
+function kor(v) {
+  v = Math.round(v);
+  if (Math.abs(v) < 10000) return v.toLocaleString('ko-KR') + '원';
+  const eok = Math.floor(v / 1e8), man = Math.floor((v % 1e8) / 1e4);
+  return [eok ? eok.toLocaleString('ko-KR') + '억' : '', man ? man.toLocaleString('ko-KR') + '만' : ''].filter(Boolean).join(' ') + '원';
+}
+const korMan = man => man ? kor(man * 1e4) : '';
+
+// 상환 스케줄 [{n, p(원금), i(이자), pay, bal}]
+function schedule(P, rate, n, g, method) {
+  const r = rate / 100 / 12, rows = [];
+  let bal = P;
+  if (method === 'bullet') g = 0;
+  g = Math.min(g, n - 1);
+  const m = n - g;
+  const epi = r ? P * r / (1 - Math.pow(1 + r, -m)) : P / m;
+  for (let k = 1; k <= n; k++) {
+    const i = Math.round(bal * r);
+    let p = 0;
+    if (method === 'bullet') p = k === n ? bal : 0;
+    else if (k > g) {
+      p = method === 'epi' ? Math.round(epi) - i : Math.round(P / m);
+      if (k === n || p > bal) p = bal;   // 마지막 달에 남은 원금 정리
+    }
+    bal -= p;
+    rows.push({ n: k, p, i, pay: p + i, bal });
+  }
+  return rows;
+}
+const sum = (rows, f) => rows.reduce((a, r) => a + r[f], 0);
+const NAMES = { epi: '원리금균등', ep: '원금균등', bullet: '만기일시' };
+
+let rowsNow = [], shown = 0;
+function inputs() {
+  const P = num($('#amt').value) * 1e4, rate = num($('#rate').value);
+  const t = num($('#term').value), unit = $('input[name=unit]:checked').value;
+  const n = Math.round(unit === 'y' ? t * 12 : t), g = Math.round(num($('#grace').value));
+  return { P, rate, n, g, method: $('input[name=m]:checked').value };
+}
+function calc() {
+  const { P, rate, n, g, method } = inputs();
+  $('#amtHint').textContent = korMan(num($('#amt').value));
+  const ok = P > 0 && n > 0 && n <= 600 && rate >= 0 && rate < 100;
+  $('#empty').hidden = ok; $('#res').hidden = $('#cmpCard').hidden = $('#schCard').hidden = !ok;
+  if (n > 600) $('#empty').textContent = '대출기간은 50년(600개월)까지 넣을 수 있습니다.';
+  else $('#empty').textContent = '대출금액 · 금리 · 기간을 넣으면 바로 계산됩니다.';
+  if (!ok) return;
+  const rows = schedule(P, rate, n, g, method), I = sum(rows, 'i'), gEff = method === 'bullet' ? 0 : Math.min(g, n - 1);
+  const first = rows[gEff] || rows[0], last = rows[rows.length - 1];
+  // 대표 금액
+  if (method === 'epi') {
+    $('#heroK').textContent = '매달 내는 돈';
+    $('#heroV').innerHTML = Math.round(first.pay).toLocaleString('ko-KR') + '<small>원</small>';
+    $('#heroS').textContent = gEff ? `거치 ${gEff}개월 동안은 이자만 월 ${won(rows[0].pay)}` : `${n}개월 동안 같은 금액`;
+  } else if (method === 'ep') {
+    $('#heroK').textContent = '첫 달 납입액';
+    $('#heroV').innerHTML = Math.round(first.pay).toLocaleString('ko-KR') + '<small>원</small>';
+    $('#heroS').textContent = `매달 줄어 마지막 달 ${won(last.pay)}` + (gEff ? ` · 거치 ${gEff}개월은 이자만 월 ${won(rows[0].pay)}` : '');
+  } else {
+    $('#heroK').textContent = '매달 내는 이자';
+    $('#heroV').innerHTML = Math.round(rows[0].pay).toLocaleString('ko-KR') + '<small>원</small>';
+    $('#heroS').textContent = `만기(${n}개월째)에 원금 ${kor(P)}을 한 번에 상환`;
+  }
+  $('#kInt').textContent = kor(I); $('#kTot').textContent = kor(P + I);
+  $('#kPct').textContent = (I / P * 100).toFixed(1) + '%';
+  const pp = P / (P + I) * 100;
+  $('#barP').style.width = pp + '%'; $('#barI').style.width = (100 - pp) + '%';
+  $('#lgP').textContent = `원금 ${kor(P)}`; $('#lgI').textContent = `이자 ${kor(I)}`;
+  // 방식별 비교
+  const all = Object.keys(NAMES).map(k => {
+    const rs = schedule(P, rate, n, g, k), ge = k === 'bullet' ? 0 : Math.min(g, n - 1);
+    return { k, first: (rs[ge] || rs[0]).pay, last: rs[rs.length - 1].pay, I: sum(rs, 'i') };
+  });
+  const minI = Math.min(...all.map(x => x.I));
+  $('#cmp').innerHTML = all.map(x => `<tr class="${x.k === method ? 'on' : ''} ${x.I === minI ? 'best' : ''}"><td>${NAMES[x.k]}</td><td>${won(x.first)}</td><td>${won(x.last)}</td><td>${kor(x.I)}</td></tr>`).join('');
+  rowsNow = rows; drawSched(true);
+}
+function drawSched(reset) {
+  const byYear = $('input[name=view]:checked').value === 'y';
+  $('#colN').textContent = byYear ? '연차' : '회차';
+  let list = rowsNow;
+  if (byYear) {
+    list = [];
+    for (let y = 0; y * 12 < rowsNow.length; y++) {
+      const part = rowsNow.slice(y * 12, y * 12 + 12);
+      list.push({ n: (y + 1) + '년차', p: sum(part, 'p'), i: sum(part, 'i'), pay: sum(part, 'pay'), bal: part[part.length - 1].bal });
+    }
+  }
+  if (reset) shown = 0;
+  shown = Math.min(list.length, shown + (byYear ? 50 : 60));
+  $('#sch').innerHTML = list.slice(0, shown).map(r => `<tr><td>${r.n}</td><td>${won(r.p)}</td><td>${won(r.i)}</td><td>${won(r.pay)}</td><td>${won(r.bal)}</td></tr>`).join('');
+  $('#more').hidden = shown >= list.length;
+  $('#more').textContent = `더 보기 (${shown} / ${list.length})`;
+}
+// 금액 칸: 쉼표 넣기
+$('#amt').addEventListener('input', e => {
+  const el = e.target, d = el.value.replace(/[^\d]/g, '').slice(0, 9);
+  el.value = d ? (+d).toLocaleString('ko-KR') : '';
+});
+$$('.quick button').forEach(b => b.onclick = () => {
+  const el = $('#amt'), add = +b.dataset.add;
+  el.value = add ? (num(el.value) + add).toLocaleString('ko-KR') : '';
+  calc();
+});
+$$('input[name=unit]').forEach(x => x.onchange = () => {
+  const t = num($('#term').value), y = x.value === 'y';
+  $('#termU').textContent = y ? '년' : '개월';
+  if (t) $('#term').value = y ? +(t / 12).toFixed(2) : Math.round(t * 12);
+  calc();
+});
+$$('input[name=view]').forEach(x => x.onchange = () => drawSched(true));
+$('#more').onclick = () => drawSched(false);
+['#amt', '#rate', '#term', '#grace'].forEach(s => $(s).addEventListener('input', calc));
+$$('input[name=m]').forEach(x => x.onchange = calc);
+// 처음 보여줄 예시
+$('#amt').value = '30,000'; $('#rate').value = '4.2'; $('#term').value = '30';
+calc();
+</script>
+</body>
+</html>
