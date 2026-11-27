@@ -266,5 +266,10 @@ $('#nNP').textContent = NP_RATE + '%'; $('#nHI').textContent = HI_RATE + '%'; $(
 $('#pay').value = '5,000'; $('#free').value = '20';
 calc();
 </script>
+<script src="../back.js"></script>
+<script>
+// 휴대폰 [뒤로] → 계산기 모음 목록에서 왔으면 목록, 아니면 시작 화면
+window.appBack && window.appBack(() => { location.replace(new URLSearchParams(location.search).get('from') === 'list' ? 'index.html' : '../index.html?home'); });
+</script>
 </body>
 </html>

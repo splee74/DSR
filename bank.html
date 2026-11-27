@@ -1200,5 +1200,10 @@ document.addEventListener('change', e => {
 $('#amt').addEventListener('input', e => { fmt(e.target); render(); });
 render(); load();
 </script>
+<script src="back.js"></script>
+<script>
+// 휴대폰 [뒤로] → 시작 화면에서 왔으면 시작 화면, 아니면 계산기
+window.appBack && window.appBack(() => { location.replace(new URLSearchParams(location.search).get('from') === 'home' ? './index.html?home' : './'); });
+</script>
 </body>
 </html>

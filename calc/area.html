@@ -199,5 +199,10 @@ $('#m2').value = '84'; $('#py').value = r2(84 / PY).replace(/,/g, '');
 $('#ex').value = '84'; $('#ratio').value = '75';
 sup();
 </script>
+<script src="../back.js"></script>
+<script>
+// 휴대폰 [뒤로] → 계산기 모음 목록에서 왔으면 목록, 아니면 시작 화면
+window.appBack && window.appBack(() => { location.replace(new URLSearchParams(location.search).get('from') === 'list' ? 'index.html' : '../index.html?home'); });
+</script>
 </body>
 </html>

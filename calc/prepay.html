@@ -314,5 +314,10 @@ $('#d0').value = iso(addM(today, -15)); $('#d1').value = iso(today);
 $('#r0').value = '5.0'; $('#r1').value = '4.0'; $('#left').value = '25';
 calc();
 </script>
+<script src="../back.js"></script>
+<script>
+// 휴대폰 [뒤로] → 계산기 모음 목록에서 왔으면 목록, 아니면 시작 화면
+window.appBack && window.appBack(() => { location.replace(new URLSearchParams(location.search).get('from') === 'list' ? 'index.html' : '../index.html?home'); });
+</script>
 </body>
 </html>

@@ -583,5 +583,10 @@ footer{font-size:12.5px;color:var(--muted);padding-block:0 30px}
   draw();
 })();
 </script>
+<script src="back.js"></script>
+<script>
+// 휴대폰 [뒤로] → 계산기
+window.appBack && window.appBack(() => { location.replace('./'); });
+</script>
 </body>
 </html>

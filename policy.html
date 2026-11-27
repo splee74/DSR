@@ -530,5 +530,10 @@ document.addEventListener('change', render);
 $$('.money').forEach(formatMoney);
 render();
 </script>
+<script src="back.js"></script>
+<script>
+// 휴대폰 [뒤로] → 계산기
+window.appBack && window.appBack(() => { location.replace('./'); });
+</script>
 </body>
 </html>

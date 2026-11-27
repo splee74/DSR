@@ -815,5 +815,10 @@ function say(t, bad, toast) {
 addEventListener('pagehide', () => { S.front = S.back = null; S.saved = {}; });
 { let m = 'id'; try { m = localStorage.getItem('scanMode') || 'id'; } catch (e) {} setMode(m); }
 </script>
+<script src="back.js"></script>
+<script>
+// 휴대폰 [뒤로] → 시작 화면에서 왔으면 시작 화면, 아니면 계산기
+window.appBack && window.appBack(() => { location.replace(new URLSearchParams(location.search).get('from') === 'home' ? './index.html?home' : './'); });
+</script>
 </body>
 </html>
