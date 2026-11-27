@@ -1052,8 +1052,8 @@ dialog{border-radius:10px}
     <button type="button" class="btn" id="imgSave" hidden>이미지 저장</button>
     <a class="btn primary" id="pdfChrome" href="#" hidden>크롬에서 열기</a>
     <button type="button" class="btn primary" id="pdfShare">PDF로 카톡공유</button>
-    <button type="button" class="btn primary" id="imgShare" hidden>이미지로 공유</button>
-    <button type="button" class="btn primary" id="smsShare" hidden>문자로 공유</button>
+    <button type="button" class="btn primary" id="imgShare" hidden>이미지로 카톡공유</button>
+    <button type="button" class="btn primary" id="smsShare" hidden>이미지로 문자공유</button>
     <button type="button" class="btn primary" id="pdfPrint" hidden>결과 인쇄</button>
   </div>
 </dialog>
@@ -1072,7 +1072,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v139';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v140';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
@@ -2356,7 +2356,6 @@ const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(UA) || (navigator.maxTouchPoi
 const IS_SAMSUNG = /SamsungBrowser/.test(UA);
 // 삼성 인터넷에서 같은 주소를 크롬으로 여는 링크
 const chromeLink = () => `intent://${location.host}${location.pathname}?s=${b64u(JSON.stringify(snapState()))}#Intent;scheme=https;package=com.android.chrome;end`;
-const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
 const escH = x => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const canShareFile = f => { try { return !!(f && navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) { return false; } };
 $('#btnPdf').onclick = async () => {
@@ -2374,18 +2373,18 @@ $('#btnPdf').onclick = async () => {
     imgFile = img ? new File([img], base + '.jpg', { type: 'image/jpeg' }) : null;
     const can = IS_MOBILE && !IS_SAMSUNG && canShareFile(pdfFile);
     const canImg = IS_MOBILE && canShareFile(imgFile);   // 이미지는 삼성 인터넷에서도 공유 가능
-    $('#pdfShare').hidden = !can; $('#imgShare').hidden = !canImg; $('#smsShare').hidden = !IS_MOBILE;
+    $('#pdfShare').hidden = !can; $('#imgShare').hidden = !canImg; $('#smsShare').hidden = !canImg;
     $('#imgSave').hidden = !imgFile || canImg;
     B.forEach(id => $(id).disabled = false);
     $('#pdfChrome').hidden = !IS_SAMSUNG; $('#pdfChrome').href = chromeLink();
     $('#pdfSave').classList.toggle('primary', IS_MOBILE && !can && !canImg && !IS_SAMSUNG);
     const tip = IS_SAMSUNG
-      ? '<b>삼성 인터넷</b>은 PDF 파일을 카카오톡으로 넘기는 것을 막고 있습니다.<br>· <b>[이미지로 공유]</b>는 바로 카카오톡·문자로 보낼 수 있습니다<br>· PDF는 <b>[크롬에서 열기]</b>를 누르면 입력한 내용 그대로 크롬에서 열리고 PDF 창이 바로 뜹니다<br>· 또는 <b>[PDF 저장]</b> 후 알림창(또는 내 파일 → 다운로드)에서 파일을 눌러 <b>공유 → 카카오톡</b>을 고르세요.'
+      ? '<b>삼성 인터넷</b>은 PDF 파일을 카카오톡으로 넘기는 것을 막고 있습니다.<br>· <b>[이미지로 카톡공유]</b>·<b>[이미지로 문자공유]</b>는 바로 보낼 수 있습니다<br>· PDF는 <b>[크롬에서 열기]</b>를 누르면 입력한 내용 그대로 크롬에서 열리고 PDF 창이 바로 뜹니다<br>· 또는 <b>[PDF 저장]</b> 후 알림창(또는 내 파일 → 다운로드)에서 파일을 눌러 <b>공유 → 카카오톡</b>을 고르세요.'
       : !IS_MOBILE
       ? '<b>[결과 인쇄]</b>를 누르면 바로 인쇄할 수 있습니다.<br>카카오톡으로 보내려면 <b>[PDF 저장]</b>이나 <b>[이미지 저장]</b> 후 저장된 파일을 <b>카카오톡 PC 대화창에 끌어다 놓으세요</b>.'
       : (can || canImg)
-      ? '· <b>[PDF로 카톡공유]</b>·<b>[이미지로 공유]</b>를 누른 뒤 <b>카카오톡 → 나와의 채팅</b>(또는 고객 채팅방)을 고르세요. 이미지는 공유 창에서 <b>메시지</b>를 고르면 사진 문자로 갑니다.<br>· <b>[문자로 공유]</b>는 결과 요약을 글자로 문자 앱에 넣어 줍니다.'
-      : '이 브라우저는 파일 공유를 지원하지 않습니다. <b>[PDF 저장]</b>·<b>[이미지 저장]</b> 후 파일을 카카오톡으로 보내 주세요.<br>· <b>[문자로 공유]</b>는 결과 요약을 글자로 문자 앱에 넣어 줍니다.';
+      ? '· <b>[PDF로 카톡공유]</b>·<b>[이미지로 카톡공유]</b>: 공유 창에서 <b>카카오톡 → 나와의 채팅</b>(또는 고객 채팅방)을 고르세요.<br>· <b>[이미지로 문자공유]</b>: 공유 창에서 <b>메시지</b>(문자)를 고르면 결과지 사진이 붙은 문자가 열립니다.'
+      : '이 브라우저는 파일 공유를 지원하지 않습니다. <b>[PDF 저장]</b>·<b>[이미지 저장]</b> 후 파일을 카카오톡·문자로 보내 주세요.';
     msg.innerHTML = `<b>${escH(pdfFile.name)}</b> (${Math.max(1, Math.round(blob.size / 1024))}KB)` +
       (imgFile ? `<br><b>${escH(imgFile.name)}</b> (${Math.max(1, Math.round(imgFile.size / 1024))}KB)` : '') + '<br>' + tip;
   } catch (err) {
@@ -2416,23 +2415,11 @@ $('#pdfShare').onclick = () => shareFile(pdfFile, 'pdf');
 $('#imgShare').onclick = () => shareFile(imgFile, 'img');
 $('#pdfSave').onclick = () => saveFile(pdfFile);
 $('#imgSave').onclick = () => saveFile(imgFile);
-// 문자로 공유: 결과 요약을 글자로 만들어 휴대폰 문자 앱을 엶 (sms: 주소에는 파일을 넣을 수 없음 → 사진은 [이미지로 공유] → 메시지)
-function smsText() {
-  const tabName = $(`.tabs button[data-tab="${tab}"]`)?.textContent.trim() || '대출';
-  const who = $('#custName').value.trim(), date = $('#cdate').value;
-  const lines = [`[${tabName} 상담 결과]`];
-  if (who || date) lines.push([who && who + ' 고객님', date].filter(Boolean).join(' · '));
-  const items = csItems();
-  const cond = items.filter(r => r[0] === '상담 조건');
-  if (cond.length) { lines.push('', '■ 상담 조건'); cond.forEach(r => lines.push(`- ${r[1]}: ${r[2]}`)); }
-  const res = items.filter(r => r[0] === '결과');
-  if (res.length) { lines.push('', '■ 결과'); res.forEach(r => lines.push(`- ${r[1]}: ${r[2]}`)); }
-  lines.push('', '※ 참고용 계산이며 실제 한도·금리는 은행 심사에 따라 달라질 수 있습니다.');
-  return lines.join('\n');
-}
+// 이미지로 문자공유: 결과지 사진을 공유 창으로 넘김 → 메시지(문자) 앱 선택 시 사진 문자(MMS)
+// (웹에서는 문자 앱을 바로 지정해 파일을 넘길 수 없음 · sms: 주소에는 파일을 넣을 수 없음)
 $('#smsShare').onclick = () => {
-  // 아이폰은 sms:&body= · 안드로이드는 sms:?body=
-  location.href = 'sms:' + (IS_IOS ? '&' : '?') + 'body=' + encodeURIComponent(smsText());
+  $('#pdfMsg').innerHTML = '공유 창에서 <b>메시지</b>(문자)를 고르세요. 결과지 사진이 붙은 문자가 열립니다.';
+  shareFile(imgFile, 'img');
 };
 $('#pdfPrint').onclick = () => {
   if (!pdfFile) return;
