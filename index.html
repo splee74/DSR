@@ -526,6 +526,7 @@ dialog{border-radius:10px}
   let gone = false;
   // 주소에서 ?home 지우기 (새로고침 때 시작 화면이 또 뜨지 않게)
   const clearHome = () => { if (HOME) try { history.replaceState(null, '', location.pathname + location.search.replace(/[?&]home\b/, '').replace(/^&/, '?') + location.hash); } catch (e) {} };
+  window.addEventListener('pageshow', e => { if (e.persisted && el.isConnected) { gone = false; el.classList.remove('out'); } });
   el.addEventListener('click', e => {
     // 계산기 아이콘: 뒤로 가기로 돌아오면 시작 화면이 다시 보이게 지금 주소를 ?home 으로 바꿔 둔 뒤 이동
     const ic = e.target.closest('.sp-ic');
@@ -535,12 +536,12 @@ dialog{border-radius:10px}
       return;
     }
     const card = e.target.closest('.sp-card'); if (!card || gone) return;
-    gone = true;
     if (window.gtag) gtag('event', 'splash_pick', { to: card.dataset.go });
-    if (card.dataset.go === 'bank') {   // 은행금리비교로 · [돌아가기]/뒤로 가기로 오면 시작 화면이 다시 보이게
+    if (card.dataset.go === 'bank') {   // 여기서는 gone 을 켜지 않음 (돌아왔을 때 카드가 안 눌리던 문제)   // 은행금리비교로 · [돌아가기]/뒤로 가기로 오면 시작 화면이 다시 보이게
       try { history.replaceState(null, '', location.pathname + '?home'); } catch (e) {}
       location.href = 'bank.html'; return;
     }
+    gone = true;
     clearHome();
     // DSR 계산기 → 주택구입자금 탭
     document.querySelector('.tabs button[data-tab="mort"]')?.click();
@@ -1107,7 +1108,7 @@ dialog{border-radius:10px}
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const APP_VERSION = 'v145';   // sw.js 의 VERSION 과 같이 올릴 것
+const APP_VERSION = 'v146';   // sw.js 의 VERSION 과 같이 올릴 것
 document.querySelectorAll('.app-ver').forEach(el => el.textContent = APP_VERSION);
 
 /* ---------- 규제 기본값 (⚙ 규제설정에서 수정 가능) ---------- */
