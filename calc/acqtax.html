@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#03c75a">
+<link rel="icon" type="image/png" href="../icon-192.png?v=2">
+<title>취득세 계산기</title>
+<!-- 미리보기: 계산기 모음 6번 · 아직 앱(index.html)에는 연결하지 않음 -->
+<style>
+:root{
+  --brand:#03c75a;--brand-dark:#02b351;--brand-ink:#008a3e;--brand-weak:#eafaf1;--brand-line:#b8ebcd;
+  --bg:#f5f6f7;--card:#fff;--line:#e3e5e8;--soft:#f5f6f7;--text:#1e1e23;--sub:#4e5258;--muted:#8b8f96;
+  --bad:#ea3d34;--badbg:#ffefee;--surface:#fff;--line-strong:#d4d5d9;--faint:#b4b6bc;--header:#fffffff0;--header-solid:#fff;
+  --bar-p:#03c75a;--bar-i:#ffb21e;--shadow:none;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.55;letter-spacing:-.2px;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;letter-spacing:inherit}
+.top{position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none}
+.top h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.4px}
+.top h1 span{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:-2px}
+.badge{margin-left:auto;font-size:12px;font-weight:600;color:var(--brand-ink);background:var(--brand-weak);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:20px;max-width:1100px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left,0px)) 40px}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:14px;padding-top:14px}}
+.card{background:var(--card);border-radius:20px;padding:22px;margin-bottom:14px;box-shadow:var(--shadow)}
+@media (max-width:560px){.card{padding:18px}}
+.card h2{margin:0 0 16px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.sticky{position:sticky;top:76px;align-self:start}
+@media (max-width:900px){.sticky{position:static}}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;min-width:0}
+.field>label,.flabel{font-size:13px;font-weight:500;color:var(--sub)}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.inp{display:flex;align-items:center;border:1.5px solid transparent;border-radius:12px;background:var(--soft);padding:0 14px;min-height:48px;transition:.15s}
+.inp input{border:0;outline:0;flex:1;min-width:0;width:100%;padding:10px 0;font:inherit;font-weight:600;background:transparent;text-align:right;color:var(--text);font-size:16px}
+.inp input::placeholder{color:var(--faint);font-weight:400;font-size:14px}
+.inp .u{color:var(--muted);font-size:13px;margin-left:6px;white-space:nowrap}
+.inp:focus-within{border-color:var(--brand-ink);background:var(--surface)}
+.hint{font-size:12px;color:var(--brand-ink);font-weight:500;text-align:right;min-height:18px;margin-top:-2px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.quick button{border:1px solid var(--line);background:var(--surface);color:var(--sub);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600}
+.quick button:hover{border-color:var(--brand-ink);color:var(--brand-ink)}
+.seg{display:flex;gap:6px}
+.seg label{flex:1 1 0;position:relative;min-width:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;text-align:center;padding:10px 4px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-weight:600;font-size:14px;line-height:1.3;color:var(--sub);transition:.15s}
+.seg span small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:2px}
+.seg input:checked+span{border-color:var(--brand-ink);background:var(--brand-weak);color:var(--brand-ink)}
+.seg input:checked+span small{color:var(--brand-ink)}
+.seg input:focus-visible+span{box-shadow:0 0 0 3px #03c75a44}
+.seg.sm span{padding:7px 4px;font-size:13px}
+.note{font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:12px;padding:10px 14px;line-height:1.7}
+/* 결과 */
+.hero{background:var(--brand-weak);border-radius:16px;padding:18px 18px 16px}
+.hero .k{font-size:13px;color:var(--brand-ink);font-weight:600}
+.hero .v{font-size:32px;font-weight:800;letter-spacing:-1px;margin:2px 0 0;color:var(--text)}
+.hero .v small{font-size:16px;font-weight:600;margin-left:2px}
+.hero .s{font-size:13px;color:var(--sub);margin-top:2px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+@media (max-width:420px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis>div:last-child{grid-column:1/-1}}
+.kpis>div{background:var(--soft);border-radius:14px;padding:12px 14px}
+.kpis .k{font-size:12px;color:var(--muted);font-weight:500}
+.kpis .v{font-size:17px;font-weight:700;margin-top:2px;word-break:keep-all}
+.bar{display:flex;height:12px;border-radius:999px;overflow:hidden;margin:16px 0 6px;background:var(--soft)}
+.bar i{display:block;height:100%}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0;background:var(--c)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12.5px;color:var(--muted);font-weight:500}
+th:first-child,td:first-child{text-align:left}
+tr.on td{color:var(--brand-ink);font-weight:700}
+tr.best td:last-child::after{content:" 최소";font-size:11px;color:var(--brand-ink);font-weight:700}
+.tw{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.sched-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.sched-head h2{margin:0}
+.sched-head .seg{width:150px}
+.sched{max-height:460px;overflow:auto}
+.sched thead th{position:sticky;top:0;background:var(--card)}
+.more{width:100%;margin-top:10px;border:1.5px dashed var(--brand-line);background:var(--brand-weak);color:var(--brand-ink);border-radius:12px;padding:10px;font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:30px 0;font-size:14px}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.7}
+button:focus-visible{outline:2px solid var(--brand-ink);outline-offset:2px}
+.line{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.line:last-child{border-bottom:0}
+.line span{color:var(--sub)}.line b{font-weight:700;text-align:right}
+.good{color:var(--brand-ink)}
+.seg.wrap{flex-wrap:wrap}.seg.wrap label{flex:1 1 70px}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;user-select:none}
+.chk input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line-strong);background:var(--surface);margin:0;display:grid;place-items:center;cursor:pointer;flex:none}
+.chk input:checked{background:var(--brand);border-color:var(--brand-ink)}
+.chk input:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.chks{display:flex;flex-direction:column;gap:10px}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="logo" href="index.html" aria-label="계산기 모음으로" title="계산기 모음으로" style="text-decoration:none">₩</a>
+  <h1>취득세 계산기<span>주택 매매 · 다주택 중과 · 생애최초 감면</span></h1>
+  <div class="badge">미리보기</div>
+</div></header>
+
+<main class="layout">
+  <section>
+    <div class="card">
+      <h2>취득 조건</h2>
+      <div class="field">
+        <span class="flabel">대상</span>
+        <div class="seg">
+          <label><input type="radio" name="kind" value="house" checked><span>주택<small>아파트·빌라 등</small></span></label>
+          <label><input type="radio" name="kind" value="etc"><span>주택 외<small>오피스텔·상가·토지</small></span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="price">취득가액 (매매가)</label>
+        <div class="inp"><input id="price" class="money" inputmode="numeric" placeholder="예: 70,000" autocomplete="off"><span class="u">만원</span></div>
+        <div class="hint" id="priceHint"></div>
+      </div>
+      <div id="houseF">
+        <div class="field">
+          <span class="flabel">이 집을 사면 몇 주택? <small style="color:var(--muted)">(세대 기준)</small></span>
+          <div class="seg sm wrap">
+            <label><input type="radio" name="cnt" value="1" checked><span>1주택</span></label>
+            <label><input type="radio" name="cnt" value="2"><span>2주택</span></label>
+            <label><input type="radio" name="cnt" value="3"><span>3주택</span></label>
+            <label><input type="radio" name="cnt" value="4"><span>4주택 이상</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <span class="flabel">전용면적</span>
+          <div class="seg sm">
+            <label><input type="radio" name="area" value="s" checked><span>85㎡ 이하</span></label>
+            <label><input type="radio" name="area" value="l"><span>85㎡ 초과</span></label>
+          </div>
+        </div>
+        <div class="chks">
+          <label class="chk"><input type="checkbox" id="adj">살 집이 조정대상지역</label>
+          <label class="chk" id="tempL"><input type="checkbox" id="temp">일시적 2주택 (기존 집을 기한 안에 처분)</label>
+          <label class="chk" id="firstL"><input type="checkbox" id="first">생애최초 주택 구입 감면</label>
+        </div>
+      </div>
+    </div>
+    <div class="note">
+      · <b>1주택</b>: 6억 이하 1% · 6억~9억 1~3% (금액에 따라 올라감) · 9억 초과 3%<br>
+      · <b>다주택 중과</b>: 조정대상지역 2주택 8%, 3주택 이상 12% · 비조정지역은 2주택 1~3%, 3주택 8%, 4주택 이상 12%<br>
+      · <b>지방교육세</b>와 <b>농어촌특별세</b>(전용 85㎡ 초과만)가 함께 붙습니다.<br>
+      · <b>생애최초 감면</b>: 취득가액 12억 이하, 취득세 최대 200만원 감면 (적용 기한·요건은 위택스에서 확인)<br>
+      · 2025년 기준 세율이며, 법이 바뀌면 달라질 수 있습니다. 증여·상속·법인 취득은 계산하지 않습니다.
+    </div>
+  </section>
+
+  <section class="sticky">
+    <div class="card">
+      <div class="empty" id="empty">취득가액을 넣으면 바로 계산됩니다.</div>
+      <div id="res" hidden>
+        <div class="hero">
+          <div class="k">내야 할 세금 합계</div>
+          <div class="v" id="heroV"></div>
+          <div class="s" id="heroS"></div>
+        </div>
+        <div style="margin-top:12px" id="lines"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>주택 세율표 <small style="font-size:12.5px;color:var(--muted);font-weight:500">(취득세 + 교육세 + 농특세)</small></h2>
+      <div class="tw"><table>
+        <thead><tr><th>구분</th><th>85㎡ 이하</th><th>85㎡ 초과</th></tr></thead>
+        <tbody id="tbl"></tbody>
+      </table></div>
+    </div>
+    <p class="foot">계산 결과는 참고용입니다. 정확한 세액은 위택스(wetax.go.kr)나 관할 시·군·구청에서 확인하세요.</p>
+  </section>
+</main>
+
+<script>
+// ── 세율 기준 (바뀌면 여기만 고침) ──
+const FIRST_LIMIT = 12e8, FIRST_MAX = 200e4;   // 생애최초 감면: 취득가 12억 이하 · 최대 200만원
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const num = v => +String(v || '').replace(/[^\d.]/g, '') || 0;
+const won = v => Math.round(v).toLocaleString('ko-KR') + '원';
+function kor(v) {
+  v = Math.round(v);
+  if (v < 10000) return v.toLocaleString('ko-KR') + '원';
+  const eok = Math.floor(v / 1e8), man = Math.floor((v % 1e8) / 1e4);
+  return [eok ? eok.toLocaleString('ko-KR') + '억' : '', man ? man.toLocaleString('ko-KR') + '만' : ''].filter(Boolean).join(' ') + '원';
+}
+const pct = r => (Math.round(r * 1e4) / 1e4).toString() + '%';
+// 1주택 표준세율(%): 6억 이하 1 · 9억 초과 3 · 사이는 (가액×2/3억 − 3) 소수 둘째 자리 반올림
+function baseRate(P) {
+  if (P <= 6e8) return 1;
+  if (P > 9e8) return 3;
+  return Math.round((P / 1e8 * 2 / 3 - 3) * 100) / 100;
+}
+// [취득세율, 지방교육세율, 농특세율(85㎡ 초과)] · %
+function rates(P, cnt, adj, temp, large) {
+  let t = baseRate(P), heavy = false;
+  if (cnt === 2 && adj && !temp) { t = 8; heavy = true; }
+  else if (cnt === 3) { t = adj ? 12 : 8; heavy = true; }
+  else if (cnt >= 4) { t = 12; heavy = true; }
+  const edu = heavy ? 0.4 : t * 0.1;
+  const farm = large ? (t === 8 ? 0.6 : t === 12 ? 1.0 : 0.2) : 0;
+  return { t, edu, farm, heavy };
+}
+function calc() {
+  const kind = $('input[name=kind]:checked').value;
+  $('#houseF').hidden = kind !== 'house';
+  const P = num($('#price').value) * 1e4;
+  $('#priceHint').textContent = P ? kor(P) : '';
+  const cnt = +$('input[name=cnt]:checked').value, adj = $('#adj').checked;
+  $('#tempL').hidden = cnt !== 2;
+  $('#firstL').hidden = cnt !== 1;
+  const ok = P > 0;
+  $('#empty').hidden = ok; $('#res').hidden = !ok;
+  drawTable(P);
+  if (!ok) return;
+  let r, note = '';
+  if (kind === 'etc') r = { t: 4, edu: 0.4, farm: 0.2, heavy: false };
+  else r = rates(P, cnt, adj, cnt === 2 && $('#temp').checked, $('input[name=area]:checked').value === 'l');
+  const acq = Math.floor(P * r.t / 100), edu = Math.floor(P * r.edu / 100), farm = Math.floor(P * r.farm / 100);
+  let cut = 0;
+  if (kind === 'house' && cnt === 1 && $('#first').checked) {
+    if (P <= FIRST_LIMIT) cut = Math.min(acq, FIRST_MAX); else note = '취득가액이 12억원을 넘어 생애최초 감면 대상이 아닙니다.';
+  }
+  const total = acq - cut + edu + farm;
+  $('#heroV').innerHTML = total.toLocaleString('ko-KR') + '<small>원</small>';
+  $('#heroS').textContent = `실효세율 ${(total / P * 100).toFixed(2)}%` + (r.heavy ? ' · 다주택 중과세율 적용' : '') + (note ? ' · ' + note : '');
+  const line = (k, v, c = '') => `<div class="line"><span>${k}</span><b class="${c}">${v}</b></div>`;
+  $('#lines').innerHTML = line('취득가액', kor(P)) +
+    line(`취득세 (${pct(r.t)})`, won(acq)) +
+    (cut ? line('생애최초 감면', '−' + won(cut), 'good') : '') +
+    line(`지방교육세 (${pct(r.edu)})`, won(edu)) +
+    line(`농어촌특별세 (${r.farm ? pct(r.farm) : '85㎡ 이하 비과세'})`, won(farm)) +
+    line('합계', won(total));
+}
+function drawTable(P) {
+  const rows = [
+    ['1주택 · 6억 이하', 1e8 * 5, 1, false, false],
+    ['1주택 · 9억 초과', 1e9, 1, false, false],
+    ['2주택 · 조정지역', 1e8 * 5, 2, true, false],
+    ['3주택 · 비조정', 1e8 * 5, 3, false, false],
+    ['3주택 조정 · 4주택+', 1e8 * 5, 4, true, false]
+  ];
+  const tot = (p, c, a, l) => { const r = rates(p, c, a, false, l); return pct(r.t + r.edu + r.farm); };
+  const mid = P > 6e8 && P <= 9e8 ? `<tr class="on"><td>1주택 · ${kor(P)}</td><td>${tot(P, 1, false, false)}</td><td>${tot(P, 1, false, true)}</td></tr>` : '';
+  $('#tbl').innerHTML = rows.map(([n, p, c, a]) => `<tr><td>${n}</td><td>${tot(p, c, a, false)}</td><td>${tot(p, c, a, true)}</td></tr>`).join('').replace('</tr>', '</tr>' + mid) +
+    `<tr><td>주택 외 (상가·토지 등)</td><td colspan="2" style="text-align:center">4.6%</td></tr>`;
+}
+const comma = e => { const el = e.target, d = el.value.replace(/[^\d]/g, '').slice(0, 9); el.value = d ? (+d).toLocaleString('ko-KR') : ''; };
+$$('.money').forEach(el => el.addEventListener('input', comma));
+$$('input').forEach(el => el.addEventListener(el.type === 'radio' || el.type === 'checkbox' ? 'change' : 'input', calc));
+$('#price').value = '70,000';
+calc();
+</script>
+</body>
+</html>

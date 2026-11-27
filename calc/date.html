@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#03c75a">
+<link rel="icon" type="image/png" href="../icon-192.png?v=2">
+<title>날짜 계산기</title>
+<!-- 미리보기: 계산기 모음 10번 · 아직 앱(index.html)에는 연결하지 않음 -->
+<style>
+:root{
+  --brand:#03c75a;--brand-dark:#02b351;--brand-ink:#008a3e;--brand-weak:#eafaf1;--brand-line:#b8ebcd;
+  --bg:#f5f6f7;--card:#fff;--line:#e3e5e8;--soft:#f5f6f7;--text:#1e1e23;--sub:#4e5258;--muted:#8b8f96;
+  --bad:#ea3d34;--badbg:#ffefee;--surface:#fff;--line-strong:#d4d5d9;--faint:#b4b6bc;--header:#fffffff0;--header-solid:#fff;
+  --bar-p:#03c75a;--bar-i:#ffb21e;--shadow:none;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.55;letter-spacing:-.2px;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;letter-spacing:inherit}
+.top{position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none}
+.top h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.4px}
+.top h1 span{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:-2px}
+.badge{margin-left:auto;font-size:12px;font-weight:600;color:var(--brand-ink);background:var(--brand-weak);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:20px;max-width:1100px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left,0px)) 40px}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:14px;padding-top:14px}}
+.card{background:var(--card);border-radius:20px;padding:22px;margin-bottom:14px;box-shadow:var(--shadow)}
+@media (max-width:560px){.card{padding:18px}}
+.card h2{margin:0 0 16px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.sticky{position:sticky;top:76px;align-self:start}
+@media (max-width:900px){.sticky{position:static}}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;min-width:0}
+.field>label,.flabel{font-size:13px;font-weight:500;color:var(--sub)}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.inp{display:flex;align-items:center;border:1.5px solid transparent;border-radius:12px;background:var(--soft);padding:0 14px;min-height:48px;transition:.15s}
+.inp input{border:0;outline:0;flex:1;min-width:0;width:100%;padding:10px 0;font:inherit;font-weight:600;background:transparent;text-align:right;color:var(--text);font-size:16px}
+.inp input::placeholder{color:var(--faint);font-weight:400;font-size:14px}
+.inp .u{color:var(--muted);font-size:13px;margin-left:6px;white-space:nowrap}
+.inp:focus-within{border-color:var(--brand-ink);background:var(--surface)}
+.hint{font-size:12px;color:var(--brand-ink);font-weight:500;text-align:right;min-height:18px;margin-top:-2px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.quick button{border:1px solid var(--line);background:var(--surface);color:var(--sub);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600}
+.quick button:hover{border-color:var(--brand-ink);color:var(--brand-ink)}
+.seg{display:flex;gap:6px}
+.seg label{flex:1 1 0;position:relative;min-width:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;text-align:center;padding:10px 4px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-weight:600;font-size:14px;line-height:1.3;color:var(--sub);transition:.15s}
+.seg span small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:2px}
+.seg input:checked+span{border-color:var(--brand-ink);background:var(--brand-weak);color:var(--brand-ink)}
+.seg input:checked+span small{color:var(--brand-ink)}
+.seg input:focus-visible+span{box-shadow:0 0 0 3px #03c75a44}
+.seg.sm span{padding:7px 4px;font-size:13px}
+.note{font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:12px;padding:10px 14px;line-height:1.7}
+/* 결과 */
+.hero{background:var(--brand-weak);border-radius:16px;padding:18px 18px 16px}
+.hero .k{font-size:13px;color:var(--brand-ink);font-weight:600}
+.hero .v{font-size:32px;font-weight:800;letter-spacing:-1px;margin:2px 0 0;color:var(--text)}
+.hero .v small{font-size:16px;font-weight:600;margin-left:2px}
+.hero .s{font-size:13px;color:var(--sub);margin-top:2px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+@media (max-width:420px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis>div:last-child{grid-column:1/-1}}
+.kpis>div{background:var(--soft);border-radius:14px;padding:12px 14px}
+.kpis .k{font-size:12px;color:var(--muted);font-weight:500}
+.kpis .v{font-size:17px;font-weight:700;margin-top:2px;word-break:keep-all}
+.bar{display:flex;height:12px;border-radius:999px;overflow:hidden;margin:16px 0 6px;background:var(--soft)}
+.bar i{display:block;height:100%}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0;background:var(--c)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12.5px;color:var(--muted);font-weight:500}
+th:first-child,td:first-child{text-align:left}
+tr.on td{color:var(--brand-ink);font-weight:700}
+tr.best td:last-child::after{content:" 최소";font-size:11px;color:var(--brand-ink);font-weight:700}
+.tw{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.sched-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.sched-head h2{margin:0}
+.sched-head .seg{width:150px}
+.sched{max-height:460px;overflow:auto}
+.sched thead th{position:sticky;top:0;background:var(--card)}
+.more{width:100%;margin-top:10px;border:1.5px dashed var(--brand-line);background:var(--brand-weak);color:var(--brand-ink);border-radius:12px;padding:10px;font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:30px 0;font-size:14px}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.7}
+button:focus-visible{outline:2px solid var(--brand-ink);outline-offset:2px}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;background:var(--soft);border-radius:14px;padding:4px;margin-bottom:16px}
+@media (max-width:480px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tabs button{border:0;background:transparent;color:var(--muted);padding:9px 4px;border-radius:11px;font-weight:600;font-size:13.5px}
+.tabs button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 4px #00000014}
+.inp input[type=date]{text-align:left;font-size:15px}
+.inp select{border:0;outline:0;flex:1;min-width:0;width:100%;padding:10px 0;font:inherit;font-weight:600;background:transparent;color:var(--text);font-size:16px}
+.line{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.line:last-child{border-bottom:0}
+.line span{color:var(--sub)}.line b{font-weight:700;text-align:right}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;user-select:none}
+.chk input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line-strong);background:var(--surface);margin:0;display:grid;place-items:center;cursor:pointer;flex:none}
+.chk input:checked{background:var(--brand);border-color:var(--brand-ink)}
+.chk input:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.amt{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:8px}
+.tl{position:relative;margin:16px 0 4px;padding-left:18px}
+.tl::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl div{position:relative;padding:0 0 12px;font-size:14px}
+.tl div::before{content:"";position:absolute;left:-17px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--line-strong)}
+.tl div.on::before{background:var(--brand);border-color:var(--brand-ink)}
+.tl b{display:block}.tl small{color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="logo" href="index.html" aria-label="계산기 모음으로" title="계산기 모음으로" style="text-decoration:none">₩</a>
+  <h1>날짜 계산기<span>D-day · 날짜 더하기 · 만 나이 · 임대차 만기</span></h1>
+  <div class="badge">미리보기</div>
+</div></header>
+
+<main class="layout">
+  <section>
+    <div class="card">
+      <div class="tabs" role="tablist">
+        <button type="button" data-mode="dday" class="on">D-day·기간</button>
+        <button type="button" data-mode="add">날짜 더하기</button>
+        <button type="button" data-mode="age">만 나이</button>
+        <button type="button" data-mode="lease">임대차 만기</button>
+      </div>
+
+      <div data-show="dday">
+        <div class="row2">
+          <div class="field"><label for="a1">시작일</label><div class="inp"><input id="a1" type="date"></div></div>
+          <div class="field"><label for="a2">끝나는 날 (목표일)</label><div class="inp"><input id="a2" type="date"></div></div>
+        </div>
+        <label class="chk"><input type="checkbox" id="incl">시작일도 1일로 셈 (첫날 포함)</label>
+      </div>
+
+      <div data-show="add">
+        <div class="field"><label for="b1">기준일</label><div class="inp"><input id="b1" type="date"></div></div>
+        <div class="field">
+          <span class="flabel">더하거나 뺄 기간</span>
+          <div class="amt">
+            <div class="inp"><input id="bn" inputmode="numeric" placeholder="예: 100" autocomplete="off"></div>
+            <div class="inp"><select id="bu"><option value="d">일</option><option value="w">주</option><option value="m">개월</option><option value="y">년</option></select></div>
+          </div>
+        </div>
+        <div class="seg sm">
+          <label><input type="radio" name="dir" value="1" checked><span>뒤로 (+)</span></label>
+          <label><input type="radio" name="dir" value="-1"><span>앞으로 (−)</span></label>
+        </div>
+        <div class="quick" id="bq" style="margin-top:10px">
+          <button type="button" data-v="30" data-u="d">30일</button><button type="button" data-v="100" data-u="d">100일</button>
+          <button type="button" data-v="6" data-u="m">6개월</button><button type="button" data-v="1" data-u="y">1년</button><button type="button" data-v="2" data-u="y">2년</button>
+        </div>
+      </div>
+
+      <div data-show="age">
+        <div class="row2">
+          <div class="field"><label for="c1">생년월일</label><div class="inp"><input id="c1" type="date"></div></div>
+          <div class="field"><label for="c2">기준일</label><div class="inp"><input id="c2" type="date"></div></div>
+        </div>
+      </div>
+
+      <div data-show="lease">
+        <div class="field"><label for="d1">계약 시작일 (입주일)</label><div class="inp"><input id="d1" type="date"></div></div>
+        <div class="field" style="margin-bottom:0">
+          <span class="flabel">계약 기간</span>
+          <div class="seg sm">
+            <label><input type="radio" name="term" value="1"><span>1년</span></label>
+            <label><input type="radio" name="term" value="2" checked><span>2년</span></label>
+            <label><input type="radio" name="term" value="4"><span>2+2년 (갱신)</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+  </section>
+
+  <section class="sticky">
+    <div class="card">
+      <div class="empty" id="empty">날짜를 넣으면 바로 계산됩니다.</div>
+      <div id="res" hidden>
+        <div class="hero">
+          <div class="k" id="heroK"></div>
+          <div class="v" id="heroV"></div>
+          <div class="s" id="heroS"></div>
+        </div>
+        <div style="margin-top:12px" id="lines"></div>
+      </div>
+    </div>
+    <p class="foot">공휴일은 반영하지 않습니다. 법적 기한은 관련 법령과 계약서를 함께 확인하세요.</p>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const DAY = 864e5, WD = '일월화수목금토';
+const parse = s => { if (!s) return null; const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const fmt = d => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} (${WD[d.getDay()]})`;
+const days = (a, b) => Math.round((b - a) / DAY);
+const addD = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+// 월 더하기: 말일 넘치면 그 달 말일로 (1/31 + 1개월 = 2/28)
+function addM(d, n) { const t = new Date(d.getFullYear(), d.getMonth() + n, 1), last = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate(); t.setDate(Math.min(d.getDate(), last)); return t; }
+function ymd(a, b) {   // a ≤ b · 몇 년 몇 개월 며칠
+  let m = (b.getFullYear() - a.getFullYear()) * 12 + b.getMonth() - a.getMonth();
+  if (addM(a, m) > b) m--;
+  return { y: Math.floor(m / 12), m: m % 12, d: days(addM(a, m), b) };
+}
+const ymdText = o => [o.y && o.y + '년', o.m && o.m + '개월', (o.d || (!o.y && !o.m)) && o.d + '일'].filter(Boolean).join(' ');
+const today = () => { const t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); };
+const line = (k, v) => `<div class="line"><span>${k}</span><b>${v}</b></div>`;
+const NOTES = {
+  dday: '· 시작일과 끝나는 날 사이가 며칠인지 셉니다. 끝나는 날만 넣으면 오늘부터 남은 날(D-day)을 봅니다.<br>· 기념일·약정 기간처럼 <b>첫날을 1일</b>로 세려면 체크하세요.',
+  add: '· 계약일·잔금일 등 기준일에서 며칠·몇 개월 뒤(앞) 날짜를 구합니다.<br>· 개월·년을 더할 때 그 달에 같은 날이 없으면 말일로 맞춥니다 (1월 31일 + 1개월 = 2월 28일).',
+  age: '· 2023년 6월부터 법·행정에서는 <b>만 나이</b>를 씁니다. 생일이 지나야 한 살 늘어납니다.<br>· 연 나이(현재 연도 − 출생 연도)는 청소년보호법·병역 등 일부에서 씁니다.',
+  lease: '· 주택임대차보호법: 임차인은 <b>만기 6개월 전 ~ 2개월 전</b>에 계약갱신을 요구할 수 있고, 1회에 한해 2년 연장됩니다 (2+2).<br>· 임대인도 같은 기간에 갱신 거절이나 조건 변경을 알리지 않으면 같은 조건으로 자동 연장(묵시적 갱신)됩니다.'
+};
+let mode = 'dday';
+function setMode(m) {
+  mode = m;
+  $$('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  $$('[data-show]').forEach(el => el.hidden = el.dataset.show !== m);
+  $('#note').innerHTML = NOTES[m]; calc();
+}
+function show(k, v, s, lines) {
+  $('#empty').hidden = true; $('#res').hidden = false;
+  $('#heroK').textContent = k; $('#heroV').innerHTML = v; $('#heroS').textContent = s; $('#lines').innerHTML = lines;
+}
+function calc() {
+  const T = today();
+  $('#empty').hidden = false; $('#res').hidden = true;
+  if (mode === 'dday') {
+    const a = parse($('#a1').value) || T, b = parse($('#a2').value);
+    if (!b) return;
+    const inc = $('#incl').checked ? 1 : 0, n = days(a, b);
+    const lo = n >= 0 ? a : b, hi = n >= 0 ? b : a;
+    const dd = days(T, b);
+    show(n >= 0 ? '두 날짜 사이' : '끝나는 날이 시작일보다 앞', Math.abs(n) + inc + '<small>일</small>', `${fmt(a)} → ${fmt(b)}`,
+      line('기간', ymdText(ymd(lo, hi)) + (inc ? ' (+첫날)' : '')) + line('주 단위', `${Math.floor((Math.abs(n) + inc) / 7)}주 ${(Math.abs(n) + inc) % 7}일`) +
+      line('오늘 기준', dd > 0 ? `D-${dd}` : dd === 0 ? 'D-day (오늘)' : `D+${-dd} (지남)`));
+  } else if (mode === 'add') {
+    const a = parse($('#b1').value), n = +String($('#bn').value).replace(/[^\d]/g, ''), u = $('#bu').value, s = +$('input[name=dir]:checked').value;
+    if (!a || !n) return;
+    const r = u === 'd' ? addD(a, s * n) : u === 'w' ? addD(a, s * n * 7) : addM(a, s * n * (u === 'y' ? 12 : 1));
+    const un = { d: '일', w: '주', m: '개월', y: '년' }[u];
+    show(`${n}${un} ${s > 0 ? '뒤' : '전'}`, fmt(r), `${fmt(a)} ${s > 0 ? '+' : '−'} ${n}${un}`,
+      line('날짜 차이', `${Math.abs(days(a, r))}일`) + line('오늘 기준', (d => d > 0 ? `D-${d}` : d === 0 ? '오늘' : `${-d}일 지남`)(days(T, r))) +
+      line('하루 전 / 다음 날', `${fmt(addD(r, -1)).slice(5)} / ${fmt(addD(r, 1)).slice(5)}`));
+  } else if (mode === 'age') {
+    const b = parse($('#c1').value), r = parse($('#c2').value) || T;
+    if (!b || b > r) return;
+    const o = ymd(b, r), age = o.y;
+    let nb = new Date(r.getFullYear(), b.getMonth(), b.getDate()); if (nb <= r) nb = new Date(r.getFullYear() + 1, b.getMonth(), b.getDate());
+    show('만 나이', age + '<small>세</small>', `${fmt(b)} 출생 · 기준일 ${fmt(r)}`,
+      line('연 나이 (올해 − 출생연도)', `${r.getFullYear() - b.getFullYear()}세`) + line('태어난 지', `${days(b, r).toLocaleString()}일`) +
+      line('다음 생일', `${fmt(nb)} · ${days(r, nb)}일 뒤 만 ${age + 1}세`) +
+      line('만 30세 되는 날', fmt(addM(b, 360))) + line('만 65세 되는 날', fmt(addM(b, 780))));
+  } else {
+    const a = parse($('#d1').value), y = +$('input[name=term]:checked').value;
+    if (!a) return;
+    const end = addD(addM(a, y * 12), -1), f = addM(end, -6), t = addM(end, -2), dd = days(T, end);
+    const st = T < f ? '갱신요구 기간 전' : T <= t ? '지금 갱신요구 가능' : T <= end ? '갱신요구 기간 지남' : '만기 지남';
+    const step = (on, b, s) => `<div class="${on ? 'on' : ''}"><b>${b}</b><small>${s}</small></div>`;
+    show('계약 만기일', fmt(end), `${fmt(a)} 시작 · ${y === 4 ? '2+2년' : y + '년'} 계약 · ${dd >= 0 ? `D-${dd}` : `${-dd}일 지남`}`,
+      `<div class="tl">${step(T >= a && T < f, fmt(a), '계약 시작 (입주)')}${step(T >= f && T <= t, `${fmt(f)} ~ ${fmt(t)}`, '계약갱신요구 · 갱신거절 통지 기간 (만기 6개월 ~ 2개월 전)')}${step(T > t && T <= end, fmt(end), '계약 만기')}</div>` +
+      line('지금 상태', st) + (y === 2 ? line('갱신(+2년)하면 만기', fmt(addD(addM(a, 48), -1))) : ''));
+  }
+}
+$$('.tabs button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+$$('input, select').forEach(el => el.addEventListener(el.type === 'radio' || el.type === 'checkbox' || el.type === 'date' || el.tagName === 'SELECT' ? 'change' : 'input', calc));
+$$('#bq button').forEach(b => b.onclick = () => { $('#bn').value = b.dataset.v; $('#bu').value = b.dataset.u; calc(); });
+const T0 = today();
+$('#a1').value = iso(T0); $('#a2').value = iso(new Date(T0.getFullYear() + 1, 0, 1));
+$('#b1').value = iso(T0); $('#bn').value = '100';
+$('#c1').value = '1990-01-01'; $('#c2').value = iso(T0);
+$('#d1').value = iso(addM(T0, -19));
+setMode('dday');
+</script>
+</body>
+</html>

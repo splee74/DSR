@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#03c75a">
+<link rel="icon" type="image/png" href="../icon-192.png?v=2">
+<title>청약 가점 계산기</title>
+<!-- 미리보기: 계산기 모음 9번 · 아직 앱(index.html)에는 연결하지 않음 -->
+<style>
+:root{
+  --brand:#03c75a;--brand-dark:#02b351;--brand-ink:#008a3e;--brand-weak:#eafaf1;--brand-line:#b8ebcd;
+  --bg:#f5f6f7;--card:#fff;--line:#e3e5e8;--soft:#f5f6f7;--text:#1e1e23;--sub:#4e5258;--muted:#8b8f96;
+  --bad:#ea3d34;--badbg:#ffefee;--surface:#fff;--line-strong:#d4d5d9;--faint:#b4b6bc;--header:#fffffff0;--header-solid:#fff;
+  --bar-p:#03c75a;--bar-i:#ffb21e;--shadow:none;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.55;letter-spacing:-.2px;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;letter-spacing:inherit}
+.top{position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none}
+.top h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.4px}
+.top h1 span{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:-2px}
+.badge{margin-left:auto;font-size:12px;font-weight:600;color:var(--brand-ink);background:var(--brand-weak);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:20px;max-width:1100px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left,0px)) 40px}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:14px;padding-top:14px}}
+.card{background:var(--card);border-radius:20px;padding:22px;margin-bottom:14px;box-shadow:var(--shadow)}
+@media (max-width:560px){.card{padding:18px}}
+.card h2{margin:0 0 16px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.sticky{position:sticky;top:76px;align-self:start}
+@media (max-width:900px){.sticky{position:static}}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;min-width:0}
+.field>label,.flabel{font-size:13px;font-weight:500;color:var(--sub)}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.inp{display:flex;align-items:center;border:1.5px solid transparent;border-radius:12px;background:var(--soft);padding:0 14px;min-height:48px;transition:.15s}
+.inp input{border:0;outline:0;flex:1;min-width:0;width:100%;padding:10px 0;font:inherit;font-weight:600;background:transparent;text-align:right;color:var(--text);font-size:16px}
+.inp input::placeholder{color:var(--faint);font-weight:400;font-size:14px}
+.inp .u{color:var(--muted);font-size:13px;margin-left:6px;white-space:nowrap}
+.inp:focus-within{border-color:var(--brand-ink);background:var(--surface)}
+.hint{font-size:12px;color:var(--brand-ink);font-weight:500;text-align:right;min-height:18px;margin-top:-2px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.quick button{border:1px solid var(--line);background:var(--surface);color:var(--sub);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600}
+.quick button:hover{border-color:var(--brand-ink);color:var(--brand-ink)}
+.seg{display:flex;gap:6px}
+.seg label{flex:1 1 0;position:relative;min-width:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;text-align:center;padding:10px 4px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-weight:600;font-size:14px;line-height:1.3;color:var(--sub);transition:.15s}
+.seg span small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:2px}
+.seg input:checked+span{border-color:var(--brand-ink);background:var(--brand-weak);color:var(--brand-ink)}
+.seg input:checked+span small{color:var(--brand-ink)}
+.seg input:focus-visible+span{box-shadow:0 0 0 3px #03c75a44}
+.seg.sm span{padding:7px 4px;font-size:13px}
+.note{font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:12px;padding:10px 14px;line-height:1.7}
+/* 결과 */
+.hero{background:var(--brand-weak);border-radius:16px;padding:18px 18px 16px}
+.hero .k{font-size:13px;color:var(--brand-ink);font-weight:600}
+.hero .v{font-size:32px;font-weight:800;letter-spacing:-1px;margin:2px 0 0;color:var(--text)}
+.hero .v small{font-size:16px;font-weight:600;margin-left:2px}
+.hero .s{font-size:13px;color:var(--sub);margin-top:2px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+@media (max-width:420px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis>div:last-child{grid-column:1/-1}}
+.kpis>div{background:var(--soft);border-radius:14px;padding:12px 14px}
+.kpis .k{font-size:12px;color:var(--muted);font-weight:500}
+.kpis .v{font-size:17px;font-weight:700;margin-top:2px;word-break:keep-all}
+.bar{display:flex;height:12px;border-radius:999px;overflow:hidden;margin:16px 0 6px;background:var(--soft)}
+.bar i{display:block;height:100%}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0;background:var(--c)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12.5px;color:var(--muted);font-weight:500}
+th:first-child,td:first-child{text-align:left}
+tr.on td{color:var(--brand-ink);font-weight:700}
+tr.best td:last-child::after{content:" 최소";font-size:11px;color:var(--brand-ink);font-weight:700}
+.tw{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.sched-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.sched-head h2{margin:0}
+.sched-head .seg{width:150px}
+.sched{max-height:460px;overflow:auto}
+.sched thead th{position:sticky;top:0;background:var(--card)}
+.more{width:100%;margin-top:10px;border:1.5px dashed var(--brand-line);background:var(--brand-weak);color:var(--brand-ink);border-radius:12px;padding:10px;font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:30px 0;font-size:14px}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.7}
+button:focus-visible{outline:2px solid var(--brand-ink);outline-offset:2px}
+.inp input[type=date]{text-align:left;font-size:15px}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;user-select:none}
+.chk input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line-strong);background:var(--surface);margin:0;display:grid;place-items:center;cursor:pointer;flex:none}
+.chk input:checked{background:var(--brand);border-color:var(--brand-ink)}
+.chk input:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:40px;height:40px;border:0;border-radius:10px;background:var(--soft);color:var(--sub);font-size:18px;font-weight:700}
+.step output{min-width:44px;text-align:center;font-weight:700;font-size:16px}
+.sc{margin-top:14px}
+.sc .row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px}
+.sc .row span{color:var(--sub)}.sc .row b{font-weight:700}
+.sc .row small{color:var(--muted);font-weight:500;margin-left:4px}
+.sc .track{height:10px;border-radius:999px;background:var(--soft);overflow:hidden;margin-bottom:6px}
+.sc .track i{display:block;height:100%;background:var(--bar-p);border-radius:999px}
+.sc .why{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.ring{display:flex;align-items:baseline;gap:6px}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="logo" href="index.html" aria-label="계산기 모음으로" title="계산기 모음으로" style="text-decoration:none">₩</a>
+  <h1>청약 가점 계산기<span>무주택기간 · 부양가족 · 통장 가입기간 (84점 만점)</span></h1>
+  <div class="badge">미리보기</div>
+</div></header>
+
+<main class="layout">
+  <section>
+    <div class="card">
+      <h2>① 무주택기간 <small style="font-size:12.5px;color:var(--muted);font-weight:500">최대 32점</small></h2>
+      <div class="row2">
+        <div class="field">
+          <label for="birth">생년월일</label>
+          <div class="inp"><input id="birth" type="date"></div>
+        </div>
+        <div class="field">
+          <label for="wed">혼인신고일 <small style="color:var(--muted)">(미혼이면 비움)</small></label>
+          <div class="inp"><input id="wed" type="date"></div>
+        </div>
+      </div>
+      <label class="chk" style="margin-bottom:10px"><input type="checkbox" id="owned">예전에 집을 가진 적이 있음 (본인·배우자)</label>
+      <div class="field" id="soldF" hidden>
+        <label for="sold">마지막으로 집을 처분한 날</label>
+        <div class="inp"><input id="sold" type="date"></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="nowOwn">지금 집이 있음 (유주택 → 0점)</label>
+    </div>
+
+    <div class="card">
+      <h2>② 부양가족 <small style="font-size:12.5px;color:var(--muted);font-weight:500">최대 35점</small></h2>
+      <div class="field" style="margin-bottom:6px">
+        <span class="flabel">부양가족 수 <small style="color:var(--muted)">(본인 제외)</small></span>
+        <div class="step" id="famStep"><button type="button" data-d="-1">−</button><output id="fam">0</output><span style="color:var(--muted);font-size:13px">명</span><button type="button" data-d="1">+</button></div>
+      </div>
+      <p class="foot" style="text-align:left;margin:6px 0 0">배우자 · 3년 이상 같은 주민등록에 있는 부모·조부모(무주택) · 미혼 자녀(30세 이상은 1년 이상 같은 세대)</p>
+    </div>
+
+    <div class="card">
+      <h2>③ 청약통장 가입기간 <small style="font-size:12.5px;color:var(--muted);font-weight:500">최대 17점</small></h2>
+      <div class="row2">
+        <div class="field">
+          <label for="acc">통장 가입일</label>
+          <div class="inp"><input id="acc" type="date"></div>
+        </div>
+        <div class="field">
+          <label for="ref">기준일 <small style="color:var(--muted)">(모집공고일)</small></label>
+          <div class="inp"><input id="ref" type="date"></div>
+        </div>
+      </div>
+    </div>
+    <div class="note">
+      · <b>무주택기간</b>은 만 30세가 된 날과 혼인신고일 중 빠른 날부터 셉니다. 그 뒤에 집을 처분했으면 처분한 날부터입니다. 만 30세 전 미혼이면 0점입니다.<br>
+      · 무주택기간 1년 미만 2점, 이후 1년마다 2점씩 (15년 이상 32점) · 부양가족 0명 5점, 1명마다 5점 (6명 이상 35점) · 통장 6개월 미만 1점, 6개월~1년 2점, 이후 1년마다 1점 (15년 이상 17점)<br>
+      · 60㎡ 이하 소형·저가 주택 1채는 무주택으로 보는 등 예외가 있습니다. 정확한 판정은 청약홈에서 확인하세요.
+    </div>
+  </section>
+
+  <section class="sticky">
+    <div class="card">
+      <div class="hero">
+        <div class="k">내 청약 가점</div>
+        <div class="ring"><div class="v" id="total">0</div><span style="color:var(--sub);font-weight:600">/ 84점</span></div>
+        <div class="s" id="totalS"></div>
+      </div>
+      <div class="sc" id="sc"></div>
+    </div>
+    <p class="foot">계산 결과는 참고용입니다. 실제 가점은 청약홈(applyhome.co.kr)의 자격 확인 결과를 따릅니다.</p>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const parse = s => { if (!s) return null; const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const fmt = d => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+const addY = (d, y) => new Date(d.getFullYear() + y, d.getMonth(), d.getDate());
+// 두 날짜 사이 만 년수(소수 아님) · 개월
+function fullYears(a, b) { let y = b.getFullYear() - a.getFullYear(); if (addY(a, y) > b) y--; return Math.max(0, y); }
+function fullMonths(a, b) { let m = (b.getFullYear() - a.getFullYear()) * 12 + b.getMonth() - a.getMonth(); if (b.getDate() < a.getDate()) m--; return Math.max(0, m); }
+const ymText = (a, b) => { const m = fullMonths(a, b); return `${Math.floor(m / 12)}년 ${m % 12}개월`; };
+let fam = 0;
+function calc() {
+  const ref = parse($('#ref').value) || new Date();
+  const birth = parse($('#birth').value), wed = parse($('#wed').value), sold = parse($('#sold').value);
+  $('#soldF').hidden = !$('#owned').checked;
+  // ① 무주택
+  let s1 = 0, why1 = '';
+  if ($('#nowOwn').checked) why1 = '지금 집이 있어 0점';
+  else if (!birth) why1 = '생년월일을 넣으세요';
+  else {
+    const at30 = addY(birth, 30);
+    let start = wed && wed < at30 ? wed : at30;
+    if ($('#owned').checked && sold && sold > start) start = sold;
+    if (!wed && ref < at30) why1 = `만 30세 전 미혼이라 0점 (${fmt(at30)}부터 계산)`;
+    else if (start > ref) why1 = `무주택기간 시작일(${fmt(start)})이 기준일 뒤`;
+    else {
+      const y = fullYears(start, ref); s1 = Math.min(32, 2 + y * 2);
+      why1 = `${fmt(start)}부터 ${ymText(start, ref)}` + (start === wed ? ' (혼인신고일 기준)' : start === sold ? ' (처분일 기준)' : ' (만 30세 기준)');
+    }
+  }
+  // ② 부양가족
+  const s2 = Math.min(35, 5 + fam * 5), why2 = `${fam}명${fam >= 6 ? ' (6명 이상 만점)' : ''}`;
+  // ③ 통장
+  const acc = parse($('#acc').value);
+  let s3 = 0, why3 = '통장 가입일을 넣으세요';
+  if (acc && acc <= ref) {
+    const m = fullMonths(acc, ref);
+    s3 = m < 6 ? 1 : m < 12 ? 2 : Math.min(17, 2 + Math.floor(m / 12));
+    why3 = `가입 ${ymText(acc, ref)}`;
+  } else if (acc) why3 = '가입일이 기준일 뒤입니다';
+  const total = s1 + s2 + s3;
+  $('#total').textContent = total;
+  $('#totalS').textContent = `기준일 ${fmt(ref)}` + (total >= 84 ? ' · 만점' : ` · 만점까지 ${84 - total}점`);
+  const bar = (name, s, max, why) => `<div class="row"><span>${name}</span><b>${s}점<small>/ ${max}</small></b></div><div class="track"><i style="width:${s / max * 100}%"></i></div><div class="why">${why}</div>`;
+  $('#sc').innerHTML = bar('무주택기간', s1, 32, why1) + bar('부양가족', s2, 35, why2) + bar('청약통장 가입기간', s3, 17, why3) + nextTip(s1, s3, ref, birth, wed, acc);
+}
+// 다음에 점수가 오르는 날
+function nextTip(s1, s3, ref, birth, wed, acc) {
+  const tips = [];
+  if (acc && s3 < 17) { const m = fullMonths(acc, ref), nm = m < 6 ? 6 : m < 12 ? 12 : (Math.floor(m / 12) + 1) * 12; tips.push(`통장 ${fmt(new Date(acc.getFullYear(), acc.getMonth() + nm, acc.getDate()))}에 +1점`); }
+  return tips.length ? `<div class="note" style="margin-top:4px">다음 점수: ${tips.join(' · ')}</div>` : '';
+}
+$$('#famStep button').forEach(b => b.onclick = () => { fam = Math.min(10, Math.max(0, fam + +b.dataset.d)); $('#fam').textContent = fam; calc(); });
+$$('input').forEach(el => el.addEventListener('change', calc));
+$('#ref').value = iso(new Date());
+// 예시
+$('#birth').value = '1988-05-10'; $('#wed').value = '2016-10-01'; $('#acc').value = '2012-03-15'; fam = 3; $('#fam').textContent = fam;
+calc();
+</script>
+</body>
+</html>
