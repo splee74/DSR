@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#03c75a">
+<link rel="icon" type="image/png" href="../icon-192.png?v=2">
+<title>전월세 전환 계산기</title>
+<!-- 미리보기: 계산기 모음 3번 · 아직 앱(index.html)에는 연결하지 않음 -->
+<style>
+:root{
+  --brand:#03c75a;--brand-dark:#02b351;--brand-ink:#008a3e;--brand-weak:#eafaf1;--brand-line:#b8ebcd;
+  --bg:#f5f6f7;--card:#fff;--line:#e3e5e8;--soft:#f5f6f7;--text:#1e1e23;--sub:#4e5258;--muted:#8b8f96;
+  --bad:#ea3d34;--badbg:#ffefee;--surface:#fff;--line-strong:#d4d5d9;--faint:#b4b6bc;--header:#fffffff0;--header-solid:#fff;
+  --bar-p:#03c75a;--bar-i:#ffb21e;--shadow:none;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#1ed36f;--brand-dark:#03c75a;--brand-ink:#4fe393;--brand-weak:#10301f;--brand-line:#1f5a39;
+  --bg:#141416;--card:#1d1e21;--line:#323338;--soft:#26272b;--text:#ececee;--sub:#b9bbc2;--muted:#8a8d95;
+  --bad:#ff6b63;--badbg:#3a1918;--surface:#2b2c31;--line-strong:#46474e;--faint:#62646b;--header:#1d1e21ee;--header-solid:#1d1e21;
+  --bar-p:#1ed36f;--bar-i:#f0b23c;--shadow:0 1px 2px #00000066;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.55;letter-spacing:-.2px;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;letter-spacing:inherit}
+.top{position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none}
+.top h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.4px}
+.top h1 span{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:-2px}
+.badge{margin-left:auto;font-size:12px;font-weight:600;color:var(--brand-ink);background:var(--brand-weak);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:20px;max-width:1100px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left,0px)) 40px}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:14px;padding-top:14px}}
+.card{background:var(--card);border-radius:20px;padding:22px;margin-bottom:14px;box-shadow:var(--shadow)}
+@media (max-width:560px){.card{padding:18px}}
+.card h2{margin:0 0 16px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.sticky{position:sticky;top:76px;align-self:start}
+@media (max-width:900px){.sticky{position:static}}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field>label,.flabel{font-size:13px;font-weight:500;color:var(--sub)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.inp{display:flex;align-items:center;border:1.5px solid transparent;border-radius:12px;background:var(--soft);padding:0 14px;min-height:48px;transition:.15s}
+.inp input{border:0;outline:0;flex:1;min-width:0;padding:10px 0;font:inherit;font-weight:600;background:transparent;text-align:right;color:var(--text);font-size:16px}
+.inp input::placeholder{color:var(--faint);font-weight:400;font-size:14px}
+.inp .u{color:var(--muted);font-size:13px;margin-left:6px;white-space:nowrap}
+.inp:focus-within{border-color:var(--brand-ink);background:var(--surface)}
+.hint{font-size:12px;color:var(--brand-ink);font-weight:500;text-align:right;min-height:18px;margin-top:-2px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.quick button{border:1px solid var(--line);background:var(--surface);color:var(--sub);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600}
+.quick button:hover{border-color:var(--brand-ink);color:var(--brand-ink)}
+.seg{display:flex;gap:6px}
+.seg label{flex:1 1 0;position:relative;min-width:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;text-align:center;padding:10px 4px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-weight:600;font-size:14px;line-height:1.3;color:var(--sub);transition:.15s}
+.seg span small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:2px}
+.seg input:checked+span{border-color:var(--brand-ink);background:var(--brand-weak);color:var(--brand-ink)}
+.seg input:checked+span small{color:var(--brand-ink)}
+.seg input:focus-visible+span{box-shadow:0 0 0 3px #03c75a44}
+.seg.sm span{padding:7px 4px;font-size:13px}
+.note{font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:12px;padding:10px 14px;line-height:1.7}
+/* 결과 */
+.hero{background:var(--brand-weak);border-radius:16px;padding:18px 18px 16px}
+.hero .k{font-size:13px;color:var(--brand-ink);font-weight:600}
+.hero .v{font-size:32px;font-weight:800;letter-spacing:-1px;margin:2px 0 0;color:var(--text)}
+.hero .v small{font-size:16px;font-weight:600;margin-left:2px}
+.hero .s{font-size:13px;color:var(--sub);margin-top:2px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+@media (max-width:420px){.kpis{grid-template-columns:1fr 1fr}.kpis>div:last-child{grid-column:1/-1}}
+.kpis>div{background:var(--soft);border-radius:14px;padding:12px 14px}
+.kpis .k{font-size:12px;color:var(--muted);font-weight:500}
+.kpis .v{font-size:17px;font-weight:700;margin-top:2px;word-break:keep-all}
+.bar{display:flex;height:12px;border-radius:999px;overflow:hidden;margin:16px 0 6px;background:var(--soft)}
+.bar i{display:block;height:100%}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0;background:var(--c)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12.5px;color:var(--muted);font-weight:500}
+th:first-child,td:first-child{text-align:left}
+tr.on td{color:var(--brand-ink);font-weight:700}
+tr.best td:last-child::after{content:" 최소";font-size:11px;color:var(--brand-ink);font-weight:700}
+.tw{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.sched-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.sched-head h2{margin:0}
+.sched-head .seg{width:150px}
+.sched{max-height:460px;overflow:auto}
+.sched thead th{position:sticky;top:0;background:var(--card)}
+.more{width:100%;margin-top:10px;border:1.5px dashed var(--brand-line);background:var(--brand-weak);color:var(--brand-ink);border-radius:12px;padding:10px;font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:30px 0;font-size:14px}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.7}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;background:var(--soft);border-radius:14px;padding:4px;margin-bottom:16px}
+@media (max-width:480px){.tabs{grid-template-columns:1fr 1fr}}
+.tabs button{border:0;background:transparent;color:var(--muted);padding:9px 4px;border-radius:11px;font-weight:600;font-size:13.5px;line-height:1.3}
+.tabs button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 4px #00000014}
+.hero.bad{background:var(--badbg)}.hero.bad .k{color:var(--bad)}
+.line{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.line:last-child{border-bottom:0}
+.line span{color:var(--sub)}.line b{font-weight:700;text-align:right}
+.good{color:var(--brand-ink)}.badc{color:var(--bad)}
+.cap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--sub);margin-top:-4px}
+.cap b{color:var(--brand-ink)}
+.cap button{border:1px solid var(--line);background:var(--surface);color:var(--sub);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600}
+.flow{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0 4px;font-size:13.5px;color:var(--sub);flex-wrap:wrap;text-align:center}
+.flow div{background:var(--soft);border-radius:12px;padding:8px 12px;min-width:110px}
+.flow div b{display:block;color:var(--text);font-size:15px}
+.flow i{font-style:normal;color:var(--muted);font-size:18px}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="logo">₩</div>
+  <h1>전월세 전환 계산기<span>전세↔월세 · 보증금 조정 · 전환율</span></h1>
+  <div class="badge">미리보기</div>
+</div></header>
+
+<main class="layout">
+  <section>
+    <div class="card">
+      <div class="tabs" role="tablist">
+        <button type="button" data-mode="j2m" class="on">전세 → 월세</button>
+        <button type="button" data-mode="m2j">월세 → 전세</button>
+        <button type="button" data-mode="adj">보증금 조정</button>
+        <button type="button" data-mode="rate">전환율 구하기</button>
+      </div>
+
+      <div class="field" data-show="j2m rate">
+        <label for="jeonse">전세 보증금</label>
+        <div class="inp"><input id="jeonse" class="money" inputmode="numeric" placeholder="예: 30,000" autocomplete="off"><span class="u">만원</span></div>
+        <div class="hint" data-hint="jeonse"></div>
+      </div>
+      <div class="field" data-show="j2m m2j adj rate">
+        <label for="dep" id="depL">월세 보증금</label>
+        <div class="inp"><input id="dep" class="money" inputmode="numeric" placeholder="예: 5,000" autocomplete="off"><span class="u">만원</span></div>
+        <div class="hint" data-hint="dep"></div>
+      </div>
+      <div class="field" data-show="m2j adj rate">
+        <label for="rent" id="rentL">월세</label>
+        <div class="inp"><input id="rent" class="money" inputmode="numeric" placeholder="예: 100" autocomplete="off"><span class="u">만원</span></div>
+      </div>
+      <div class="field" data-show="adj">
+        <label for="dep2">바꿀 보증금</label>
+        <div class="inp"><input id="dep2" class="money" inputmode="numeric" placeholder="예: 10,000" autocomplete="off"><span class="u">만원</span></div>
+        <div class="hint" data-hint="dep2"></div>
+      </div>
+      <div class="field" data-show="j2m m2j adj" style="margin-bottom:6px">
+        <label for="conv">전월세 전환율</label>
+        <div class="inp"><input id="conv" inputmode="decimal" placeholder="예: 5.0" autocomplete="off"><span class="u">% (연)</span></div>
+      </div>
+      <div class="cap" data-show="j2m m2j adj rate">
+        법정 상한 <b id="capV"></b>
+        <span>= 기준금리</span>
+        <span class="inp" style="min-height:30px;padding:0 8px;width:84px;border-radius:8px"><input id="bok" inputmode="decimal" style="font-size:13px;padding:4px 0"><span class="u">%</span></span>
+        <span>+ 2%</span>
+        <button type="button" id="useCap" data-show="j2m m2j adj">상한 적용</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>전세대출과 비교 <small style="font-size:12.5px;color:var(--muted);font-weight:500">· 선택</small></h2>
+      <div class="field" style="margin-bottom:6px">
+        <label for="loanR">전세대출 금리</label>
+        <div class="inp"><input id="loanR" inputmode="decimal" placeholder="예: 4.0" autocomplete="off"><span class="u">%</span></div>
+      </div>
+      <p class="foot" style="text-align:left;margin:4px 0 0">전세로 하면서 늘어나는 보증금을 전세대출로 빌릴 때의 월 이자를 월세와 비교합니다.</p>
+    </div>
+
+    <div class="note">
+      · <b>전환율</b>: 전세 보증금 일부를 월세로 바꿀 때 쓰는 연 이율입니다. 월세 = 바꾸는 보증금 × 전환율 ÷ 12<br>
+      · <b>법정 상한</b>(주택임대차보호법): 계약 기간 중이나 갱신할 때 전세를 월세로 바꾸면 <b>연 10%</b>와 <b>한국은행 기준금리 + 2%</b> 중 낮은 율을 넘을 수 없습니다. 새로 맺는 계약은 서로 정하기 나름입니다.<br>
+      · 기준금리는 바뀔 수 있으니 한국은행 발표를 확인해 고쳐 넣으세요.
+    </div>
+  </section>
+
+  <section class="sticky">
+    <div class="card">
+      <div class="empty" id="empty">금액과 전환율을 넣으면 바로 계산됩니다.</div>
+      <div id="res" hidden>
+        <div class="hero" id="hero">
+          <div class="k" id="heroK"></div>
+          <div class="v" id="heroV"></div>
+          <div class="s" id="heroS"></div>
+        </div>
+        <div class="flow" id="flow"></div>
+        <div style="margin-top:10px" id="lines"></div>
+      </div>
+    </div>
+    <div class="card" id="cmpCard" hidden>
+      <h2>월세 vs 전세대출 이자</h2>
+      <div id="cmp"></div>
+    </div>
+    <p class="foot">계산 결과는 참고용입니다. 실제 금액은 임대인과의 합의, 관리비 등에 따라 달라질 수 있습니다.</p>
+  </section>
+</main>
+
+<script>
+// 한국은행 기준금리 기본값 (화면에서 고칠 수 있음) · 바뀌면 이 값만 고치면 됨
+const BOK_RATE = 3.00;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const num = v => +String(v || '').replace(/[^\d.]/g, '') || 0;
+const won = v => Math.round(v).toLocaleString('ko-KR') + '원';
+function kor(v) {
+  v = Math.round(v); const neg = v < 0; v = Math.abs(v);
+  if (v < 10000) return (neg ? '-' : '') + v.toLocaleString('ko-KR') + '원';
+  const eok = Math.floor(v / 1e8), man = Math.floor((v % 1e8) / 1e4);
+  return (neg ? '-' : '') + [eok ? eok.toLocaleString('ko-KR') + '억' : '', man ? man.toLocaleString('ko-KR') + '만' : ''].filter(Boolean).join(' ') + '원';
+}
+const M = id => num($('#' + id).value) * 1e4;   // 만원 칸 → 원
+let mode = 'j2m';
+const cap = () => Math.min(10, num($('#bok').value) + 2);
+const line = (k, v, c = '') => `<div class="line"><span>${k}</span><b class="${c}">${v}</b></div>`;
+
+function setMode(m) {
+  mode = m;
+  $$('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  $$('[data-show]').forEach(el => el.hidden = !el.dataset.show.split(' ').includes(m));
+  $('#depL').textContent = m === 'adj' ? '지금 보증금' : '월세 보증금';
+  $('#rentL').textContent = m === 'adj' ? '지금 월세' : '월세';
+  calc();
+}
+function calc() {
+  ['jeonse', 'dep', 'dep2'].forEach(id => { const h = $(`[data-hint="${id}"]`); if (h) h.textContent = M(id) ? kor(M(id)) : ''; });
+  const c = cap(); $('#capV').textContent = c.toFixed(2).replace(/\.?0+$/, '') + '%';
+  const J = M('jeonse'), D = M('dep'), R = M('rent'), D2 = M('dep2'), r = num($('#conv').value), lr = num($('#loanR').value);
+  let ok = false, hk = '', hv = 0, hs = '', flow = '', lines = '', over = r > c && mode !== 'rate', cmp = null;
+  if (mode === 'j2m' && J > 0 && r > 0 && D < J) {
+    const m = (J - D) * r / 100 / 12; ok = true;
+    hk = '월세'; hv = m; hs = `(${kor(J)} − ${kor(D)}) × ${r}% ÷ 12`;
+    flow = `<div>전세<b>${kor(J)}</b></div><i>→</i><div>보증금 ${kor(D)}<b>월 ${kor(m)}</b></div>`;
+    lines = line('월세로 바뀌는 보증금', kor(J - D)) + line('1년 월세 합계', kor(m * 12)) + line('2년 계약 월세 합계', kor(m * 24));
+    cmp = { gap: J - D, rent: m };
+  } else if (mode === 'm2j' && R > 0 && r > 0) {
+    const j = D + R * 12 / (r / 100); ok = true;
+    hk = '전세로 바꾸면 보증금'; hv = j; hs = `${kor(D)} + 월 ${kor(R)} × 12 ÷ ${r}%`;
+    flow = `<div>보증금 ${kor(D)}<b>월 ${kor(R)}</b></div><i>→</i><div>전세<b>${kor(j)}</b></div>`;
+    lines = line('더 내야 하는 보증금', kor(j - D)) + line('1년 월세 합계 (안 내도 되는 돈)', kor(R * 12));
+    cmp = { gap: j - D, rent: R };
+  } else if (mode === 'adj' && R >= 0 && D2 >= 0 && r > 0 && $('#dep2').value !== '' && (R > 0 || D > 0)) {
+    const m = R - (D2 - D) * r / 100 / 12; ok = true;
+    if (m < 0) {
+      hk = '월세가 0원이 되는 보증금'; hv = D + R * 12 / (r / 100); hs = '바꿀 보증금이 너무 커서 월세가 없어집니다 (전세 전환 금액)';
+    } else { hk = '바뀐 월세'; hv = m; hs = `월 ${kor(R)} ${D2 >= D ? '−' : '+'} ${kor(Math.abs(D2 - D))} × ${r}% ÷ 12`; }
+    flow = `<div>보증금 ${kor(D)}<b>월 ${kor(R)}</b></div><i>→</i><div>보증금 ${kor(D2)}<b>월 ${kor(Math.max(0, m))}</b></div>`;
+    const dm = R - Math.max(0, m);
+    lines = line(D2 >= D ? '보증금 올림' : '보증금 내림', kor(Math.abs(D2 - D))) + line(dm >= 0 ? '월세 줄어듦' : '월세 늘어남', kor(Math.abs(dm)), dm >= 0 ? 'good' : 'badc') + line('1년 차이', kor(Math.abs(dm) * 12));
+    if (D2 > D && m >= 0) cmp = { gap: D2 - D, rent: dm, adj: true };
+  } else if (mode === 'rate' && J > 0 && R > 0 && D < J) {
+    const cr = R * 12 / (J - D) * 100; ok = true; over = cr > c;
+    hk = '전월세 전환율'; hv = null; hs = `월 ${kor(R)} × 12 ÷ (${kor(J)} − ${kor(D)})`;
+    $('#heroV').innerHTML = cr.toFixed(2) + '<small>%</small>';
+    flow = `<div>전세<b>${kor(J)}</b></div><i>=</i><div>보증금 ${kor(D)}<b>월 ${kor(R)}</b></div>`;
+    lines = line('법정 상한', c.toFixed(2).replace(/\.?0+$/, '') + '%') +
+      line('판정', over ? '상한보다 높음' : '상한 이내', over ? 'badc' : 'good') +
+      (over ? line('상한 적용 시 월세', kor((J - D) * c / 100 / 12), 'good') : '');
+  }
+  $('#empty').hidden = ok; $('#res').hidden = !ok;
+  $('#empty').textContent = (mode === 'j2m' || mode === 'rate') && J > 0 && D >= J ? '월세 보증금이 전세 보증금보다 작아야 합니다.' : '금액과 전환율을 넣으면 바로 계산됩니다.';
+  if (!ok) { $('#cmpCard').hidden = true; return; }
+  $('#heroK').textContent = hk;
+  if (hv !== null) $('#heroV').innerHTML = Math.round(hv).toLocaleString('ko-KR') + '<small>원</small>';
+  $('#heroS').textContent = hs + (over && mode !== 'rate' ? ` · 입력한 전환율 ${r}%가 법정 상한보다 높습니다` : '');
+  $('#hero').classList.toggle('bad', over);
+  $('#flow').innerHTML = flow; $('#lines').innerHTML = lines;
+  // 전세대출 비교: 늘어나는 보증금(gap)을 대출로 빌린 월 이자 vs 월세(rent)
+  const show = cmp && lr > 0 && cmp.gap > 0;
+  $('#cmpCard').hidden = !show;
+  if (show) {
+    const li = cmp.gap * lr / 100 / 12, diff = cmp.rent - li;
+    $('#cmp').innerHTML = `<div class="hero ${diff < 0 ? 'bad' : ''}"><div class="k">${diff >= 0 ? (cmp.adj ? '보증금을 대출로 올리는 게 유리' : '전세대출이 유리') : (cmp.adj ? '지금 월세 그대로가 유리' : '월세가 유리')}</div>
+      <div class="v">월 ${Math.round(Math.abs(diff)).toLocaleString('ko-KR')}<small>원</small></div><div class="s">1년 ${kor(Math.abs(diff) * 12)} 차이</div></div>
+      <div style="margin-top:10px">${line(cmp.adj ? '줄어드는 월세' : '월세', '월 ' + kor(cmp.rent))}${line(`전세대출 ${kor(cmp.gap)} 이자 (${lr}%)`, '월 ' + kor(li))}</div>
+      <p class="foot" style="text-align:left;margin-top:8px">대출 이자만 비교했습니다. 보증료·한도·내 돈으로 낼 때의 예금이자 손실은 빠져 있습니다.</p>`;
+  }
+}
+const comma = e => { const el = e.target, d = el.value.replace(/[^\d]/g, '').slice(0, 9); el.value = d ? (+d).toLocaleString('ko-KR') : ''; };
+$$('.money').forEach(el => el.addEventListener('input', comma));
+$$('input').forEach(el => el.addEventListener('input', calc));
+$$('.tabs button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+$('#useCap').onclick = () => { $('#conv').value = cap().toFixed(2).replace(/\.?0+$/, ''); calc(); };
+// 처음 보여줄 예시
+$('#bok').value = BOK_RATE.toFixed(2);
+$('#jeonse').value = '30,000'; $('#dep').value = '5,000'; $('#rent').value = '100'; $('#dep2').value = '10,000';
+$('#conv').value = cap().toFixed(2).replace(/\.?0+$/, ''); $('#loanR').value = '4.0';
+setMode('j2m');
+</script>
+</body>
+</html>
