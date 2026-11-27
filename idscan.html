@@ -115,7 +115,7 @@ main{padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <div class="top-row"><a class="back" href="./">‹ DSR·DTI 계산기</a><a class="go-back" href="./" aria-label="이전 화면으로 돌아가기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>돌아가기</a></div>
+  <div class="top-row"><a class="back" href="./">‹ DSR·DTI 계산기</a><a class="go-back" href="./index.html?home" aria-label="처음 화면으로"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>처음으로</a></div>
   <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5.5 16c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4M14 10h4.5M14 13.5h3"/></svg></div>
   <div><h1>SCAN</h1><span class="sub">신분증 · 명함을 사진 한 장으로 반듯하게</span></div>
 </div></header>
@@ -814,12 +814,6 @@ function say(t, bad, toast) {
 // 화면을 떠나면 사진을 메모리에서 지움
 addEventListener('pagehide', () => { S.front = S.back = null; S.saved = {}; });
 { let m = 'id'; try { m = localStorage.getItem('scanMode') || 'id'; } catch (e) {} setMode(m); }
-</script>
-<script>
-document.querySelector('.go-back').addEventListener('click', e => {
-  let same = false; try { same = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (_) {}
-  if (same && history.length > 1) { e.preventDefault(); history.back(); }
-});
 </script>
 </body>
 </html>

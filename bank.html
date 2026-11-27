@@ -408,7 +408,7 @@ body{padding-bottom:72px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <div class="top-row"><a class="back" href="./">‹ DSR·DTI 계산기</a><a class="go-back" href="./" aria-label="이전 화면으로 돌아가기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>돌아가기</a></div>
+  <div class="top-row"><a class="back" href="./">‹ DSR·DTI 계산기</a><a class="go-back" href="./index.html?home" aria-label="처음 화면으로"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>처음으로</a></div>
   <div class="logo">%</div>
   <div><h1>은행별 금리 비교</h1><span>주택담보대출 · 전세자금대출 · <i id="bankCount" style="font-style:normal">6</i>개 은행</span></div>
   <div class="asof" id="asof"></div>
@@ -1199,12 +1199,6 @@ document.addEventListener('change', e => {
 });
 $('#amt').addEventListener('input', e => { fmt(e.target); render(); });
 render(); load();
-</script>
-<script>
-document.querySelector('.go-back').addEventListener('click', e => {
-  let same = false; try { same = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (_) {}
-  if (same && history.length > 1) { e.preventDefault(); history.back(); }
-});
 </script>
 </body>
 </html>
