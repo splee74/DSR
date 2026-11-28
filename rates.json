@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-28T09:37:13.964Z",
+ "updated": "2026-11-28T09:40:44.259Z",
  "data": {
   "mort": {
    "variable": {
@@ -119,7 +119,7 @@
   "jeonse": {
    "hfVar": {
     "sample": false,
-    "asof": "2026-11-26",
+    "asof": "2026-11-28",
     "banks": {
      "kb": {
       "rate": 4.69,
@@ -134,13 +134,13 @@
       "term": 12
      },
      "shinhan": {
-      "rate": 4.75,
+      "rate": 4.76,
       "fee": 0.43,
       "idx": "bond",
       "term": 6
      },
      "hana": {
-      "rate": 4.8,
+      "rate": 4.82,
       "fee": 0.59,
       "idx": "cofixNewBal",
       "term": 6
@@ -163,10 +163,10 @@
    },
    "hfFix": {
     "sample": false,
-    "asof": "2026-11-26",
+    "asof": "2026-11-28",
     "banks": {
      "kb": {
-      "rate": 4.9,
+      "rate": 4.84,
       "fee": 0.96
      },
      "woori": {
@@ -178,7 +178,7 @@
       "fee": 0.85
      },
      "hana": {
-      "rate": 4.76,
+      "rate": 4.79,
       "fee": 0.59
      },
      "ibk": {},
@@ -191,7 +191,7 @@
    },
    "hugVar": {
     "sample": false,
-    "asof": "2026-11-26",
+    "asof": "2026-11-28",
     "banks": {
      "kb": {
       "rate": 4.82,
@@ -206,13 +206,13 @@
       "term": 12
      },
      "shinhan": {
-      "rate": 4.74,
+      "rate": 4.75,
       "fee": 0.43,
       "idx": "bond",
       "term": 6
      },
      "hana": {
-      "rate": 4.92,
+      "rate": 4.94,
       "fee": 0.59,
       "idx": "cofixNew",
       "term": 6
@@ -237,10 +237,10 @@
    },
    "hugFix": {
     "sample": false,
-    "asof": "2026-11-26",
+    "asof": "2026-11-28",
     "banks": {
      "kb": {
-      "rate": 4.96,
+      "rate": 4.9,
       "fee": 0.96
      },
      "woori": {
@@ -264,7 +264,7 @@
    },
    "sgiVar": {
     "sample": false,
-    "asof": "2026-11-26",
+    "asof": "2026-11-28",
     "banks": {
      "kb": {
       "rate": 4.69,
@@ -279,13 +279,13 @@
       "term": 12
      },
      "shinhan": {
-      "rate": 4.86,
+      "rate": 4.87,
       "fee": 0.43,
       "idx": "bond",
       "term": 6
      },
      "hana": {
-      "rate": 5.08,
+      "rate": 5.1,
       "fee": 0.59,
       "idx": "cofixNew",
       "term": 6
@@ -310,10 +310,10 @@
    },
    "sgiFix": {
     "sample": false,
-    "asof": "2026-11-26",
+    "asof": "2026-11-28",
     "banks": {
      "kb": {
-      "rate": 5.26,
+      "rate": 5.2,
       "fee": 0.96
      },
      "woori": {
@@ -325,7 +325,7 @@
       "fee": 0.85
      },
      "hana": {
-      "rate": 5.03,
+      "rate": 5.06,
       "fee": 0.59
      },
      "ibk": {},
